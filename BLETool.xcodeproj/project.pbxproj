@@ -1,0 +1,403 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CF1C2AB71C766F6B009F2892 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1C2AB61C766F6B009F2892 /* AppDelegate.swift */; };
+		CF1C2AB91C766F6B009F2892 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1C2AB81C766F6B009F2892 /* ViewController.swift */; };
+		CF1C2ABC1C766F6B009F2892 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CF1C2ABA1C766F6B009F2892 /* Main.storyboard */; };
+		CF1C2ABE1C766F6B009F2892 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CF1C2ABD1C766F6B009F2892 /* Assets.xcassets */; };
+		CF1C2AC11C766F6B009F2892 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CF1C2ABF1C766F6B009F2892 /* LaunchScreen.storyboard */; };
+		CF1C2ACC1C766F6B009F2892 /* BLEToolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1C2ACB1C766F6B009F2892 /* BLEToolTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CF1C2AC81C766F6B009F2892 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CF1C2AAB1C766F6B009F2892 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CF1C2AB21C766F6B009F2892;
+			remoteInfo = BLETool;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		CF1C2AB31C766F6B009F2892 /* BLETool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BLETool.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF1C2AB61C766F6B009F2892 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		CF1C2AB81C766F6B009F2892 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		CF1C2ABB1C766F6B009F2892 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		CF1C2ABD1C766F6B009F2892 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CF1C2AC01C766F6B009F2892 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		CF1C2AC21C766F6B009F2892 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CF1C2AC71C766F6B009F2892 /* BLEToolTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BLEToolTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF1C2ACB1C766F6B009F2892 /* BLEToolTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEToolTests.swift; sourceTree = "<group>"; };
+		CF1C2ACD1C766F6B009F2892 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CF1C2AB01C766F6B009F2892 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CF1C2AC41C766F6B009F2892 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CF1C2AAA1C766F6B009F2892 = {
+			isa = PBXGroup;
+			children = (
+				CF1C2AB51C766F6B009F2892 /* BLETool */,
+				CF1C2ACA1C766F6B009F2892 /* BLEToolTests */,
+				CF1C2AB41C766F6B009F2892 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CF1C2AB41C766F6B009F2892 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CF1C2AB31C766F6B009F2892 /* BLETool.app */,
+				CF1C2AC71C766F6B009F2892 /* BLEToolTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CF1C2AB51C766F6B009F2892 /* BLETool */ = {
+			isa = PBXGroup;
+			children = (
+				CF1C2AB61C766F6B009F2892 /* AppDelegate.swift */,
+				CF1C2AB81C766F6B009F2892 /* ViewController.swift */,
+				CF1C2ABA1C766F6B009F2892 /* Main.storyboard */,
+				CF1C2ABD1C766F6B009F2892 /* Assets.xcassets */,
+				CF1C2ABF1C766F6B009F2892 /* LaunchScreen.storyboard */,
+				CF1C2AC21C766F6B009F2892 /* Info.plist */,
+			);
+			path = BLETool;
+			sourceTree = "<group>";
+		};
+		CF1C2ACA1C766F6B009F2892 /* BLEToolTests */ = {
+			isa = PBXGroup;
+			children = (
+				CF1C2ACB1C766F6B009F2892 /* BLEToolTests.swift */,
+				CF1C2ACD1C766F6B009F2892 /* Info.plist */,
+			);
+			path = BLEToolTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CF1C2AB21C766F6B009F2892 /* BLETool */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CF1C2AD01C766F6B009F2892 /* Build configuration list for PBXNativeTarget "BLETool" */;
+			buildPhases = (
+				CF1C2AAF1C766F6B009F2892 /* Sources */,
+				CF1C2AB01C766F6B009F2892 /* Frameworks */,
+				CF1C2AB11C766F6B009F2892 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BLETool;
+			productName = BLETool;
+			productReference = CF1C2AB31C766F6B009F2892 /* BLETool.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CF1C2AC61C766F6B009F2892 /* BLEToolTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CF1C2AD31C766F6B009F2892 /* Build configuration list for PBXNativeTarget "BLEToolTests" */;
+			buildPhases = (
+				CF1C2AC31C766F6B009F2892 /* Sources */,
+				CF1C2AC41C766F6B009F2892 /* Frameworks */,
+				CF1C2AC51C766F6B009F2892 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CF1C2AC91C766F6B009F2892 /* PBXTargetDependency */,
+			);
+			name = BLEToolTests;
+			productName = BLEToolTests;
+			productReference = CF1C2AC71C766F6B009F2892 /* BLEToolTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CF1C2AAB1C766F6B009F2892 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0720;
+				LastUpgradeCheck = 0720;
+				ORGANIZATIONNAME = fortin;
+				TargetAttributes = {
+					CF1C2AB21C766F6B009F2892 = {
+						CreatedOnToolsVersion = 7.2.1;
+						DevelopmentTeam = 9WTEHENT7V;
+					};
+					CF1C2AC61C766F6B009F2892 = {
+						CreatedOnToolsVersion = 7.2.1;
+						DevelopmentTeam = 9WTEHENT7V;
+						TestTargetID = CF1C2AB21C766F6B009F2892;
+					};
+				};
+			};
+			buildConfigurationList = CF1C2AAE1C766F6B009F2892 /* Build configuration list for PBXProject "BLETool" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CF1C2AAA1C766F6B009F2892;
+			productRefGroup = CF1C2AB41C766F6B009F2892 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CF1C2AB21C766F6B009F2892 /* BLETool */,
+				CF1C2AC61C766F6B009F2892 /* BLEToolTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CF1C2AB11C766F6B009F2892 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF1C2AC11C766F6B009F2892 /* LaunchScreen.storyboard in Resources */,
+				CF1C2ABE1C766F6B009F2892 /* Assets.xcassets in Resources */,
+				CF1C2ABC1C766F6B009F2892 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CF1C2AC51C766F6B009F2892 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CF1C2AAF1C766F6B009F2892 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF1C2AB91C766F6B009F2892 /* ViewController.swift in Sources */,
+				CF1C2AB71C766F6B009F2892 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CF1C2AC31C766F6B009F2892 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF1C2ACC1C766F6B009F2892 /* BLEToolTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CF1C2AC91C766F6B009F2892 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CF1C2AB21C766F6B009F2892 /* BLETool */;
+			targetProxy = CF1C2AC81C766F6B009F2892 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		CF1C2ABA1C766F6B009F2892 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CF1C2ABB1C766F6B009F2892 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		CF1C2ABF1C766F6B009F2892 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CF1C2AC01C766F6B009F2892 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		CF1C2ACE1C766F6B009F2892 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CF1C2ACF1C766F6B009F2892 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CF1C2AD11C766F6B009F2892 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = BLETool/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = fortin.xiaotu.BLETool;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CF1C2AD21C766F6B009F2892 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = BLETool/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = fortin.xiaotu.BLETool;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CF1C2AD41C766F6B009F2892 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				INFOPLIST_FILE = BLEToolTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = fortin.xiaotu.BLEToolTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BLETool.app/BLETool";
+			};
+			name = Debug;
+		};
+		CF1C2AD51C766F6B009F2892 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				INFOPLIST_FILE = BLEToolTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = fortin.xiaotu.BLEToolTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BLETool.app/BLETool";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CF1C2AAE1C766F6B009F2892 /* Build configuration list for PBXProject "BLETool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CF1C2ACE1C766F6B009F2892 /* Debug */,
+				CF1C2ACF1C766F6B009F2892 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CF1C2AD01C766F6B009F2892 /* Build configuration list for PBXNativeTarget "BLETool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CF1C2AD11C766F6B009F2892 /* Debug */,
+				CF1C2AD21C766F6B009F2892 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		CF1C2AD31C766F6B009F2892 /* Build configuration list for PBXNativeTarget "BLEToolTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CF1C2AD41C766F6B009F2892 /* Debug */,
+				CF1C2AD51C766F6B009F2892 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CF1C2AAB1C766F6B009F2892 /* Project object */;
+}
