@@ -142,7 +142,7 @@
                             <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="q09-Zs-mcm">
                                 <rect key="frame" x="20" y="372" width="300" height="56"/>
                                 <color key="backgroundColor" red="0.55703097410000002" green="1" blue="0.64112389479999998" alpha="1" colorSpace="calibratedRGB"/>
-                                <color key="tintColor" patternImage="2BD60443-855A-4880-80D9-1299BADC2552" colorSpace="pattern"/>
+                                <color key="tintColor" patternImage="2E546D82-2B73-42E4-B466-22FCFD4E85B6" colorSpace="pattern"/>
                                 <state key="normal" title="Scan">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -160,6 +160,12 @@
                                     <action selector="onLock:" destination="qfS-tC-vNs" eventType="touchUpInside" id="ifw-97-UxL"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Em6-lG-Zg3">
+                                <rect key="frame" x="178" y="436" width="42" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <button opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="600" placeholderIntrinsicHeight="87" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WoV-6M-SO7">
                                 <rect key="frame" x="20" y="500" width="150" height="56"/>
                                 <color key="backgroundColor" cocoaTouchSystemColor="viewFlipsideBackgroundColor"/>
@@ -197,6 +203,7 @@
                         <outlet property="buttonScan" destination="q09-Zs-mcm" id="2Mb-7g-10K"/>
                         <outlet property="buttonStart" destination="N16-jx-85n" id="poG-Ny-jkV"/>
                         <outlet property="buttonUnlock" destination="WoV-6M-SO7" id="p1a-Ia-vPK"/>
+                        <outlet property="labelDeivceName" destination="Em6-lG-Zg3" id="zYH-W9-2WV"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iwl-li-rq0" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -236,9 +243,6 @@
                                                 </label>
                                             </subviews>
                                         </tableViewCellContentView>
-                                        <connections>
-                                            <segue destination="qfS-tC-vNs" kind="show" identifier="segueToControl" id="iNj-q5-9pd"/>
-                                        </connections>
                                     </tableViewCell>
                                 </prototypes>
                             </tableView>
@@ -294,6 +298,7 @@
                     <connections>
                         <outlet property="tableView" destination="Gh4-9s-1Q0" id="57g-Q3-QeL"/>
                         <outlet property="topBar" destination="Od0-1a-IEP" id="8gZ-p1-iYL"/>
+                        <segue destination="qfS-tC-vNs" kind="show" identifier="segueToControl" id="pfp-Mn-mwe"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="pIl-xy-kJ4" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -324,11 +329,11 @@
                     </constraints>
                 </view>
             </objects>
-            <point key="canvasLocation" x="508" y="-24"/>
+            <point key="canvasLocation" x="462" y="-24"/>
         </scene>
     </scenes>
     <resources>
-        <image name="2BD60443-855A-4880-80D9-1299BADC2552" width="256" height="256">
+        <image name="2E546D82-2B73-42E4-B466-22FCFD4E85B6" width="256" height="256">
             <mutableData key="keyedArchiveRepresentation">
 YnBsaXN0MDDUAQIDBAUGPT5YJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoK4HCBMU
 GR4fIyQrLjE3OlUkbnVsbNUJCgsMDQ4PEBESVk5TU2l6ZVYkY2xhc3NcTlNJbWFnZUZsYWdzVk5TUmVw

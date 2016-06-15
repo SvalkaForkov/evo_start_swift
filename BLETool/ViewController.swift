@@ -45,7 +45,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var service : CBService!
     var writeCharacteristic : CBCharacteristic!
     var notificationCharacteristic : CBCharacteristic!
-    
+    var name = ""
+    @IBOutlet var labelDeivceName: UILabel!
     
     @IBOutlet var buttonScan: UIButton!
     @IBOutlet var buttonConnect: UIButton!
@@ -57,8 +58,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        labelDeivceName.text = name
         centralManager = CBCentralManager(delegate: self, queue:nil)
     }
+    
     
     func log(text:String){
         print("\(text)")

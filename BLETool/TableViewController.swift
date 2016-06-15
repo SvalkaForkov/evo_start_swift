@@ -23,7 +23,7 @@ class TableViewController: UIViewController ,UITableViewDataSource, UITableViewD
     @IBOutlet var topBar: UIView!
     
     var vehicles = ["V-1","V-3"]
-    
+    var selectedName = ""
     override func viewDidLoad() {
         super.viewDidLoad()
         let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
@@ -47,6 +47,11 @@ class TableViewController: UIViewController ,UITableViewDataSource, UITableViewD
         return cell
     }
     
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        selectedName = vehicles[indexPath.row]
+        print("\(selectedName)")
+        self.performSegueWithIdentifier("segueToControl", sender: indexPath)
+    }
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
         case CBCentralManagerState.PoweredOn:
@@ -108,7 +113,9 @@ class TableViewController: UIViewController ,UITableViewDataSource, UITableViewD
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "segueToControl" {
             print("go to control scene")
-            
+            print("\(selectedName)")
+            let dest = segue.destinationViewController as! ViewController
+            dest.name = selectedName
         }
         print("")
     }
