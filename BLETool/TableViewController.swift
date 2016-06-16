@@ -14,6 +14,7 @@ class TableViewController: UIViewController ,UITableViewDataSource, UITableViewD
 
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
+    
     @IBAction func onAddVehicle(sender: UIButton) {
         
     }
@@ -22,18 +23,21 @@ class TableViewController: UIViewController ,UITableViewDataSource, UITableViewD
     @IBOutlet var tableView: UITableView!
     @IBOutlet var topBar: UIView!
     
-    var vehicles = ["V-1","V-3"]
+    var vehicles = [""]
     var selectedName = ""
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
         let cons2 = topBar.heightAnchor.constraintEqualToConstant(56)
         NSLayoutConstraint.activateConstraints([cons1,cons2])
-        print("garage loaded")
         tableView.dataSource = self
         tableView.delegate = self
         centralManager = CBCentralManager(delegate: self, queue:nil)
-        
+        let appDelegate  = UIApplication.sharedApplication().delegate as! AppDelegate
+          print("garage loaded")
+        let ve = appDelegate.dataController
+          print("garage loaded")
         // Do any additional setup after loading the view.
     }
 

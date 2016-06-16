@@ -46,6 +46,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var writeCharacteristic : CBCharacteristic!
     var notificationCharacteristic : CBCharacteristic!
     var name = ""
+    var address = ""
     @IBOutlet var labelDeivceName: UILabel!
     
     @IBOutlet var buttonScan: UIButton!
@@ -77,6 +78,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if(isReady){
             log("Ble ready")
             buttonScan.enabled = true
+            centralManager.scanForPeripheralsWithServices(nil, options: nil)
+            log("Scanning")
         }
         else{
             log("Ble not ready")
@@ -112,13 +115,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
         let nameOfDeviceFound = (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
-        log("\(nameOfDeviceFound) Found")
-        centralManager.stopScan()
-        let i = peripheral.name
-        log("Stop scanning after \(i) device found")
-        self.peripheral = peripheral
-        self.peripheral.delegate = self
-        self.buttonConnect.enabled = true
+        if peripheral.name == nameOfDeviceFound{
+            log("\(nameOfDeviceFound) Match")
+            centralManager.stopScan()
+            let i = peripheral.name
+            log("Stop scanning after \(i) device found")
+            self.peripheral = peripheral
+            self.peripheral.delegate = self
+            self.buttonConnect.enabled = true
+            centralManager.connectPeripheral(peripheral, options: nil)
+            print("Try to connect")
+        }
     }
     
     
