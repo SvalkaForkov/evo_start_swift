@@ -105,7 +105,7 @@
                                         <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                     </label>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="K4L-Lh-I4H">
+                                    <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="K4L-Lh-I4H">
                                         <rect key="frame" x="20" y="3" width="50" height="50"/>
                                         <state key="normal" image="Left"/>
                                         <connections>
@@ -144,7 +144,7 @@
                                         <constraints>
                                             <constraint firstAttribute="height" constant="56" id="FtM-Xu-agV"/>
                                         </constraints>
-                                        <color key="tintColor" patternImage="209EA1AB-D8B0-4B43-8DB5-6B1658AB08F9" colorSpace="pattern"/>
+                                        <color key="tintColor" patternImage="EED59B07-35B3-4C37-AF79-BBA1490755C8" colorSpace="pattern"/>
                                         <state key="normal" title="Scan">
                                             <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
@@ -170,7 +170,7 @@
                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="Ykm-4u-uAL">
                                 <rect key="frame" x="0.0" y="349" width="600" height="56"/>
                                 <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" misplaced="YES" placeholderIntrinsicWidth="600" placeholderIntrinsicHeight="87" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WoV-6M-SO7">
+                                    <button opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="600" placeholderIntrinsicHeight="87" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WoV-6M-SO7">
                                         <rect key="frame" x="0.0" y="0.0" width="300" height="56"/>
                                         <color key="backgroundColor" red="0.1215686275" green="0.12941176469999999" blue="0.14117647059999999" alpha="1" colorSpace="calibratedRGB"/>
                                         <constraints>
@@ -184,7 +184,7 @@
                                             <action selector="onUnlock:" destination="qfS-tC-vNs" eventType="touchUpInside" id="zyf-7k-oFS"/>
                                         </connections>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" misplaced="YES" placeholderIntrinsicWidth="600" placeholderIntrinsicHeight="88" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="W1u-r8-FVc">
+                                    <button opaque="NO" contentMode="scaleToFill" placeholderIntrinsicWidth="600" placeholderIntrinsicHeight="88" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="W1u-r8-FVc">
                                         <rect key="frame" x="300" y="0.0" width="300" height="56"/>
                                         <color key="backgroundColor" name="alternateSelectedControlColor" catalog="System" colorSpace="catalog"/>
                                         <state key="normal" title="Lock">
@@ -367,7 +367,8 @@
         </scene>
     </scenes>
     <resources>
-        <image name="209EA1AB-D8B0-4B43-8DB5-6B1658AB08F9" width="256" height="256">
+        <image name="AddButton" width="2000" height="2000"/>
+        <image name="EED59B07-35B3-4C37-AF79-BBA1490755C8" width="256" height="256">
             <mutableData key="keyedArchiveRepresentation">
 YnBsaXN0MDDUAQIDBAUGPT5YJHZlcnNpb25YJG9iamVjdHNZJGFyY2hpdmVyVCR0b3ASAAGGoK4HCBMU
 GR4fIyQrLjE3OlUkbnVsbNUJCgsMDQ4PEBESVk5TU2l6ZVYkY2xhc3NcTlNJbWFnZUZsYWdzVk5TUmVw
@@ -4809,7 +4810,6 @@ AAQOmQAEDqEABA6kAAQOqQAEDrEABA60AAQOxgAEDskABA7OAAAAAAAABAEAAAAAAAAAQQAAAAAAAAAA
 AAAAAAAEDtA
 </mutableData>
         </image>
-        <image name="AddButton" width="2000" height="2000"/>
         <image name="Left" width="50" height="50"/>
         <image name="Toolbar" width="50" height="50"/>
     </resources>
