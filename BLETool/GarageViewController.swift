@@ -10,7 +10,7 @@ import UIKit
 import CoreBluetooth
 
 
-class TableViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate, CBCentralManagerDelegate, CBPeripheralDelegate{
+class GarageViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate, CBCentralManagerDelegate, CBPeripheralDelegate{
 
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
@@ -25,6 +25,10 @@ class TableViewController: UIViewController ,UITableViewDataSource, UITableViewD
     
     var vehicles = [""]
     var selectedName = ""
+    
+    override func viewWillAppear(animated: Bool) {
+        
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -61,9 +65,10 @@ class TableViewController: UIViewController ,UITableViewDataSource, UITableViewD
         case CBCentralManagerState.PoweredOn:
             print("powered on")
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
+            print("scanning")
             break
         case CBCentralManagerState.PoweredOff:
-            print("powered on")
+            print("powered off")
             break
         case CBCentralManagerState.Unauthorized:
             print("Unauthorized state")
@@ -81,15 +86,19 @@ class TableViewController: UIViewController ,UITableViewDataSource, UITableViewD
     }
     
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        let nameOfDeviceFound = (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
-        print("\(nameOfDeviceFound) Found")
-        vehicles = ["\(nameOfDeviceFound)"]
-        centralManager.stopScan()
+        //let nameOfDeviceFound = (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
         tableView.reloadData()
+        print("reload")
         let peripheralName = peripheral.name
-        print("Stop scanning after \(peripheralName) device found")
+        if vehicles.contains(""){
+            vehicles = ["\(peripheralName)"]
+        }else{
+            vehicles.append("\(peripheralName)")
+        }
+        print("set name")
         self.peripheral = peripheral
         self.peripheral.delegate = self
+        central.stopScan()
     }
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
         print("Peripheral connected")

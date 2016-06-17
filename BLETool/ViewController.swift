@@ -256,5 +256,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         log("Disconnected")
         central.scanForPeripheralsWithServices(nil, options: nil)
     }
+    @IBAction func onBack(sender: UIButton) {
+        centralManager.cancelPeripheralConnection(peripheral)
+    }
 }
 
