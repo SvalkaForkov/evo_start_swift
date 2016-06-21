@@ -11,19 +11,20 @@ import CoreBluetooth
 
 
 class GarageViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate, CBCentralManagerDelegate, CBPeripheralDelegate{
-
+    
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
     
     @IBAction func onAddVehicle(sender: UIButton) {
         
     }
-
+    
+    @IBOutlet var buttonAdd: UIButton!
     
     @IBOutlet var tableView: UITableView!
     @IBOutlet var topBar: UIView!
     
-    var vehicles = [""]
+    var vehicles = []
     var selectedName = ""
     
     override func viewWillAppear(animated: Bool) {
@@ -32,40 +33,46 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
         let cons2 = topBar.heightAnchor.constraintEqualToConstant(56)
         NSLayoutConstraint.activateConstraints([cons1,cons2])
         tableView.dataSource = self
         tableView.delegate = self
+        
         centralManager = CBCentralManager(delegate: self, queue:nil)
         let appDelegate  = UIApplication.sharedApplication().delegate as! AppDelegate
-          print("garage loaded")
-        let ve = appDelegate.dataController
-          print("garage loaded")
-        // Do any additional setup after loading the view.
+        print("garage loaded")
+        vehicles = appDelegate.dataController.getAllVehicles()
+        if vehicles.count == 0 {
+            print("no vehicles")
+            
+        }else{
+            buttonAdd.hidden = true
+        }
     }
-
+    
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return vehicles.count
     }
-
+    
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("GarageItem", forIndexPath: indexPath)
-        cell.textLabel!.text = vehicles[indexPath.row]
+        let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomCell
+        cell.label1!.text = vehicles[indexPath.row].name
+        cell.label2!.text = vehicles[indexPath.row].name
         return cell
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        selectedName = vehicles[indexPath.row]
+        selectedName = vehicles[indexPath.row].name
         print("\(selectedName)")
         self.performSegueWithIdentifier("segueToControl", sender: indexPath)
     }
+    
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
         case CBCentralManagerState.PoweredOn:
             print("powered on")
-            centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            print("scanning")
             break
         case CBCentralManagerState.PoweredOff:
             print("powered off")
@@ -86,25 +93,15 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        //let nameOfDeviceFound = (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
-        tableView.reloadData()
-        print("reload")
-        let peripheralName = peripheral.name
-        if vehicles.contains(""){
-            vehicles = ["\(peripheralName)"]
-        }else{
-            vehicles.append("\(peripheralName)")
-        }
-        print("set name")
-        self.peripheral = peripheral
-        self.peripheral.delegate = self
-        central.stopScan()
+//        let peripheralName = peripheral.name
+        print("found name: stop scan")
+//        centralManager.stopScan()
     }
+    
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
         print("Peripheral connected")
-        
     }
-
+    
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
         print("Disconnected")
         central.scanForPeripheralsWithServices(nil, options: nil)
@@ -130,6 +127,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             let dest = segue.destinationViewController as! ViewController
             dest.name = selectedName
         }
-        print("")
+        print("prepareForSegue")
     }
 }

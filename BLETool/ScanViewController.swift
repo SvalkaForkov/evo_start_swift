@@ -14,31 +14,30 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
     
-    
     @IBOutlet var tableView: UITableView!
-    
     @IBOutlet var topBar: UIView!
-    var vehicles = ["V-1","V-3"]
+    
+    var deviceName : [NSString] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
-        let cons2 = topBar.heightAnchor.constraintEqualToConstant(56)
-        NSLayoutConstraint.activateConstraints([cons1,cons2])
+        
         tableView.dataSource = self
         tableView.delegate = self
         centralManager = CBCentralManager(delegate: self, queue:nil)
-        centralManager.scanForPeripheralsWithServices(nil, options: nil)
-        // Do any additional setup after loading the view.
+        
+        let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
+        let cons2 = topBar.heightAnchor.constraintEqualToConstant(56)
+        NSLayoutConstraint.activateConstraints([cons1,cons2])
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return vehicles.count
+        return deviceName.count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("GarageItem", forIndexPath: indexPath)
-        cell.textLabel!.text = vehicles[indexPath.row]
+        let cell = tableView.dequeueReusableCellWithIdentifier("ScanCell", forIndexPath: indexPath)
+        cell.textLabel!.text = deviceName[indexPath.row] as? String
         return cell
     }
     
@@ -46,6 +45,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         switch(central.state){
         case CBCentralManagerState.PoweredOn:
             print("powered on")
+            centralManager.scanForPeripheralsWithServices(nil, options: nil)
             break
         case CBCentralManagerState.PoweredOff:
             print("powered on")
@@ -68,13 +68,14 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
         let nameOfDeviceFound = (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
         print("\(nameOfDeviceFound) Found")
-        vehicles = ["\(nameOfDeviceFound)"]
-        centralManager.stopScan()
+        deviceName.append("\(nameOfDeviceFound)")
+        tableView.reloadData()
         let i = peripheral.name
         print("Stop scanning after \(i) device found")
         self.peripheral = peripheral
         self.peripheral.delegate = self
     }
+    
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
         print("Peripheral connected")
         
@@ -86,8 +87,9 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        
+        print("Characteristic value updated")
     }
+    
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
         print("Discovering services & characteristics")
         

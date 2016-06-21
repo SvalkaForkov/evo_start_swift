@@ -48,7 +48,7 @@ class DataController {
         print("convenience init")
         let vehicleFetch = NSFetchRequest(entityName: "Vehicle")
         
-        var fetchedVehicles: [Vehicle]!
+        var fetchedVehicles: [Vehicle]! = []
         do {
             fetchedVehicles = try self.managedObjectContext.executeFetchRequest(vehicleFetch) as! [Vehicle]
         } catch {

@@ -19,6 +19,9 @@
 		CF69D9761D133A7F006FD908 /* Vehicle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9741D133A7F006FD908 /* Vehicle+CoreDataProperties.swift */; };
 		CF69D9771D133A7F006FD908 /* Vehicle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9751D133A7F006FD908 /* Vehicle.swift */; };
 		CF69D97A1D133B59006FD908 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9791D133B59006FD908 /* DataController.swift */; };
+		CF69D97C1D182D41006FD908 /* CustomCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97B1D182D41006FD908 /* CustomCell.swift */; };
+		CF69D97E1D1871F6006FD908 /* RegisterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */; };
+		CF69D9801D187333006FD908 /* CustomScanCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97F1D187333006FD908 /* CustomScanCell.swift */; };
 		CFC8D37B1D10529500D61D73 /* GarageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37A1D10529500D61D73 /* GarageViewController.swift */; };
 		CFC8D37D1D10A8EE00D61D73 /* ScanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */; };
 		CFCEC1351C77CA890007F037 /* appiconx3.png in Resources */ = {isa = PBXBuildFile; fileRef = CFCEC1341C77CA890007F037 /* appiconx3.png */; };
@@ -52,6 +55,9 @@
 		CF69D9741D133A7F006FD908 /* Vehicle+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Vehicle+CoreDataProperties.swift"; path = "../Vehicle+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		CF69D9751D133A7F006FD908 /* Vehicle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Vehicle.swift; path = ../Vehicle.swift; sourceTree = "<group>"; };
 		CF69D9791D133B59006FD908 /* DataController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
+		CF69D97B1D182D41006FD908 /* CustomCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomCell.swift; sourceTree = "<group>"; };
+		CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegisterViewController.swift; sourceTree = "<group>"; };
+		CF69D97F1D187333006FD908 /* CustomScanCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomScanCell.swift; sourceTree = "<group>"; };
 		CFC8D37A1D10529500D61D73 /* GarageViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GarageViewController.swift; sourceTree = "<group>"; };
 		CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScanViewController.swift; sourceTree = "<group>"; };
 		CFCEC1341C77CA890007F037 /* appiconx3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = appiconx3.png; sourceTree = "<group>"; };
@@ -104,7 +110,10 @@
 				CF69D9781D133B31006FD908 /* CoreData */,
 				CF1C2AB61C766F6B009F2892 /* AppDelegate.swift */,
 				CF1C2AB81C766F6B009F2892 /* ViewController.swift */,
+				CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */,
 				CFC8D37A1D10529500D61D73 /* GarageViewController.swift */,
+				CF69D97B1D182D41006FD908 /* CustomCell.swift */,
+				CF69D97F1D187333006FD908 /* CustomScanCell.swift */,
 				CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */,
 				CF1C2ABA1C766F6B009F2892 /* Main.storyboard */,
 				CF1C2ABD1C766F6B009F2892 /* Assets.xcassets */,
@@ -242,11 +251,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CF1C2AB91C766F6B009F2892 /* ViewController.swift in Sources */,
+				CF69D97E1D1871F6006FD908 /* RegisterViewController.swift in Sources */,
 				CFC8D37B1D10529500D61D73 /* GarageViewController.swift in Sources */,
 				CF69D9761D133A7F006FD908 /* Vehicle+CoreDataProperties.swift in Sources */,
 				CF1C2AB71C766F6B009F2892 /* AppDelegate.swift in Sources */,
+				CF69D97C1D182D41006FD908 /* CustomCell.swift in Sources */,
 				CF69D9771D133A7F006FD908 /* Vehicle.swift in Sources */,
 				CF69D97A1D133B59006FD908 /* DataController.swift in Sources */,
+				CF69D9801D187333006FD908 /* CustomScanCell.swift in Sources */,
 				CF3E512D1D131C3A00301C7C /* Vehicle.xcdatamodeld in Sources */,
 				CFC8D37D1D10A8EE00D61D73 /* ScanViewController.swift in Sources */,
 			);
