@@ -14,11 +14,12 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
     
-    @IBOutlet var tableView: UITableView!
+
     @IBOutlet var topBar: UIView!
+    @IBOutlet var tableView: UITableView!
     
     var deviceName : [NSString] = []
-    
+    var selectedName : String = ""
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -36,9 +37,17 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("ScanCell", forIndexPath: indexPath)
-        cell.textLabel!.text = deviceName[indexPath.row] as? String
+        let cell = tableView.dequeueReusableCellWithIdentifier("ScanCell", forIndexPath: indexPath) as! CustomScanCell
+        cell.labelName!.text = deviceName[indexPath.row] as String
         return cell
+    }
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        selectedName = deviceName[indexPath.row] as String
+        print("\(selectedName)")
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let dataController = appDelegate.dataController
+        dataController.saveVehicle(selectedName, address: selectedName)
     }
     
     func centralManagerDidUpdateState(central: CBCentralManager) {
@@ -46,6 +55,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         case CBCentralManagerState.PoweredOn:
             print("powered on")
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
+            print("scan for peripherals")
             break
         case CBCentralManagerState.PoweredOff:
             print("powered on")
@@ -66,12 +76,15 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        let nameOfDeviceFound = (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
+        let nameOfDeviceFound = peripheral.name
+//            (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
         print("\(nameOfDeviceFound) Found")
-        deviceName.append("\(nameOfDeviceFound)")
+        deviceName.append("\(nameOfDeviceFound!)")
         tableView.reloadData()
-        let i = peripheral.name
-        print("Stop scanning after \(i) device found")
+        if nameOfDeviceFound!.rangeOfString("EVO") != nil {
+            centralManager.stopScan()
+            print("found evo, stop scanning")
+        }
         self.peripheral = peripheral
         self.peripheral.delegate = self
     }
@@ -97,4 +110,5 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
         
     }
+
 }

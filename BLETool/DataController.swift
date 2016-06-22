@@ -19,7 +19,7 @@ class DataController {
 
     convenience init?() {
         print("convenience init")
-        guard let modelURL = NSBundle.mainBundle().URLForResource("Model", withExtension: "momd") else {
+        guard let modelURL = NSBundle.mainBundle().URLForResource("Vehicle", withExtension: "momd") else {
             return nil
         }
         
@@ -45,7 +45,7 @@ class DataController {
     }
     
     func getAllVehicles() -> [Vehicle]{
-        print("convenience init")
+        print("get all vehicles")
         let vehicleFetch = NSFetchRequest(entityName: "Vehicle")
         
         var fetchedVehicles: [Vehicle]! = []
@@ -57,6 +57,43 @@ class DataController {
         
         return fetchedVehicles
     }
-
     
+    func saveVehicle(name: String, address: String){
+        print("save new vehicle : \(name))")
+        let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
+        newVehicle.name = name
+        newVehicle.address = address
+        do {
+            try self.managedObjectContext.save()
+        } catch {
+            fatalError("couldn't save context")
+        }
+        
+    }
+    
+    func fetchVehicle(name: String)-> Vehicle{
+        print("fetch vehicle : \(name))")
+        let vehicleFetch = NSFetchRequest(entityName: "Vehicle")
+        vehicleFetch.predicate = NSPredicate(format: "name == %@", name)
+        
+        var fetchedVehicle: [Vehicle]!
+        do {
+            fetchedVehicle = try self.managedObjectContext.executeFetchRequest(vehicleFetch) as! [Vehicle]
+        } catch {
+            fatalError("fetch failed")
+        }
+        return fetchedVehicle[0]
+    }
+    
+    func updateVehicle(vehicle: Vehicle){
+        print("update vehicle : \(vehicle.name))")
+        let newVehicle = fetchVehicle(vehicle.name!)
+        do {
+            try newVehicle.managedObjectContext!.save()
+        } catch {
+            fatalError("couldn't save context")
+        }
+        
+    }
+
 }

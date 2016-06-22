@@ -10,6 +10,7 @@ import UIKit
 
 class CustomScanCell: UITableViewCell {
 
+    @IBOutlet var labelName: UILabel!
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code

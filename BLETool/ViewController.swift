@@ -59,6 +59,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("\(name)")
         labelDeivceName.text = name
         centralManager = CBCentralManager(delegate: self, queue:nil)
     }
