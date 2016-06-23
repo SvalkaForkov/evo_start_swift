@@ -65,10 +65,9 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         selectedName = vehicles[indexPath.row].name
-        print("\(selectedName)")
-//        self.performSegueWithIdentifier("segueToControl", sender: indexPath)
+        print("click \(selectedName)")
+        performSegueWithIdentifier("segueToControl", sender: indexPath)
     }
-    
     
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
         
@@ -86,10 +85,10 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "segueToControl" {
             print("go to control scene")
-            print("\(selectedName)")
+            print("now select name is \(selectedName)")
             let dest = segue.destinationViewController as! ViewController
             dest.name = selectedName
         }
-        print("prepareForSegue")
+        print("prepareForSegue - in garage scene")
     }
 }

@@ -9,8 +9,8 @@
 import UIKit
 import CoreBluetooth
 import AudioToolbox
+
 extension NSData {
-    
     var hexString : String! {
         let buf = UnsafePointer<UInt8>(bytes)
         let charA = UInt8(UnicodeScalar("a").value)
@@ -37,132 +37,113 @@ extension Int {
         return NSData(bytes: &int, length: sizeof(Int))
     }
 }
+
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
-    
-    
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
     var service : CBService!
     var writeCharacteristic : CBCharacteristic!
     var notificationCharacteristic : CBCharacteristic!
+    
     var name = ""
     var address = ""
-    @IBOutlet var labelDeivceName: UILabel!
     
-    @IBOutlet var buttonScan: UIButton!
-    @IBOutlet var buttonConnect: UIButton!
-    @IBOutlet var controlView: UIStackView!
+    var count = 0
+    var receivedLock = false
+    var receivedUnlock = false
+    var receivedStart = false
+    var receivedStop = false
+    var started = false
     
     @IBOutlet var buttonUnlock: UIButton!
     @IBOutlet var buttonLock: UIButton!
     @IBOutlet var buttonStart: UIButton!
     
+    @IBOutlet var textViewSent: UITextView!
+    @IBOutlet var textViewACK: UITextView!
+    
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("\(name)")
-        labelDeivceName.text = name
+        print("did load view controller")
+        print("name is \(name)")
+        textViewSent.text = ""
+        textViewACK.text = ""
         centralManager = CBCentralManager(delegate: self, queue:nil)
     }
     
-    
-    func log(text:String){
-        print("\(text)")
-    }
-    override func  preferredStatusBarStyle()-> UIStatusBarStyle {
-        return UIStatusBarStyle.LightContent
-    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    func onReady(isReady: Bool){
-        if(isReady){
-            log("Ble ready")
-            buttonScan.enabled = true
-            centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            log("Scanning")
-        }
-        else{
-            log("Ble not ready")
-            buttonScan.enabled = false
-        }
-    }
+    
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
         case CBCentralManagerState.PoweredOn:
-            self.onReady(true)
+            print("Ble ready")
+            centralManager.scanForPeripheralsWithServices(nil, options: nil)
+            print("Scanning")
             break
         case CBCentralManagerState.PoweredOff:
-            self.onReady(false)
+            print("Ble not ready")
+            centralManager.stopScan()
             break
         case CBCentralManagerState.Unauthorized:
-            log("Unauthorized state")
+            print("Unauthorized state")
             break
         case CBCentralManagerState.Resetting:
-            log("Resetting state")
+            print("Resetting state")
             break
         case CBCentralManagerState.Unknown:
-            log("unknown state")
+            print("unknown state")
             break
         case CBCentralManagerState.Unsupported:
-            log("Unsupported state")
+            print("Unsupported state")
             break
         }
     }
     
     @IBAction func onScan(sender: UIButton) {
         centralManager.scanForPeripheralsWithServices(nil, options: nil)
-        log("Scanning")
+        print("Scanning")
     }
+    
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        let nameOfDeviceFound = (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
-        if peripheral.name == nameOfDeviceFound{
-            log("\(nameOfDeviceFound) Match")
-            centralManager.stopScan()
-            let i = peripheral.name
-            log("Stop scanning after \(i) device found")
-            self.peripheral = peripheral
-            self.peripheral.delegate = self
-            self.buttonConnect.enabled = true
-            centralManager.connectPeripheral(peripheral, options: nil)
-            print("Try to connect")
-        }
-    }
-    
-    
-    @IBAction func onConnect(sender: UIButton) {
-        if(sender.selected){
-            centralManager.cancelPeripheralConnection(peripheral)
-            sender.selected=false
-            sender.setTitle("Connect", forState: UIControlState.Normal)
-            showControl(false)
-        }else{
-            centralManager.connectPeripheral(peripheral, options: nil)
-            log("connecting")
+        let nameOfDeviceFound = peripheral.name as String!
+        if nameOfDeviceFound != nil {
+            print("Did discover \(nameOfDeviceFound)")
+            print("and name is \(name)")
+            if nameOfDeviceFound == name{
+                print("Match")
+                centralManager.stopScan()
+                print("Stop scanning after \(nameOfDeviceFound) device found")
+                self.peripheral = peripheral
+                self.peripheral.delegate = self
+                centralManager.connectPeripheral(peripheral, options: nil)
+                print("Try to connect \(nameOfDeviceFound)")
+            }
         }
     }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
-        log("Peripheral connected")
-        self.buttonConnect.selected = true
-        self.buttonConnect.setTitle("Disconnect", forState: UIControlState.Normal)
-        onDiscover()
-    }
-    
-    func onDiscover() {
+        print("Peripheral connected")
         peripheral.discoverServices(nil)
     }
+    
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
-        log("Discovering services & characteristics")
+        print("Discovered service")
         for service in peripheral.services! {
             if(service.UUID.UUIDString == "1234"){
                 self.service = service
             }
-            log("found service: \(service.UUID)")
+            print("Found service: \(service.UUID)")
             peripheral.discoverCharacteristics(nil, forService: service)
         }
     }
+    
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
+        print("Discovered characteristic")
         for characteristic in service.characteristics! {
             if(characteristic.UUID.UUIDString == "1235"){
                 self.writeCharacteristic = characteristic
@@ -171,21 +152,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.notificationCharacteristic = characteristic
                 setNotification(true)
             }
-            log("found characteristic: \(characteristic.UUID)")
+            print("Found characteristic: \(characteristic.UUID)")
         }
-        log("Connection ready")
+        print("Connection ready")
             showControl(true)
     }
     
     func showControl(val: Bool){
         if(!val){
-            buttonStart.selected = false
-            buttonLock.selected = false
-            buttonUnlock.selected = false
             buttonLock.enabled = false
             buttonUnlock.enabled = false
             buttonStart.enabled = false
-            
         }else{
             buttonLock.enabled = true
             buttonUnlock.enabled = true
@@ -195,16 +172,99 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onLock(sender: UIButton) {
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
-        peripheral.writeValue(data, forCharacteristic: writeCharacteristic, type: .WithResponse)
+        count = 0
+        receivedLock = false
+        textViewACK.text = ""
+        textViewSent.text = ""
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 1")
+            })
+            sleep(1)
+            if self.receivedLock {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 2")
+            })
+            sleep(1)
+            if self.receivedLock {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 3")
+            })
+            sleep(1)
+            if self.receivedLock {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 4")
+            })
+            sleep(1)
+            if self.receivedLock {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 5")
+            })
+        })
     }
     
     @IBAction func onUnlock(sender: UIButton) {
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
-        peripheral.writeValue(data, forCharacteristic: writeCharacteristic, type: .WithResponse)
+        count = 0
+        receivedUnlock = false
+        textViewACK.text = ""
+        textViewSent.text = ""
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 1")
+            })
+            sleep(1)
+            if self.receivedUnlock {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 2")
+            })
+            sleep(1)
+            if self.receivedUnlock {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 3")
+            })
+            sleep(1)
+            if self.receivedUnlock {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 4")
+            })
+            sleep(1)
+            if self.receivedUnlock {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 5")
+            })
+        })
     }
     
     @IBAction func onStartStop(sender: UIButton) {
-        if sender.selected {
+        count = 0
+        if started {
             onStopEngine()
         }else{
             onStartEngine()
@@ -213,12 +273,92 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func onStartEngine() {
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
-        peripheral.writeValue(data, forCharacteristic: writeCharacteristic, type: .WithResponse)
+        receivedStart = false
+        textViewACK.text = ""
+        textViewSent.text = ""
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 1")
+            })
+            sleep(1)
+            if self.receivedStart {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 2")
+            })
+            sleep(1)
+            if self.receivedStart {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 3")
+            })
+            sleep(1)
+            if self.receivedStart {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 4")
+            })
+            sleep(1)
+            if self.receivedStart {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 5")
+            })
+        })
     }
     
     func onStopEngine() {
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
-        peripheral.writeValue(data, forCharacteristic: writeCharacteristic, type: .WithResponse)
+        receivedStop = false
+        textViewACK.text = ""
+        textViewSent.text = ""
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 1")
+            })
+            sleep(1)
+            if self.receivedStop {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 2")
+            })
+            sleep(1)
+            if self.receivedStop {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 3")
+            })
+            sleep(1)
+            if self.receivedStop {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 4")
+            })
+            sleep(1)
+            if self.receivedStop {
+                return
+            }
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 5")
+            })
+        })
     }
     
     func setNotification(enabled: Bool){
@@ -226,39 +366,47 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        let val = characteristic.value?.hexString
+        let val = characteristic.value!.hexString
         if(val=="00008001"){
             //ack for locked
-            buttonLock.selected = true
-            buttonUnlock.selected = false
+            textViewACK.text = textViewACK.text.stringByAppendingString("\n\(val) : \(count)")
+            count = count + 1
+            receivedLock = true
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         }else if(val=="00000002"){
             //ack for unlocked
-            buttonLock.selected = false
-            buttonUnlock.selected = true
+            textViewACK.text = textViewACK.text.stringByAppendingString("\n\(val) : \(count)")
+            count = count + 1
+            receivedUnlock = true
             AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
         }else if(val=="00000201"){
             //ack for started
-            buttonStart.selected = true
+            started = true
+            textViewACK.text = textViewACK.text.stringByAppendingString("\n\(val) : \(count)")
+            count = count + 1
+            receivedStart = true
             buttonStart.setTitle("Stop", forState: UIControlState.Normal)
+            buttonStart.backgroundColor = UIColor.redColor()
         }else if(val=="00000001"){
+            started = false
             //ack for stopped
-            buttonStart.selected = false
+            textViewACK.text = textViewACK.text.stringByAppendingString("\n\(val) : \(count)")
+            count = count + 1
+            receivedStop = true
             buttonStart.setTitle("Start", forState: UIControlState.Normal)
+            buttonStart.backgroundColor = UIColor.greenColor()
         }else if(val=="0240000f"){
             //ack for locked
             buttonStart.selected = false
             buttonStart.setTitle("Start", forState: UIControlState.Normal)
         }
-        log("Charateristic's value has updated : \(val!)")
+        print("Charateristic's value has updated : \(val!)")
     }
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        log("Disconnected")
+        print("Disconnected")
         central.scanForPeripheralsWithServices(nil, options: nil)
-    }
-    @IBAction func onBack(sender: UIButton) {
-        centralManager.cancelPeripheralConnection(peripheral)
+        showControl(false)
     }
 }
 
