@@ -14,6 +14,7 @@ class DataController {
     
     init(moc: NSManagedObjectContext) {
         self.managedObjectContext = moc
+        print("init moc")
     }
 
 
@@ -54,21 +55,23 @@ class DataController {
         } catch {
             fatalError("fetch failed")
         }
-        
+        print("fetched \(fetchedVehicles.count)")
         return fetchedVehicles
     }
     
     func saveVehicle(name: String, address: String){
         print("save new vehicle : \(name))")
-        let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
-        newVehicle.name = name
-        newVehicle.address = address
-        do {
-            try self.managedObjectContext.save()
-        } catch {
-            fatalError("couldn't save context")
+//        var existVehicle = fetchVehicle(name)
+//        if existVehicle != nil {
+            let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
+            newVehicle.name = name
+            newVehicle.address = address
+            do {
+                try self.managedObjectContext.save()
+            } catch {
+                fatalError("couldn't save context")
+//            }
         }
-        
     }
     
     func fetchVehicle(name: String)-> Vehicle{
@@ -81,6 +84,11 @@ class DataController {
             fetchedVehicle = try self.managedObjectContext.executeFetchRequest(vehicleFetch) as! [Vehicle]
         } catch {
             fatalError("fetch failed")
+        }
+        if fetchedVehicle.count > 1 {
+            print("more than one fetched")
+        }else{
+            print("fetched one")
         }
         return fetchedVehicle[0]
     }

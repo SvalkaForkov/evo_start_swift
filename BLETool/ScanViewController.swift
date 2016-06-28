@@ -19,6 +19,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     @IBOutlet var tableView: UITableView!
     
     var deviceName : [NSString] = []
+    var devices : [CBPeripheral] = []
     var selectedName : String = ""
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,6 +49,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         let dataController = appDelegate.dataController
         dataController.saveVehicle(selectedName, address: selectedName)
+
     }
     
     func centralManagerDidUpdateState(central: CBCentralManager) {

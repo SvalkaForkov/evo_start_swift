@@ -62,8 +62,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var textViewSent: UITextView!
     @IBOutlet var textViewACK: UITextView!
     
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         print("did load view controller")
@@ -73,6 +71,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         centralManager = CBCentralManager(delegate: self, queue:nil)
     }
     
+    @IBAction func onBack(sender: UIButton) {
+        print("on back clicked")
+        performSegueWithIdentifier("segueBackToGarage", sender: sender)
+    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
