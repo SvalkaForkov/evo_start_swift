@@ -30,6 +30,9 @@
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="F8p-RU-oVf">
                                         <rect key="frame" x="22" y="3" width="50" height="50"/>
                                         <state key="normal" image="Left"/>
+                                        <connections>
+                                            <action selector="onBack:" destination="LJF-gz-DnY" eventType="touchUpInside" id="05t-nk-7B3"/>
+                                        </connections>
                                     </button>
                                 </subviews>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
@@ -86,6 +89,7 @@
                     <connections>
                         <outlet property="tableView" destination="6Ny-pv-bgl" id="xat-ND-Kut"/>
                         <outlet property="topBar" destination="So2-Pn-8h7" id="pOp-Ez-lw3"/>
+                        <segue destination="F1x-P8-EMz" kind="show" identifier="segueBackToGarage" id="Um7-oy-fIW"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="JeM-mm-aoV" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -108,7 +112,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="f0Q-Qo-5x8" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="448" y="-1"/>
+            <point key="canvasLocation" x="357" y="-42"/>
         </scene>
         <!--Main-->
         <scene sceneID="q3x-Ll-U8K">
@@ -322,13 +326,13 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Od0-1a-IEP">
                                 <rect key="frame" x="0.0" y="28" width="600" height="56"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" misplaced="YES" text="Garage" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CAb-dh-pPO">
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Garage" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CAb-dh-pPO">
                                         <rect key="frame" x="260" y="11" width="81" height="33"/>
                                         <fontDescription key="fontDescription" name="IowanOldStyle-Bold" family="Iowan Old Style" pointSize="24"/>
                                         <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                     </label>
-                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IVW-Na-GpP">
-                                        <rect key="frame" x="21" y="3" width="50" height="50"/>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IVW-Na-GpP">
+                                        <rect key="frame" x="28" y="3" width="50" height="50"/>
                                         <state key="normal" image="Toolbar"/>
                                         <connections>
                                             <action selector="onBack:" destination="qfS-tC-vNs" eventType="touchUpInside" id="nNK-vA-404"/>
@@ -337,7 +341,10 @@
                                 </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
-                                    <constraint firstItem="CAb-dh-pPO" firstAttribute="centerX" secondItem="Od0-1a-IEP" secondAttribute="centerX" id="5gM-BH-rNr"/>
+                                    <constraint firstItem="CAb-dh-pPO" firstAttribute="centerX" secondItem="Od0-1a-IEP" secondAttribute="centerX" id="BqL-Uc-DYr"/>
+                                    <constraint firstItem="IVW-Na-GpP" firstAttribute="leading" secondItem="Od0-1a-IEP" secondAttribute="leading" constant="28" id="M2z-Cr-3ix"/>
+                                    <constraint firstItem="IVW-Na-GpP" firstAttribute="centerY" secondItem="CAb-dh-pPO" secondAttribute="centerY" id="UAn-aY-1Zz"/>
+                                    <constraint firstItem="CAb-dh-pPO" firstAttribute="centerY" secondItem="Od0-1a-IEP" secondAttribute="centerY" id="kH0-BC-bqz"/>
                                 </constraints>
                             </view>
                         </subviews>
@@ -366,7 +373,39 @@
                 <view contentMode="scaleToFill" id="GCr-rb-Bhj">
                     <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <subviews>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="xzd-qC-qnd">
+                            <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
+                            <subviews>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YRI-RE-8Mw">
+                                    <rect key="frame" x="0.0" y="0.0" width="240" height="26"/>
+                                    <state key="normal" title="Home"/>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FO4-QW-XLH">
+                                    <rect key="frame" x="0.0" y="26" width="240" height="25"/>
+                                    <state key="normal" title="Setting"/>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WeZ-V4-dZL">
+                                    <rect key="frame" x="0.0" y="51" width="240" height="26"/>
+                                    <state key="normal" title="About"/>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="K3C-0n-rhl">
+                                    <rect key="frame" x="0.0" y="77" width="240" height="25"/>
+                                </button>
+                                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HGt-rA-u5q">
+                                    <rect key="frame" x="0.0" y="102" width="240" height="26"/>
+                                    <state key="normal" title="Exit"/>
+                                </button>
+                            </subviews>
+                        </stackView>
+                    </subviews>
                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstItem="xzd-qC-qnd" firstAttribute="height" secondItem="GCr-rb-Bhj" secondAttribute="height" id="HUm-hL-rhj"/>
+                        <constraint firstItem="xzd-qC-qnd" firstAttribute="centerX" secondItem="GCr-rb-Bhj" secondAttribute="centerX" id="PTu-lH-Cco"/>
+                        <constraint firstItem="xzd-qC-qnd" firstAttribute="width" secondItem="GCr-rb-Bhj" secondAttribute="width" id="T2B-f5-dGo"/>
+                        <constraint firstItem="xzd-qC-qnd" firstAttribute="centerY" secondItem="GCr-rb-Bhj" secondAttribute="centerY" id="bo5-jO-fNV"/>
+                    </constraints>
                 </view>
             </objects>
             <point key="canvasLocation" x="448" y="-800"/>
@@ -377,6 +416,6 @@
         <image name="Toolbar" width="50" height="50"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="enN-R9-sb7"/>
+        <segue reference="Um7-oy-fIW"/>
     </inferredMetricsTieBreakers>
 </document>

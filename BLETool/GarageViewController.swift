@@ -36,10 +36,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     override func viewDidLoad() {
         super.viewDidLoad()
         print("garage viewDidLoad")
-//        let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
-//        let cons2 = topBar.heightAnchor.constraintEqualToConstant(56)
-//        NSLayoutConstraint.activateConstraints([cons1,cons2])
-        print("Set constrains to top bar")
         tableView.dataSource = self
         tableView.delegate = self
         
@@ -50,6 +46,11 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             buttonAdd.hidden = true
             print("found vehicle")
         }
+        
+        //        let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
+        //        let cons2 = topBar.heightAnchor.constraintEqualToConstant(56)
+        //        NSLayoutConstraint.activateConstraints([cons1,cons2])
+        //        print("Set constrains to top bar")
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

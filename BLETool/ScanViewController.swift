@@ -21,16 +21,29 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     var deviceName : [NSString] = []
     var devices : [CBPeripheral] = []
     var selectedName : String = ""
+    
+    var dataController : DataController!
+    var appDelegeate : AppDelegate!
+    var vehicles : [Vehicle] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.dataSource = self
         tableView.delegate = self
         centralManager = CBCentralManager(delegate: self, queue:nil)
+        appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
+        dataController = appDelegeate.dataController
+        vehicles = dataController.getAllVehicles()
         
         let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
         let cons2 = topBar.heightAnchor.constraintEqualToConstant(56)
         NSLayoutConstraint.activateConstraints([cons1,cons2])
+    }
+    
+    @IBAction func onBack(sender: UIButton) {
+        print("return to garage scene")
+        performSegueWithIdentifier("segueBackToGarage", sender: sender)
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -46,10 +59,20 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         selectedName = deviceName[indexPath.row] as String
         print("\(selectedName)")
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let dataController = appDelegate.dataController
-        dataController.saveVehicle(selectedName, address: selectedName)
-
+        var existing = false
+        if vehicles.count > 0 {
+            for vehicle in vehicles {
+                if vehicle.name?.rangeOfString(selectedName) != nil {
+                    existing = true
+                    print("vehicle existing, exiting for loop")
+                    break
+                }
+            }
+        }
+        
+        if !existing {
+            dataController.saveVehicle(selectedName, address: selectedName)
+        }
     }
     
     func centralManagerDidUpdateState(central: CBCentralManager) {
