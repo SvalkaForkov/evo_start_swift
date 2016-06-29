@@ -54,7 +54,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var receivedStart = false
     var receivedStop = false
     var started = false
-    
+    var isManuallyDisconnected = false
     @IBOutlet var buttonUnlock: UIButton!
     @IBOutlet var buttonLock: UIButton!
     @IBOutlet var buttonStart: UIButton!
@@ -73,6 +73,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onBack(sender: UIButton) {
         print("on back clicked")
+        isManuallyDisconnected = true
+        centralManager.cancelPeripheralConnection(self.peripheral)
         performSegueWithIdentifier("segueBackToGarage", sender: sender)
     }
     override func didReceiveMemoryWarning() {
@@ -106,11 +108,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    @IBAction func onScan(sender: UIButton) {
-        centralManager.scanForPeripheralsWithServices(nil, options: nil)
-        print("Scanning")
-    }
-    
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
         let nameOfDeviceFound = peripheral.name as String!
         if nameOfDeviceFound != nil {
@@ -122,7 +119,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 print("Stop scanning after \(nameOfDeviceFound) device found")
                 self.peripheral = peripheral
                 self.peripheral.delegate = self
-                centralManager.connectPeripheral(peripheral, options: nil)
+                centralManager.connectPeripheral(self.peripheral, options: nil)
                 print("Try to connect \(nameOfDeviceFound)")
             }
         }
@@ -173,6 +170,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onLock(sender: UIButton) {
+        print("onlock")
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
         count = 0
         receivedLock = false
@@ -219,6 +217,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onUnlock(sender: UIButton) {
+        print("onUnlock")
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
         count = 0
         receivedUnlock = false
@@ -274,6 +273,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func onStartEngine() {
+        print("on start")
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
         receivedStart = false
         textViewACK.text = ""
@@ -319,6 +319,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func onStopEngine() {
+        print("on stop")
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
         receivedStop = false
         textViewACK.text = ""
@@ -407,8 +408,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
         print("Disconnected")
+        if !isManuallyDisconnected {
         central.scanForPeripheralsWithServices(nil, options: nil)
         showControl(false)
+        }
     }
 }
 

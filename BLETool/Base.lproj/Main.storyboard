@@ -392,7 +392,7 @@
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="K3C-0n-rhl">
                                     <rect key="frame" x="0.0" y="77" width="240" height="25"/>
                                 </button>
-                                <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HGt-rA-u5q">
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HGt-rA-u5q">
                                     <rect key="frame" x="0.0" y="102" width="240" height="26"/>
                                     <state key="normal" title="Exit"/>
                                 </button>
@@ -416,6 +416,6 @@
         <image name="Toolbar" width="50" height="50"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="Um7-oy-fIW"/>
+        <segue reference="enN-R9-sb7"/>
     </inferredMetricsTieBreakers>
 </document>
