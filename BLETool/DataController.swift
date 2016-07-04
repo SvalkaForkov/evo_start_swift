@@ -46,7 +46,7 @@ class DataController {
     }
     
     func getAllVehicles() -> [Vehicle]{
-        print("get all vehicles")
+        print("getAllVehicles()")
         let vehicleFetch = NSFetchRequest(entityName: "Vehicle")
         
         var fetchedVehicles: [Vehicle]! = []
@@ -60,7 +60,7 @@ class DataController {
     }
     
     func saveVehicle(name: String, address: String){
-        print("save new vehicle : \(name))")
+        print("saveVehicle(\(name))")
 //        var existVehicle = fetchVehicle(name)
 //        if existVehicle != nil {
             let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
@@ -75,7 +75,7 @@ class DataController {
     }
     
     func fetchVehicle(name: String)-> Vehicle{
-        print("fetch vehicle : \(name))")
+        print("fetchVehicle(\(name))")
         let vehicleFetch = NSFetchRequest(entityName: "Vehicle")
         vehicleFetch.predicate = NSPredicate(format: "name == %@", name)
         

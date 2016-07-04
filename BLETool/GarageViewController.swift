@@ -85,7 +85,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "segueToControl" {
-            print("go to control scene")
+            print("prepareForSegue -> control scene")
             print("now select name is \(selectedName)")
             let dest = segue.destinationViewController as! ViewController
             dest.name = selectedName
