@@ -19,5 +19,5 @@ extension Vehicle {
     @NSManaged var model: String?
     @NSManaged var name: String?
     @NSManaged var year: String?
-
+    
 }

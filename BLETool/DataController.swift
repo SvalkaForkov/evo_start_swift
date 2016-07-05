@@ -74,6 +74,21 @@ class DataController {
         }
     }
     
+    func saveVehicle(name: String, make: String, model: String, year: String, address: String){
+        let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
+        newVehicle.name = name
+        newVehicle.address = address
+        newVehicle.make = make
+        newVehicle.model = model
+        newVehicle.year = year
+        do {
+            try self.managedObjectContext.save()
+        } catch {
+            fatalError("couldn't save context")
+            
+        }
+    }
+    
     func fetchVehicle(name: String)-> Vehicle{
         print("fetchVehicle(\(name))")
         let vehicleFetch = NSFetchRequest(entityName: "Vehicle")

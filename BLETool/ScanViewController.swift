@@ -28,17 +28,12 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         tableView.dataSource = self
         tableView.delegate = self
         centralManager = CBCentralManager(delegate: self, queue:nil)
         appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegeate.dataController
         vehicles = dataController.getAllVehicles()
-        
-        let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
-        let cons2 = topBar.heightAnchor.constraintEqualToConstant(56)
-        NSLayoutConstraint.activateConstraints([cons1,cons2])
     }
     
     @IBAction func onBack(sender: UIButton) {
@@ -71,7 +66,11 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         }
         
         if !existing {
-            dataController.saveVehicle(selectedName, address: selectedName)
+//            dataController.saveVehicle(selectedName, address: selectedName)
+            performSegueWithIdentifier("segueToRegister", sender: nil)
+        }else{
+            print("return to garage scene")
+            performSegueWithIdentifier("segueBackToGarage", sender: nil)
         }
     }
     
@@ -136,4 +135,12 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         
     }
 
-}
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if segue.identifier == "segueToRegister" {
+            print("prepareForSegue -> control scene")
+            print("now select name is \(selectedName)")
+            let dest = segue.destinationViewController as! ViewController
+            dest.name = selectedName
+        }
+        print("prepareForSegue - in garage scene")
+    }}

@@ -11,4 +11,6 @@ import CoreData
 
 
 class Vehicle: NSManagedObject {
+    
+        
     }
