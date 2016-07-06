@@ -71,12 +71,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         centralManager = CBCentralManager(delegate: self, queue:nil)
     }
     
-    @IBAction func onBack(sender: UIButton) {
-        print("on back clicked")
-        isManuallyDisconnected = true
-        centralManager.cancelPeripheralConnection(self.peripheral)
-        performSegueWithIdentifier("segueBackToGarage", sender: sender)
-    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -409,8 +403,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
         print("Disconnected")
         if !isManuallyDisconnected {
-        central.scanForPeripheralsWithServices(nil, options: nil)
-        showControl(false)
+            central.scanForPeripheralsWithServices(nil, options: nil)
+            showControl(false)
+        }
+    }
+    
+    override func viewWillDisappear(animated: Bool) {
+        super.viewWillDisappear(animated)
+        if self.isMovingToParentViewController() {
+            print("on back clicked")
+            isManuallyDisconnected = true
+            centralManager.cancelPeripheralConnection(self.peripheral)
         }
     }
 }

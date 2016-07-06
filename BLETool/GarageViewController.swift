@@ -21,7 +21,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     @IBOutlet var tableView: UITableView!
     @IBOutlet var topBar: UIView!
     
-    var vehicles = []
+    var vehicles : [Vehicle] = []
     var selectedName = ""
     
     override func viewWillAppear(animated: Bool) {
@@ -43,7 +43,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         if vehicles.count == 0 {
             print("no vehicle")
         }else{
-            buttonAdd.hidden = true
+//            buttonAdd.hidden = true
             print("found vehicle")
         }
         
@@ -60,14 +60,16 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomCell
         cell.label1!.text = vehicles[indexPath.row].name
-        cell.label2!.text = vehicles[indexPath.row].name
+        cell.label2!.text = vehicles[indexPath.row].make
+        cell.label3!.text = vehicles[indexPath.row].model
         return cell
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        selectedName = vehicles[indexPath.row].name
+        selectedName = vehicles[indexPath.row].name!
         print("click \(selectedName)")
         performSegueWithIdentifier("segueToControl", sender: indexPath)
+        tableView.deselectRowAtIndexPath(indexPath, animated: false)
     }
     
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
@@ -90,6 +92,5 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             let dest = segue.destinationViewController as! ViewController
             dest.name = selectedName
         }
-        print("prepareForSegue - in garage scene")
     }
 }

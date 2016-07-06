@@ -70,7 +70,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
             performSegueWithIdentifier("segueToRegister", sender: nil)
         }else{
             print("return to garage scene")
-            performSegueWithIdentifier("segueBackToGarage", sender: nil)
+            self.navigationController?.popViewControllerAnimated(true)
         }
     }
     
@@ -137,10 +137,9 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "segueToRegister" {
-            print("prepareForSegue -> control scene")
+            print("prepareForSegue -> register scene")
             print("now select name is \(selectedName)")
-            let dest = segue.destinationViewController as! ViewController
+            let dest = segue.destinationViewController as! RegisterViewController
             dest.name = selectedName
         }
-        print("prepareForSegue - in garage scene")
     }}

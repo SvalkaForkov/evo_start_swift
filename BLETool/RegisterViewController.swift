@@ -15,6 +15,11 @@ class RegisterViewController: UIViewController {
     var vehicles : [Vehicle] = []
     var name: String?
     
+    @IBOutlet var nameField: UITextField!
+    @IBOutlet var makeField: UITextField!
+    @IBOutlet var modelField: UITextField!
+    @IBOutlet var yearField: UITextField!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
@@ -37,10 +42,51 @@ class RegisterViewController: UIViewController {
     }
 
     @IBAction func onSave(sender: UIButton) {
-        self.name = ""
-        print("\(self.name)")
+        if checkInfo() {
+            
+        }
         dataController.saveVehicle(self.name!, address: self.name!)
-        performSegueWithIdentifier("back", sender: sender)
+//        performSegueWithIdentifier("back", sender: sender)
+        self.navigationController?.popToRootViewControllerAnimated(true	)
+    }
+    @IBAction func onTap(sender: UITapGestureRecognizer) {
+        if nameField.isFirstResponder() {
+            nameField.endEditing(true)
+        }else if makeField.isFirstResponder() {
+            makeField.endEditing(true)
+        }else if modelField.isFirstResponder() {
+            modelField.endEditing(true)
+        }else if yearField.isFirstResponder() {
+            yearField.endEditing(true)
+        }
     }
     
+    func checkInfo() -> Bool {
+        if nameField.text!.isEmpty {
+            print("no name")
+            return false
+        }
+        if makeField.text!.isEmpty {
+            print("no name")
+            return false
+        }
+        if modelField.text!.isEmpty {
+            print("no name")
+            return false
+        }
+        if yearField.text!.isEmpty {
+            print("no name")
+            return false
+        }else{
+            let year = Int(yearField.text!)
+            if year != nil {
+                if(year < 1999 || year > 2017){
+                    return false
+                }
+            }else{
+                return false
+            }
+        }
+        return true
+    }
 }

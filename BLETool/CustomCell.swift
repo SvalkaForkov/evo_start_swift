@@ -12,6 +12,7 @@ class CustomCell: UITableViewCell {
 
     @IBOutlet var label1: UILabel!
     @IBOutlet var label2: UILabel!
+    @IBOutlet var label3: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()
