@@ -16,6 +16,7 @@
 		CF3E512D1D131C3A00301C7C /* Vehicle.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CF3E512B1D131C3A00301C7C /* Vehicle.xcdatamodeld */; };
 		CF4C33001C887E8300B26FC2 /* unlock.png in Resources */ = {isa = PBXBuildFile; fileRef = CF4C32FE1C887E8200B26FC2 /* unlock.png */; };
 		CF4C33011C887E8300B26FC2 /* lock.png in Resources */ = {isa = PBXBuildFile; fileRef = CF4C32FF1C887E8200B26FC2 /* lock.png */; };
+		CF5024AD1D3548A500A360B2 /* ClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF5024AC1D3548A500A360B2 /* ClockView.swift */; };
 		CF69D9761D133A7F006FD908 /* Vehicle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9741D133A7F006FD908 /* Vehicle+CoreDataProperties.swift */; };
 		CF69D9771D133A7F006FD908 /* Vehicle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9751D133A7F006FD908 /* Vehicle.swift */; };
 		CF69D97A1D133B59006FD908 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9791D133B59006FD908 /* DataController.swift */; };
@@ -52,6 +53,7 @@
 		CF3E512C1D131C3A00301C7C /* Vehicle.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Vehicle.xcdatamodel; sourceTree = "<group>"; };
 		CF4C32FE1C887E8200B26FC2 /* unlock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlock.png; sourceTree = "<group>"; };
 		CF4C32FF1C887E8200B26FC2 /* lock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lock.png; sourceTree = "<group>"; };
+		CF5024AC1D3548A500A360B2 /* ClockView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ClockView.swift; sourceTree = "<group>"; };
 		CF69D9741D133A7F006FD908 /* Vehicle+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Vehicle+CoreDataProperties.swift"; path = "../Vehicle+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		CF69D9751D133A7F006FD908 /* Vehicle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Vehicle.swift; path = ../Vehicle.swift; sourceTree = "<group>"; };
 		CF69D9791D133B59006FD908 /* DataController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 				CF69D9781D133B31006FD908 /* CoreData */,
 				CF1C2AB61C766F6B009F2892 /* AppDelegate.swift */,
 				CF1C2AB81C766F6B009F2892 /* ViewController.swift */,
+				CF5024AC1D3548A500A360B2 /* ClockView.swift */,
 				CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */,
 				CFC8D37A1D10529500D61D73 /* GarageViewController.swift */,
 				CF69D97B1D182D41006FD908 /* CustomCell.swift */,
@@ -252,6 +255,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CF1C2AB91C766F6B009F2892 /* ViewController.swift in Sources */,
+				CF5024AD1D3548A500A360B2 /* ClockView.swift in Sources */,
 				CF69D97E1D1871F6006FD908 /* RegisterViewController.swift in Sources */,
 				CFC8D37B1D10529500D61D73 /* GarageViewController.swift in Sources */,
 				CF69D9761D133A7F006FD908 /* Vehicle+CoreDataProperties.swift in Sources */,

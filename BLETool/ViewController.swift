@@ -61,6 +61,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBOutlet var textViewSent: UITextView!
     @IBOutlet var textViewACK: UITextView!
+    @IBOutlet var stackView: UIStackView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -69,7 +70,33 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         textViewSent.text = ""
         textViewACK.text = ""
         centralManager = CBCentralManager(delegate: self, queue:nil)
+        let clock = ClockView()
+        stackView.addSubview(clock)
+        clock.startClockTimer()
     }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        buttonUnlock.center.x = 50
+        buttonLock.center.x = view.bounds.width
+        buttonStart.center.x 	= view.bounds.width  }
+    
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        UIView.animateWithDuration(0.5, animations: {
+            self.buttonUnlock.center.x = self.view.bounds.width/2
+            self.buttonLock.center.x -= self.view.bounds.width
+            self.buttonStart.center.x += self.view.bounds.width
+        })
+    }
+    
+//    override func viewDidAppear(animated: Bool) {
+//        super.viewDidAppear(animated)
+//        UIView.animateWithDuration(0.5, delay: 0.0, options: UIViewAnimationOptions.CurveEaseOut, animations: {
+//            self.buttonLock.constant += self.view.bounds.width
+//            self.view.layoutIfNeeded()
+//            }, completion: nil)
+//    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()

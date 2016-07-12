@@ -71,7 +71,6 @@
         <!--Save New Vehicle-->
         <scene sceneID="6iA-ar-fNl">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="f0Q-Qo-5x8" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <viewController id="dCX-v2-zKw" customClass="RegisterViewController" customModule="BLETool" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="Fe0-U2-9ih"/>
@@ -170,6 +169,7 @@
                         <outlet property="yearField" destination="dFJ-WV-bGp" id="I2U-ef-3Tz"/>
                     </connections>
                 </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="f0Q-Qo-5x8" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <tapGestureRecognizer id="QQS-Br-xLA">
                     <connections>
                         <action selector="onTap:" destination="dCX-v2-zKw" id="n1n-WO-2ib"/>
@@ -277,6 +277,7 @@
                         <outlet property="buttonLock" destination="W1u-r8-FVc" id="Td2-U5-nPF"/>
                         <outlet property="buttonStart" destination="N16-jx-85n" id="poG-Ny-jkV"/>
                         <outlet property="buttonUnlock" destination="WoV-6M-SO7" id="p1a-Ia-vPK"/>
+                        <outlet property="stackView" destination="ZY9-9Z-khL" id="y3n-wK-fLx"/>
                         <outlet property="textViewACK" destination="V4I-Ge-tA0" id="Zao-Xx-CSM"/>
                         <outlet property="textViewSent" destination="U30-6p-v7V" id="qHr-XA-8dX"/>
                     </connections>
