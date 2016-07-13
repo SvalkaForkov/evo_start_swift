@@ -223,11 +223,15 @@
                                             <constraint firstAttribute="height" constant="56" id="A5Q-Zq-8cz"/>
                                         </constraints>
                                     </stackView>
-                                    <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0AD-Az-Gm0">
+                                    <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="0AD-Az-Gm0">
                                         <rect key="frame" x="0.0" y="56" width="320" height="56"/>
                                         <subviews>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="53L-Hy-Z9X">
+                                                <rect key="frame" x="0.0" y="0.0" width="160" height="56"/>
+                                                <state key="normal" title="Stop"/>
+                                            </button>
                                             <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="N16-jx-85n">
-                                                <rect key="frame" x="0.0" y="0.0" width="320" height="56"/>
+                                                <rect key="frame" x="160" y="0.0" width="160" height="56"/>
                                                 <color key="backgroundColor" red="0.17358717279999999" green="0.60663448949999998" blue="0.210174992" alpha="1" colorSpace="calibratedRGB"/>
                                                 <fontDescription key="fontDescription" name="IowanOldStyle-Bold" family="Iowan Old Style" pointSize="32"/>
                                                 <state key="normal" title="Start">

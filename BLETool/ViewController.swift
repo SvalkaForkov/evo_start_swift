@@ -70,25 +70,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         textViewSent.text = ""
         textViewACK.text = ""
         centralManager = CBCentralManager(delegate: self, queue:nil)
-        let clock = ClockView()
-        stackView.addSubview(clock)
-        clock.startClockTimer()
     }
     
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        buttonUnlock.center.x = 50
-        buttonLock.center.x = view.bounds.width
-        buttonStart.center.x 	= view.bounds.width  }
-    
-    override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated)
-        UIView.animateWithDuration(0.5, animations: {
-            self.buttonUnlock.center.x = self.view.bounds.width/2
-            self.buttonLock.center.x -= self.view.bounds.width
-            self.buttonStart.center.x += self.view.bounds.width
-        })
-    }
+//    override func viewWillAppear(animated: Bool) {
+//        super.viewWillAppear(animated)
+//        buttonUnlock.center.x = 50
+//        buttonLock.center.x = view.bounds.width
+//        buttonStart.center.x 	= view.bounds.width  }
+//    
+//    override func viewDidAppear(animated: Bool) {
+//        super.viewDidAppear(animated)
+//        UIView.animateWithDuration(0.5, animations: {
+//            self.buttonUnlock.center.x = self.view.bounds.width/2
+//            self.buttonLock.center.x -= self.view.bounds.width
+//            self.buttonStart.center.x += self.view.bounds.width
+//        })
+//    }
     
 //    override func viewDidAppear(animated: Bool) {
 //        super.viewDidAppear(animated)
@@ -336,6 +333,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             dispatch_async(dispatch_get_main_queue(),{
                 self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 5")
             })
+            self.started = true
+            self.receivedStart = true
+            self.buttonStart.setTitle("Stop", forState: UIControlState.Normal)
+            self.buttonStart.backgroundColor = UIColor.redColor()
         })
     }
     
@@ -382,6 +383,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             dispatch_async(dispatch_get_main_queue(),{
                 self.textViewSent.text = self.textViewSent.text.stringByAppendingString("\nSend : 5")
             })
+            self.started = false
+            self.receivedStop = true
+            self.buttonStart.setTitle("Start", forState: UIControlState.Normal)
+            self.buttonStart.backgroundColor = UIColor.greenColor()
         })
     }
     
@@ -423,6 +428,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             //ack for locked
             buttonStart.selected = false
             buttonStart.setTitle("Start", forState: UIControlState.Normal)
+        }else{
+            textViewACK.text = textViewACK.text.stringByAppendingString("\n\(val) : \(count)")
+            count = count + 1
+            receivedLock = true
+            receivedStop = true
+            receivedStart = true
+            receivedUnlock = true
         }
         print("Charateristic's value has updated : \(val!)")
     }
