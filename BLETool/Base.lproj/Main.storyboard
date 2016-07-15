@@ -229,6 +229,9 @@
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="53L-Hy-Z9X">
                                                 <rect key="frame" x="0.0" y="0.0" width="160" height="56"/>
                                                 <state key="normal" title="Stop"/>
+                                                <connections>
+                                                    <action selector="onStop:" destination="qfS-tC-vNs" eventType="touchUpInside" id="eCN-iW-tiB"/>
+                                                </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="wordWrap" translatesAutoresizingMaskIntoConstraints="NO" id="N16-jx-85n">
                                                 <rect key="frame" x="160" y="0.0" width="160" height="56"/>
@@ -238,7 +241,7 @@
                                                     <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                 </state>
                                                 <connections>
-                                                    <action selector="onStartStop:" destination="qfS-tC-vNs" eventType="touchUpInside" id="c3F-Hr-tFy"/>
+                                                    <action selector="onStart:" destination="qfS-tC-vNs" eventType="touchUpInside" id="uI8-bA-WXM"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -280,6 +283,7 @@
                     <connections>
                         <outlet property="buttonLock" destination="W1u-r8-FVc" id="Td2-U5-nPF"/>
                         <outlet property="buttonStart" destination="N16-jx-85n" id="poG-Ny-jkV"/>
+                        <outlet property="buttonStop" destination="53L-Hy-Z9X" id="8tF-KR-09m"/>
                         <outlet property="buttonUnlock" destination="WoV-6M-SO7" id="p1a-Ia-vPK"/>
                         <outlet property="stackView" destination="ZY9-9Z-khL" id="y3n-wK-fLx"/>
                         <outlet property="textViewACK" destination="V4I-Ge-tA0" id="Zao-Xx-CSM"/>

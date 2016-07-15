@@ -59,6 +59,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var buttonLock: UIButton!
     @IBOutlet var buttonStart: UIButton!
     
+    @IBOutlet var buttonStop: UIButton!
     @IBOutlet var textViewSent: UITextView!
     @IBOutlet var textViewACK: UITextView!
     @IBOutlet var stackView: UIStackView!
@@ -281,15 +282,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         })
     }
     
-    @IBAction func onStartStop(sender: UIButton) {
+    
+    @IBAction func onStart(sender: UIButton) {
         count = 0
-        if started {
-            onStopEngine()
-        }else{
-            onStartEngine()
-        }
+        onStartEngine()
     }
     
+    @IBAction func onStop(sender: UIButton) {
+        count = 0
+        onStopEngine()
+    }
     func onStartEngine() {
         print("on start")
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
@@ -335,8 +337,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             })
             self.started = true
             self.receivedStart = true
-            self.buttonStart.setTitle("Stop", forState: UIControlState.Normal)
-            self.buttonStart.backgroundColor = UIColor.redColor()
         })
     }
     
@@ -385,8 +385,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             })
             self.started = false
             self.receivedStop = true
-            self.buttonStart.setTitle("Start", forState: UIControlState.Normal)
-            self.buttonStart.backgroundColor = UIColor.greenColor()
         })
     }
     
@@ -414,16 +412,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             textViewACK.text = textViewACK.text.stringByAppendingString("\n\(val) : \(count)")
             count = count + 1
             receivedStart = true
-            buttonStart.setTitle("Stop", forState: UIControlState.Normal)
-            buttonStart.backgroundColor = UIColor.redColor()
         }else if(val=="00000001"){
             started = false
             //ack for stopped
             textViewACK.text = textViewACK.text.stringByAppendingString("\n\(val) : \(count)")
             count = count + 1
             receivedStop = true
-            buttonStart.setTitle("Start", forState: UIControlState.Normal)
-            buttonStart.backgroundColor = UIColor.greenColor()
         }else if(val=="0240000f"){
             //ack for locked
             buttonStart.selected = false
