@@ -12,7 +12,7 @@ class ClockView: UIView {
     
     private var shapeLayer = CAShapeLayer()
     private var countDownTimer = NSTimer()
-    private var timerValue = 900
+    private var timerValue = 909
     private var label = UILabel()
     
     override init (frame : CGRect) {

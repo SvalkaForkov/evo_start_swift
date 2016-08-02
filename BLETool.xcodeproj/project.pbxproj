@@ -23,6 +23,7 @@
 		CF69D97C1D182D41006FD908 /* CustomCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97B1D182D41006FD908 /* CustomCell.swift */; };
 		CF69D97E1D1871F6006FD908 /* RegisterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */; };
 		CF69D9801D187333006FD908 /* CustomScanCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97F1D187333006FD908 /* CustomScanCell.swift */; };
+		CF7E5E271D4BFDD5000B688C /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CF1C2AC21C766F6B009F2892 /* Info.plist */; };
 		CFC8D37B1D10529500D61D73 /* GarageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37A1D10529500D61D73 /* GarageViewController.swift */; };
 		CFC8D37D1D10A8EE00D61D73 /* ScanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */; };
 		CFCEC1351C77CA890007F037 /* appiconx3.png in Resources */ = {isa = PBXBuildFile; fileRef = CFCEC1341C77CA890007F037 /* appiconx3.png */; };
@@ -230,6 +231,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CF7E5E271D4BFDD5000B688C /* Info.plist in Resources */,
 				CF1C2AC11C766F6B009F2892 /* LaunchScreen.storyboard in Resources */,
 				CF4C33001C887E8300B26FC2 /* unlock.png in Resources */,
 				CFCEC1351C77CA890007F037 /* appiconx3.png in Resources */,
@@ -407,6 +409,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=*]" = "iPhone Developer: Xiaotu Zhang (547Q3WBSLG)";
 				INFOPLIST_FILE = BLETool/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
