@@ -73,14 +73,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         self.navigationController?.navigationBar.barTintColor = getColorFromHex(0xe21f1d)
         removeBorderFromBar()
         textViewLog.text = ""
-        logOnScreen("did load view controller")
-        logOnScreen("name is \(name)")
         getDefault()
         if name != "" {
+            logOnScreen("not nil : "+name)
             centralManager = CBCentralManager(delegate: self, queue:nil)
         }else{
-            imageStatus.image = UIImage(named: "AppIcon")
-//            performSegueWithIdentifier("control2scan", sender: self)
+            logOnScreen("prompt image")
+            imageStatus.image = UIImage(named: "unlock")
+            performSegueWithIdentifier("control2scan", sender: self)
         }
     }
     

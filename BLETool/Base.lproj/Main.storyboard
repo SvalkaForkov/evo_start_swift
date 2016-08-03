@@ -21,28 +21,41 @@
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="120" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="6Ny-pv-bgl">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="524"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <color key="sectionIndexBackgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" accessoryType="disclosureIndicator" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ScanCell" rowHeight="120" id="CxY-b8-kkR" customClass="CustomScanCell" customModule="BLETool" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ScanCell" rowHeight="120" id="CxY-b8-kkR" customClass="CustomScanCell" customModule="BLETool" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="92" width="320" height="120"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="CxY-b8-kkR" id="MJk-rh-4Hq">
-                                            <rect key="frame" x="0.0" y="0.0" width="287" height="119"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="119"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vEn-OI-iqt">
-                                                    <rect key="frame" x="18" y="49" width="45" height="21"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                    <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                                <button opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hUK-4X-Zrc">
+                                                    <rect key="frame" x="262" y="35" width="50" height="50"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="50" id="RtF-07-Hbt"/>
+                                                    </constraints>
+                                                    <state key="normal" image="High Connection"/>
+                                                </button>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vEn-OI-iqt">
+                                                    <rect key="frame" x="30" y="45" width="154" height="30"/>
+                                                    <fontDescription key="fontDescription" name="HelveticaNeue-Medium" family="Helvetica Neue" pointSize="20"/>
+                                                    <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstItem="vEn-OI-iqt" firstAttribute="leading" secondItem="MJk-rh-4Hq" secondAttribute="leadingMargin" constant="10" id="cBq-5S-l7A"/>
+                                                <constraint firstItem="hUK-4X-Zrc" firstAttribute="trailing" secondItem="MJk-rh-4Hq" secondAttribute="trailingMargin" id="D0t-Vm-3of"/>
+                                                <constraint firstItem="hUK-4X-Zrc" firstAttribute="top" secondItem="MJk-rh-4Hq" secondAttribute="topMargin" constant="27" id="WbF-iq-2Vx"/>
+                                                <constraint firstItem="vEn-OI-iqt" firstAttribute="leading" secondItem="MJk-rh-4Hq" secondAttribute="leadingMargin" constant="22" id="cBq-5S-l7A"/>
                                                 <constraint firstItem="vEn-OI-iqt" firstAttribute="centerY" secondItem="MJk-rh-4Hq" secondAttribute="centerY" id="dFC-1A-UMg"/>
+                                                <constraint firstItem="hUK-4X-Zrc" firstAttribute="leading" secondItem="vEn-OI-iqt" secondAttribute="trailing" constant="78" id="mLw-uQ-QvT"/>
+                                                <constraint firstItem="hUK-4X-Zrc" firstAttribute="centerY" secondItem="vEn-OI-iqt" secondAttribute="centerY" id="r8X-oR-chI"/>
                                             </constraints>
                                         </tableViewCellContentView>
-                                        <color key="backgroundColor" red="0.50196081400000003" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <connections>
+                                            <outlet property="imageSignal" destination="hUK-4X-Zrc" id="pOR-Go-PUu"/>
                                             <outlet property="labelName" destination="vEn-OI-iqt" id="gj6-XN-25j"/>
                                         </connections>
                                     </tableViewCell>
@@ -51,10 +64,10 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstAttribute="trailing" secondItem="6Ny-pv-bgl" secondAttribute="trailing" id="8BT-yK-MeH"/>
+                            <constraint firstAttribute="trailing" secondItem="6Ny-pv-bgl" secondAttribute="trailing" constant="16" id="8BT-yK-MeH"/>
                             <constraint firstItem="6Ny-pv-bgl" firstAttribute="bottom" secondItem="ugo-31-jSl" secondAttribute="top" id="Dl4-13-S2T"/>
                             <constraint firstItem="6Ny-pv-bgl" firstAttribute="top" secondItem="Xgd-lj-ttj" secondAttribute="bottom" constant="-64" id="KQV-dN-U92"/>
-                            <constraint firstItem="6Ny-pv-bgl" firstAttribute="leading" secondItem="833-xQ-yPf" secondAttribute="leading" id="Qch-8P-w0w"/>
+                            <constraint firstItem="6Ny-pv-bgl" firstAttribute="leading" secondItem="833-xQ-yPf" secondAttribute="leading" constant="16" id="Qch-8P-w0w"/>
                         </constraints>
                     </view>
                     <tabBarItem key="tabBarItem" systemItem="search" id="lWj-4h-nVp"/>
@@ -66,7 +79,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="JeM-mm-aoV" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="484" y="-420"/>
+            <point key="canvasLocation" x="483" y="-415"/>
         </scene>
         <!--Save New Vehicle-->
         <scene sceneID="6iA-ar-fNl">
@@ -229,10 +242,17 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Wf8-kn-1qe">
                                 <rect key="frame" x="20" y="130" width="280" height="350"/>
                                 <subviews>
+                                    <textView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0LQ-HX-dWz">
+                                        <rect key="frame" x="0.0" y="0.0" width="280" height="350"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                    </textView>
                                     <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="y12-ry-nPl">
                                         <rect key="frame" x="0.0" y="0.0" width="280" height="350"/>
                                         <subviews>
-                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="J1R-ZM-ez1">
+                                            <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="J1R-ZM-ez1">
                                                 <rect key="frame" x="0.0" y="0.0" width="280" height="350"/>
                                             </imageView>
                                         </subviews>
@@ -244,13 +264,6 @@
                                             <constraint firstItem="J1R-ZM-ez1" firstAttribute="width" secondItem="y12-ry-nPl" secondAttribute="width" id="qOc-PA-Q8W"/>
                                         </constraints>
                                     </view>
-                                    <textView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0LQ-HX-dWz">
-                                        <rect key="frame" x="0.0" y="0.0" width="280" height="350"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                                    </textView>
                                 </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
@@ -480,6 +493,7 @@
     <resources>
         <image name="ClearLog" width="25" height="25"/>
         <image name="Garage" width="25" height="25"/>
+        <image name="High Connection" width="25" height="25"/>
         <image name="Lock" width="25" height="25"/>
         <image name="Unlock" width="25" height="25"/>
     </resources>

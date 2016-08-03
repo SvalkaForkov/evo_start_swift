@@ -14,11 +14,12 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
     
-
+    
     @IBOutlet var topBar: UIView!
     @IBOutlet var tableView: UITableView!
     
-    var deviceName : [NSString] = []
+    var deviceName : [String] = []
+    var deviceWithRssi = [String : Int]()
     var devices : [CBPeripheral] = []
     var selectedName : String = ""
     
@@ -33,7 +34,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         centralManager = CBCentralManager(delegate: self, queue:nil)
         appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegeate.dataController
-        vehicles = dataController.getAllVehicles()
+        tableView.separatorStyle = UITableViewCellSeparatorStyle.None
     }
     
     @IBAction func onBack(sender: UIButton) {
@@ -47,7 +48,34 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("ScanCell", forIndexPath: indexPath) as! CustomScanCell
-        cell.labelName!.text = deviceName[indexPath.row] as String
+        let deviceNameString = deviceName[indexPath.row] as String
+        cell.labelName!.text = deviceNameString
+        let rssi = deviceWithRssi[deviceNameString]
+        if rssi != nil {
+            if rssi > -30 && rssi < -50 {
+                cell.imageSignal.setImage(UIImage(named: "High Connection"), forState: .Normal)
+            }else if rssi >= -50 && rssi < -70 {
+                cell.imageSignal.setImage(UIImage(named: "Medium Connection"), forState: .Normal)
+                
+            }else if rssi >= -70{
+                cell.imageSignal.setImage(UIImage(named: "Low Connection"), forState: .Normal)
+            }
+        }
+        let whiteRoundedView : UIView = UIView(frame: CGRectMake(0, 10, self.view.frame.size.width, 120))
+        
+        whiteRoundedView.layer.backgroundColor = CGColorCreate(CGColorSpaceCreateDeviceRGB(), [1.0, 1.0, 1.0, 1.0])
+        whiteRoundedView.layer.masksToBounds = false
+        whiteRoundedView.layer.cornerRadius = 4.0
+        whiteRoundedView.layer.shadowOffset = CGSizeMake(-1, 1)
+        whiteRoundedView.layer.shadowOpacity = 0.2
+//        cell.layer.cornerRadius = 6
+//        cell.layer.masksToBounds = true
+//        cell.layer.shadowColor = UIColor.blackColor().CGColor
+//        cell.layer.shadowOffset = CGSizeMake(0, 1)
+//        cell.layer.shadowRadius = 5
+//        cell.layer.shadowOpacity = 1.0
+        cell.contentView.addSubview(whiteRoundedView)
+        cell.contentView.sendSubviewToBack(whiteRoundedView)
         return cell
     }
     
@@ -66,7 +94,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         }
         
         if !existing {
-//            dataController.saveVehicle(selectedName, address: selectedName)
+            //            dataController.saveVehicle(selectedName, address: selectedName)
             performSegueWithIdentifier("segueToRegister", sender: nil)
         }else{
             print("return to garage scene")
@@ -101,16 +129,23 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
         let nameOfDeviceFound = peripheral.name
-//            (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
+        //            (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
+        peripheral.readRSSI()
         print("\(nameOfDeviceFound) Found")
+        devices.append(peripheral)
         deviceName.append("\(nameOfDeviceFound!)")
         tableView.reloadData()
         if nameOfDeviceFound!.rangeOfString("EVO") != nil {
-            centralManager.stopScan()
-            print("found evo, stop scanning")
+            //            centralManager.stopScan()
         }
-        self.peripheral = peripheral
-        self.peripheral.delegate = self
+        //        self.peripheral = peripheral
+        //        self.peripheral.delegate = self
+    }
+    
+    func peripheralDidUpdateRSSI(peripheral: CBPeripheral, error: NSError?) {
+        print("\(peripheral.name!) updated : \(peripheral.RSSI?.integerValue)")
+        deviceWithRssi[peripheral.name!] = peripheral.RSSI?.integerValue
+        tableView.reloadData()
     }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
@@ -134,7 +169,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
         
     }
-
+    
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "segueToRegister" {
             print("prepareForSegue -> register scene")
