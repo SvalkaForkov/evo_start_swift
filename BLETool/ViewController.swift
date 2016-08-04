@@ -68,12 +68,30 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         self.textViewLog.text = ""
     }
     
+    @IBAction func onGarageButton(sender: UIButton) {
+        centralManager.stopScan()
+        if peripheral != nil {
+            centralManager.cancelPeripheralConnection(peripheral)
+            centralManager = nil
+            print("disconnect")
+        }
+        performSegueWithIdentifier("control2garage", sender: sender)
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        centralManager = CBCentralManager(delegate: self, queue:nil)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.navigationController?.navigationBar.barTintColor = getColorFromHex(0xe21f1d)
+        self.navigationController?.navigationBar.barTintColor = UIColor.blackColor()
+        self.navigationController?.navigationBar.tintColor = UIColor.whiteColor()
+        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.whiteColor()]
+        //getColorFromHex(0xe21f1d)
         removeBorderFromBar()
         textViewLog.text = ""
         getDefault()
+        print("view did load")
         if name != "" {
             logOnScreen("not nil : "+name)
             centralManager = CBCentralManager(delegate: self, queue:nil)

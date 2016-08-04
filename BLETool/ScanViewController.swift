@@ -95,7 +95,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         
         if !existing {
             //            dataController.saveVehicle(selectedName, address: selectedName)
-            performSegueWithIdentifier("segueToRegister", sender: nil)
+            performSegueWithIdentifier("scan2register", sender: nil)
         }else{
             print("return to garage scene")
             self.navigationController?.popViewControllerAnimated(true)
@@ -171,7 +171,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if segue.identifier == "segueToRegister" {
+        if segue.identifier == "scan2register" {
             print("prepareForSegue -> register scene")
             print("now select name is \(selectedName)")
             let dest = segue.destinationViewController as! RegisterViewController

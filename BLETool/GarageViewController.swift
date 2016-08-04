@@ -10,7 +10,7 @@ import UIKit
 import CoreBluetooth
 
 
-class GarageViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate{
+class GarageViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate,CBCentralManagerDelegate, CBPeripheralDelegate{
     
     @IBAction func onAddVehicle(sender: UIButton) {
         print("add click vehicle")
@@ -20,7 +20,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     @IBOutlet var buttonAdd: UIButton!
     @IBOutlet var tableView: UITableView!
     @IBOutlet var topBar: UIView!
-    
+    var centralManager:CBCentralManager!
     var vehicles : [Vehicle] = []
     var selectedName = ""
     
@@ -31,21 +31,71 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         print("setting up delegate and core data")
         vehicles = dataController.getAllVehicles()
         print("fetching vehicle list")
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.separatorStyle = UITableViewCellSeparatorStyle.None
+        tableView.cellLayoutMarginsFollowReadableWidth = false
+        tableView.layoutMargins = UIEdgeInsetsZero
+        tableView.separatorInset = UIEdgeInsetsZero
+        centralManager = CBCentralManager(delegate: self, queue:nil)
+        if vehicles.count == 0 {
+            print("no vehicle")
+        }else{
+            //            buttonAdd.hidden = true
+            print("found vehicle")
+        }
+    }
+    
+    func centralManagerDidUpdateState(central: CBCentralManager) {
+        switch(central.state){
+        case CBCentralManagerState.PoweredOn:
+            print("Ble PoweredOn")
+            print("Scanning bluetooth")
+            break
+        case CBCentralManagerState.PoweredOff:
+            print("Ble PoweredOff")
+            centralManager.stopScan()
+            break
+        case CBCentralManagerState.Unauthorized:
+            print("Unauthorized state")
+            break
+        case CBCentralManagerState.Resetting:
+            print("Resetting state")
+            break
+        case CBCentralManagerState.Unknown:
+            print("unknown state")
+            break
+        case CBCentralManagerState.Unsupported:
+            print("Unsupported state")
+            break
+        }
+    }
+    
+    func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
+        let nameOfDeviceFound = peripheral.name as String!
+        if nameOfDeviceFound != nil {
+            print("Did discover \(nameOfDeviceFound)")
+            print("and name is \(selectedName)")
+            if nameOfDeviceFound == selectedName{
+                print("Match")
+                centralManager.stopScan()
+                print("Stop scanning after \(nameOfDeviceFound) device found")
+                setDefault(selectedName)
+                centralManager = nil
+                self.navigationController?.popToRootViewControllerAnimated(true)
+            }
+        }
+    }
+    
+    func setDefault(value: String){
+        print("set default : \(value)")
+        NSUserDefaults.standardUserDefaults().setObject(value, forKey: "default")
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         print("garage viewDidLoad")
-        tableView.dataSource = self
-        tableView.delegate = self
         
-        
-        if vehicles.count == 0 {
-            print("no vehicle")
-        }else{
-//            buttonAdd.hidden = true
-            print("found vehicle")
-        }
         
         //        let cons1 = tableView.topAnchor.constraintEqualToAnchor(topBar.bottomAnchor)
         //        let cons2 = topBar.heightAnchor.constraintEqualToConstant(56)
@@ -59,6 +109,8 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomCell
+        
+        cell.mainView.layer.cornerRadius = 5.0
         cell.label1!.text = vehicles[indexPath.row].name
         cell.label2!.text = vehicles[indexPath.row].make
         cell.label3!.text = vehicles[indexPath.row].model
@@ -68,25 +120,12 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         selectedName = vehicles[indexPath.row].name!
         print("click \(selectedName)")
-        performSegueWithIdentifier("segueToControl", sender: indexPath)
+        centralManager.scanForPeripheralsWithServices(nil, options: nil)
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
     }
     
-    func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        
-    }
-    
-    func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
-        print("Discovering services & characteristics")
-        
-    }
-    
-    func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
-        
-    }
-    
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        if segue.identifier == "segueToControl" {
+        if segue.identifier == "garage2control" {
             print("prepareForSegue -> control scene")
             print("now select name is \(selectedName)")
             let dest = segue.destinationViewController as! ViewController

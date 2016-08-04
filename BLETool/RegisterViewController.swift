@@ -45,10 +45,13 @@ class RegisterViewController: UIViewController {
         if checkInfo() {
             
         }
-        dataController.saveVehicle(self.name!, address: self.name!)
+//        dataController.saveVehicle(self.name!, address: self.name!)
+        dataController.saveVehicle(nameField.text!, make: makeField.text!, model: modelField.text!, year: yearField.text!, address: "unknown")
 //        performSegueWithIdentifier("back", sender: sender)
-        self.navigationController?.popToRootViewControllerAnimated(true	)
+        print("prepare to go back to control")
+        self.navigationController?.popToRootViewControllerAnimated(true)
     }
+    
     @IBAction func onTap(sender: UITapGestureRecognizer) {
         if nameField.isFirstResponder() {
             nameField.endEditing(true)
@@ -62,6 +65,7 @@ class RegisterViewController: UIViewController {
     }
     
     func checkInfo() -> Bool {
+        print("check all infomation is filled")
         if nameField.text!.isEmpty {
             print("no name")
             return false
