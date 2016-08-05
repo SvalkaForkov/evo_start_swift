@@ -24,10 +24,10 @@
                                 <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="sectionIndexBackgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ScanCell" rowHeight="120" id="CxY-b8-kkR" customClass="CustomScanCell" customModule="BLETool" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ScanCell" rowHeight="120" id="CxY-b8-kkR" customClass="CustomScanCell" customModule="BLETool" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="92" width="320" height="120"/>
                                         <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="CxY-b8-kkR" id="MJk-rh-4Hq">
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" tableViewCell="CxY-b8-kkR" id="MJk-rh-4Hq">
                                             <rect key="frame" x="0.0" y="0.0" width="320" height="120"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
@@ -38,7 +38,7 @@
                                                     </constraints>
                                                     <state key="normal" image="High Connection"/>
                                                 </button>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vEn-OI-iqt">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vEn-OI-iqt">
                                                     <rect key="frame" x="30" y="45" width="154" height="30"/>
                                                     <fontDescription key="fontDescription" name="HelveticaNeue-Medium" family="Helvetica Neue" pointSize="20"/>
                                                     <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -47,6 +47,7 @@
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="hUK-4X-Zrc" firstAttribute="trailing" secondItem="MJk-rh-4Hq" secondAttribute="trailingMargin" id="D0t-Vm-3of"/>
+                                                <constraint firstItem="vEn-OI-iqt" firstAttribute="top" secondItem="MJk-rh-4Hq" secondAttribute="topMargin" constant="37" id="RUl-wm-Shv"/>
                                                 <constraint firstItem="hUK-4X-Zrc" firstAttribute="top" secondItem="MJk-rh-4Hq" secondAttribute="topMargin" constant="27" id="WbF-iq-2Vx"/>
                                                 <constraint firstItem="vEn-OI-iqt" firstAttribute="leading" secondItem="MJk-rh-4Hq" secondAttribute="leadingMargin" constant="22" id="cBq-5S-l7A"/>
                                                 <constraint firstItem="vEn-OI-iqt" firstAttribute="centerY" secondItem="MJk-rh-4Hq" secondAttribute="centerY" id="dFC-1A-UMg"/>
@@ -65,10 +66,10 @@
                         </subviews>
                         <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstAttribute="trailing" secondItem="6Ny-pv-bgl" secondAttribute="trailing" id="8BT-yK-MeH"/>
-                            <constraint firstItem="6Ny-pv-bgl" firstAttribute="bottom" secondItem="ugo-31-jSl" secondAttribute="top" id="Dl4-13-S2T"/>
-                            <constraint firstItem="6Ny-pv-bgl" firstAttribute="top" secondItem="Xgd-lj-ttj" secondAttribute="bottom" constant="-64" id="KQV-dN-U92"/>
-                            <constraint firstItem="6Ny-pv-bgl" firstAttribute="leading" secondItem="833-xQ-yPf" secondAttribute="leading" id="Qch-8P-w0w"/>
+                            <constraint firstAttribute="trailing" secondItem="6Ny-pv-bgl" secondAttribute="trailing" id="5md-1D-qDL"/>
+                            <constraint firstItem="6Ny-pv-bgl" firstAttribute="top" secondItem="833-xQ-yPf" secondAttribute="top" id="Cc8-Wo-jho"/>
+                            <constraint firstItem="6Ny-pv-bgl" firstAttribute="leading" secondItem="833-xQ-yPf" secondAttribute="leading" id="ELi-Wz-anP"/>
+                            <constraint firstItem="6Ny-pv-bgl" firstAttribute="bottom" secondItem="ugo-31-jSl" secondAttribute="top" id="nzd-va-vuT"/>
                         </constraints>
                     </view>
                     <tabBarItem key="tabBarItem" systemItem="search" id="lWj-4h-nVp"/>
@@ -338,13 +339,12 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="120" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="Gh4-9s-1Q0">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="460"/>
+                            <tableView opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="120" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="Gh4-9s-1Q0">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <inset key="scrollIndicatorInsets" minX="5" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 <color key="sectionIndexBackgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="GarageCell" rowHeight="120" id="73b-Wv-SaW" customClass="CustomCell" customModule="BLETool" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="GarageCell" rowHeight="120" id="73b-Wv-SaW" customClass="CustomGarageCell" customModule="BLETool" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="92" width="320" height="120"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" tableViewCell="73b-Wv-SaW" id="nY5-LN-2U2">
@@ -409,11 +409,10 @@
                                     </tableViewCell>
                                 </prototypes>
                             </tableView>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="duG-fm-irz">
-                                <rect key="frame" x="135" y="474" width="50" height="50"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="duG-fm-irz">
+                                <rect key="frame" x="135" y="466" width="50" height="50"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="50" id="D5F-Vs-tVm"/>
-                                    <constraint firstAttribute="height" constant="48" id="Yio-AK-nRg"/>
+                                    <constraint firstAttribute="width" constant="50" id="Qpn-dE-gG0"/>
                                 </constraints>
                                 <state key="normal" image="Add Car">
                                     <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
@@ -426,12 +425,13 @@
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
-                            <constraint firstItem="Gh4-9s-1Q0" firstAttribute="leading" secondItem="kp1-AY-3zH" secondAttribute="leading" id="FbY-ry-RtV"/>
-                            <constraint firstItem="duG-fm-irz" firstAttribute="centerX" secondItem="kp1-AY-3zH" secondAttribute="centerX" id="StB-t5-R1W"/>
-                            <constraint firstItem="JA5-rG-XUO" firstAttribute="top" secondItem="Gh4-9s-1Q0" secondAttribute="bottom" id="X1B-hx-8fa"/>
-                            <constraint firstItem="Gh4-9s-1Q0" firstAttribute="top" secondItem="Uwr-Ep-U8h" secondAttribute="bottom" id="Yvp-w0-HZS"/>
-                            <constraint firstItem="duG-fm-irz" firstAttribute="bottom" secondItem="JA5-rG-XUO" secondAttribute="top" id="bmy-Gg-QVc"/>
-                            <constraint firstAttribute="trailing" secondItem="Gh4-9s-1Q0" secondAttribute="trailing" id="hxO-h0-HdM"/>
+                            <constraint firstItem="Gh4-9s-1Q0" firstAttribute="centerX" secondItem="kp1-AY-3zH" secondAttribute="centerX" id="6yl-Sq-um9"/>
+                            <constraint firstItem="Gh4-9s-1Q0" firstAttribute="centerY" secondItem="kp1-AY-3zH" secondAttribute="centerY" id="A8G-iR-7P3"/>
+                            <constraint firstItem="duG-fm-irz" firstAttribute="centerX" secondItem="Gh4-9s-1Q0" secondAttribute="centerX" id="DhX-Z1-UIP"/>
+                            <constraint firstItem="JA5-rG-XUO" firstAttribute="top" secondItem="duG-fm-irz" secondAttribute="bottom" constant="8" symbolic="YES" id="P7o-yH-8kd"/>
+                            <constraint firstItem="Gh4-9s-1Q0" firstAttribute="width" secondItem="kp1-AY-3zH" secondAttribute="width" id="cJz-uv-Pjf"/>
+                            <constraint firstItem="Gh4-9s-1Q0" firstAttribute="height" secondItem="kp1-AY-3zH" secondAttribute="height" id="mKI-ec-dDt"/>
+                            <constraint firstItem="duG-fm-irz" firstAttribute="top" secondItem="Uwr-Ep-U8h" secondAttribute="bottom" constant="402" id="op1-uS-0UP"/>
                         </constraints>
                     </view>
                     <toolbarItems/>

@@ -22,7 +22,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     @IBOutlet var topBar: UIView!
     var centralManager:CBCentralManager!
     var vehicles : [Vehicle] = []
-    var selectedName = ""
+    var selectedModule = ""
     
     override func viewWillAppear(animated: Bool) {
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
@@ -75,12 +75,12 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         let nameOfDeviceFound = peripheral.name as String!
         if nameOfDeviceFound != nil {
             print("Did discover \(nameOfDeviceFound)")
-            print("and name is \(selectedName)")
-            if nameOfDeviceFound == selectedName{
+            print("and name is \(selectedModule)")
+            if nameOfDeviceFound == selectedModule{
                 print("Match")
                 centralManager.stopScan()
                 print("Stop scanning after \(nameOfDeviceFound) device found")
-                setDefault(selectedName)
+                setDefault(selectedModule)
                 centralManager = nil
                 self.navigationController?.popToRootViewControllerAnimated(true)
             }
@@ -108,8 +108,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomCell
-        
+        let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
         cell.mainView.layer.cornerRadius = 5.0
         cell.label1!.text = vehicles[indexPath.row].name
         cell.label2!.text = vehicles[indexPath.row].make
@@ -118,8 +117,8 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        selectedName = vehicles[indexPath.row].name!
-        print("click \(selectedName)")
+        selectedModule = vehicles[indexPath.row].module!
+        print("click \(selectedModule)")
         centralManager.scanForPeripheralsWithServices(nil, options: nil)
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
     }
@@ -127,9 +126,9 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "garage2control" {
             print("prepareForSegue -> control scene")
-            print("now select name is \(selectedName)")
+            print("now select name is \(selectedModule)")
             let dest = segue.destinationViewController as! ViewController
-            dest.name = selectedName
+            dest.module = selectedModule
         }
     }
 }

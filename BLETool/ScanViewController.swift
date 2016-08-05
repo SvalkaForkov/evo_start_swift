@@ -18,7 +18,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     @IBOutlet var topBar: UIView!
     @IBOutlet var tableView: UITableView!
     
-    var deviceName : [String] = []
+    var moduleNames : [String] = []
     var deviceWithRssi = [String : Int]()
     var devices : [CBPeripheral] = []
     var selectedName : String = ""
@@ -31,9 +31,13 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.cellLayoutMarginsFollowReadableWidth = false
+        tableView.layoutMargins = UIEdgeInsetsZero
+        tableView.separatorInset = UIEdgeInsetsZero
         centralManager = CBCentralManager(delegate: self, queue:nil)
         appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegeate.dataController
+        
         tableView.separatorStyle = UITableViewCellSeparatorStyle.None
     }
     
@@ -43,14 +47,15 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return deviceName.count
+        return moduleNames.count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("ScanCell", forIndexPath: indexPath) as! CustomScanCell
-        let deviceNameString = deviceName[indexPath.row] as String
-        cell.labelName!.text = deviceNameString
-        let rssi = deviceWithRssi[deviceNameString]
+        let moduleNameString = moduleNames[indexPath.row] as String
+        cell.labelName!.text = moduleNameString
+        let rssi = deviceWithRssi[moduleNameString]
+        
         if rssi != nil {
             if rssi > -30 && rssi < -50 {
                 cell.imageSignal.setImage(UIImage(named: "High Connection"), forState: .Normal)
@@ -61,40 +66,26 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
                 cell.imageSignal.setImage(UIImage(named: "Low Connection"), forState: .Normal)
             }
         }
-        let whiteRoundedView : UIView = UIView(frame: CGRectMake(0, 10, self.view.frame.size.width, 120))
         
-        whiteRoundedView.layer.backgroundColor = CGColorCreate(CGColorSpaceCreateDeviceRGB(), [1.0, 1.0, 1.0, 1.0])
-        whiteRoundedView.layer.masksToBounds = false
-        whiteRoundedView.layer.cornerRadius = 4.0
-        whiteRoundedView.layer.shadowOffset = CGSizeMake(-1, 1)
-        whiteRoundedView.layer.shadowOpacity = 0.2
-//        cell.layer.cornerRadius = 6
-//        cell.layer.masksToBounds = true
-//        cell.layer.shadowColor = UIColor.blackColor().CGColor
-//        cell.layer.shadowOffset = CGSizeMake(0, 1)
-//        cell.layer.shadowRadius = 5
-//        cell.layer.shadowOpacity = 1.0
-        cell.contentView.addSubview(whiteRoundedView)
-        cell.contentView.sendSubviewToBack(whiteRoundedView)
+        cell.layer.cornerRadius = 5.0
         return cell
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        selectedName = deviceName[indexPath.row] as String
+        selectedName = moduleNames[indexPath.row] as String
         print("\(selectedName)")
         var existing = false
         if vehicles.count > 0 {
             for vehicle in vehicles {
-                if vehicle.name?.rangeOfString(selectedName) != nil {
+                if vehicle.module?.rangeOfString(selectedName) != nil {
                     existing = true
-                    print("vehicle existing, exiting for loop")
+                    print("vehicle exists")
                     break
                 }
             }
         }
-        
+        centralManager.stopScan()
         if !existing {
-            //            dataController.saveVehicle(selectedName, address: selectedName)
             performSegueWithIdentifier("scan2register", sender: nil)
         }else{
             print("return to garage scene")
@@ -133,13 +124,11 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         peripheral.readRSSI()
         print("\(nameOfDeviceFound) Found")
         devices.append(peripheral)
-        deviceName.append("\(nameOfDeviceFound!)")
+        moduleNames.append("\(nameOfDeviceFound!)")
         tableView.reloadData()
         if nameOfDeviceFound!.rangeOfString("EVO") != nil {
-            //            centralManager.stopScan()
+            
         }
-        //        self.peripheral = peripheral
-        //        self.peripheral.delegate = self
     }
     
     func peripheralDidUpdateRSSI(peripheral: CBPeripheral, error: NSError?) {
@@ -175,6 +164,6 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
             print("prepareForSegue -> register scene")
             print("now select name is \(selectedName)")
             let dest = segue.destinationViewController as! RegisterViewController
-            dest.name = selectedName
+            dest.module = selectedName
         }
     }}

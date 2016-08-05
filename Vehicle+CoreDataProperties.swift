@@ -14,7 +14,7 @@ import CoreData
 
 extension Vehicle {
 
-    @NSManaged var address: String?
+    @NSManaged var module: String?
     @NSManaged var make: String?
     @NSManaged var model: String?
     @NSManaged var name: String?

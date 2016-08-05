@@ -13,7 +13,7 @@ class RegisterViewController: UIViewController {
     var dataController : DataController!
     var appDelegeate : AppDelegate!
     var vehicles : [Vehicle] = []
-    var name: String?
+    var module: String?
     
     @IBOutlet var nameField: UITextField!
     @IBOutlet var makeField: UITextField!
@@ -34,7 +34,7 @@ class RegisterViewController: UIViewController {
     }
     
     override func viewWillAppear(animated: Bool) {
-        print("viewWillAppear: \(self.name)")
+        print("viewWillAppear: selected \(module)")
     }
     
     @IBAction func onBack(sender: UIButton) {
@@ -43,13 +43,13 @@ class RegisterViewController: UIViewController {
 
     @IBAction func onSave(sender: UIButton) {
         if checkInfo() {
-            
+            print("save vehicle")
+            dataController.saveVehicle(nameField.text!, make: makeField.text!, model: modelField.text!, year: yearField.text!, module: self.module!)
+            print("prepare to go back to control")
+            self.navigationController?.popToRootViewControllerAnimated(true)
+        }else{
+            print("info is not complete")
         }
-//        dataController.saveVehicle(self.name!, address: self.name!)
-        dataController.saveVehicle(nameField.text!, make: makeField.text!, model: modelField.text!, year: yearField.text!, address: "unknown")
-//        performSegueWithIdentifier("back", sender: sender)
-        print("prepare to go back to control")
-        self.navigationController?.popToRootViewControllerAnimated(true)
     }
     
     @IBAction func onTap(sender: UITapGestureRecognizer) {

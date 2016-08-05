@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CustomCell: UITableViewCell {
+class CustomGarageCell: UITableViewCell {
 
     @IBOutlet var label1: UILabel!
     @IBOutlet var label2: UILabel!

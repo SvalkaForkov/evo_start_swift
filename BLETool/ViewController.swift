@@ -45,8 +45,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var writeCharacteristic : CBCharacteristic!
     var notificationCharacteristic : CBCharacteristic!
     
-    var name = ""
-    var address = ""
+    var vehicleName = ""
+    var module = ""
     var count = 0
     var receivedLock = false
     var receivedUnlock = false
@@ -62,21 +62,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var buttonStart: UIButton!
     @IBOutlet var buttonClearLog: UIButton!
     @IBOutlet var textViewLog: UITextView!
-    
     @IBOutlet var imageStatus: UIImageView!
-    @IBAction func onClearLog(sender: UIButton) {
-        self.textViewLog.text = ""
-    }
-    
-    @IBAction func onGarageButton(sender: UIButton) {
-        centralManager.stopScan()
-        if peripheral != nil {
-            centralManager.cancelPeripheralConnection(peripheral)
-            centralManager = nil
-            print("disconnect")
-        }
-        performSegueWithIdentifier("control2garage", sender: sender)
-    }
     
     override func viewWillAppear(animated: Bool) {
         centralManager = CBCentralManager(delegate: self, queue:nil)
@@ -92,14 +78,29 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         textViewLog.text = ""
         getDefault()
         print("view did load")
-        if name != "" {
-            logOnScreen("not nil : "+name)
+        if module != "" {
+            print("not nil : " + module)
             centralManager = CBCentralManager(delegate: self, queue:nil)
         }else{
-            logOnScreen("prompt image")
+            print("prompt image")
             imageStatus.image = UIImage(named: "unlock")
             performSegueWithIdentifier("control2scan", sender: self)
         }
+    }
+    
+    @IBAction func onClearLog(sender: UIButton) {
+        self.textViewLog.text = ""
+    }
+    
+    @IBAction func onGarageButton(sender: UIButton) {
+        print("on Garage button clicked")
+        centralManager.stopScan()
+        if peripheral != nil {
+            centralManager.cancelPeripheralConnection(peripheral)
+            centralManager = nil
+            print("disconnect")
+        }
+        performSegueWithIdentifier("control2garage", sender: sender)
     }
     
     func removeBorderFromBar() {
@@ -126,22 +127,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func getDefault(){
-        logOnScreen("check default")
+        print("check default")
         let defaultName =
         NSUserDefaults.standardUserDefaults().objectForKey("default")
         as? String
         if defaultName != nil {
-            logOnScreen("default is not nil")
-            name = defaultName!
+            print("default is not nil")
+            module = defaultName!
         }else{
-            logOnScreen("default is nil")
-            name = ""
+            print("default is nil")
+            module = ""
             checkDatabase()
         }
     }
     
     func setDefault(value: String){
-        logOnScreen("set default : \(value)")
+        print("set default : \(value)")
         NSUserDefaults.standardUserDefaults().setObject(value, forKey: "default")
     }
     
@@ -150,29 +151,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let dataController = appDelegate.dataController
         let vehicles : [Vehicle] = dataController.getAllVehicles()
         if vehicles.count > 0 {
-            name = vehicles[0].name!
-            logOnScreen("use first vehicle in the database")
+            module = vehicles[0].module!
+            print("use first vehicle in the database")
         }else {
-            logOnScreen("no vehicle registerd")
+            print("no vehicle registerd")
         }
     }
     
-    func sendLock(){
-        
-    }
-    
-    func sendUnlock(){
-        
-    }
-    
-    func sendStart(){
-        
-    }
-    
-    func sendStop(){
-        
-    }
-
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -181,25 +166,25 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
         case CBCentralManagerState.PoweredOn:
-            logOnScreen("Ble PoweredOn")
+            print("Ble PoweredOn")
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            logOnScreen("Scanning bluetooth")
+            print("Scanning bluetooth")
             break
         case CBCentralManagerState.PoweredOff:
-            logOnScreen("Ble PoweredOff")
+            print("Ble PoweredOff")
             centralManager.stopScan()
             break
         case CBCentralManagerState.Unauthorized:
-            logOnScreen("Unauthorized state")
+            print("Unauthorized state")
             break
         case CBCentralManagerState.Resetting:
-            logOnScreen("Resetting state")
+            print("Resetting state")
             break
         case CBCentralManagerState.Unknown:
-            logOnScreen("unknown state")
+            print("unknown state")
             break
         case CBCentralManagerState.Unsupported:
-            logOnScreen("Unsupported state")
+            print("Unsupported state")
             break
         }
     }
@@ -207,51 +192,52 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
         let nameOfDeviceFound = peripheral.name as String!
         if nameOfDeviceFound != nil {
-            logOnScreen("Did discover \(nameOfDeviceFound)")
-            logOnScreen("and name is \(name)")
-            if nameOfDeviceFound == name{
-                logOnScreen("Match")
+            print("Did discover \(nameOfDeviceFound)")
+            print("and name is \(module)")
+            if nameOfDeviceFound == module{
+                print("Match")
                 centralManager.stopScan()
-                logOnScreen("Stop scanning after \(nameOfDeviceFound) device found")
+                print("Stop scanning after \(nameOfDeviceFound) device found")
                 self.peripheral = peripheral
                 self.peripheral.delegate = self
                 centralManager.connectPeripheral(self.peripheral, options: nil)
-                logOnScreen("Try to connect \(nameOfDeviceFound)")
+                print("Try to connect \(nameOfDeviceFound)")
             }
         }
     }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
-        logOnScreen("Peripheral connected")
+        print("Peripheral connected")
         setDefault(peripheral.name!)
-        peripheral.discoverServices(nil)
+        peripheral.discoverServices([CBUUID(string: "1234")])
     }
     
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
-        logOnScreen("Discovered service")
+        print("Discovered service")
         for service in peripheral.services! {
             if(service.UUID.UUIDString == "1234"){
                 self.service = service
             }
-            logOnScreen("Found service: \(service.UUID)")
-            peripheral.discoverCharacteristics(nil, forService: service)
+            print("Found service: \(service.UUID)")
+            peripheral.discoverCharacteristics([CBUUID(string: "1235"),CBUUID(string: "1236")], forService: service)
         }
     }
     
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
-        logOnScreen("Discovered characteristic")
+        print("Discovered characteristic")
         for characteristic in service.characteristics! {
             if(characteristic.UUID.UUIDString == "1235"){
                 self.writeCharacteristic = characteristic
+                print("set writeCharacteristic")
             }
             if(characteristic.UUID.UUIDString == "1236"){
                 self.notificationCharacteristic = characteristic
                 setNotification(true)
             }
-            logOnScreen("Found characteristic: \(characteristic.UUID)")
+            print("Found characteristic: \(characteristic.UUID)")
         }
-        logOnScreen("Connection ready")
-            showControl(true)
+        print("Connection ready")
+        showControl(true)
     }
     
     func showControl(val: Bool){
@@ -268,28 +254,31 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     
     @IBAction func onLock(sender: UIButton) {
-        logOnScreen("onlock")
+        print("onlock")
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
         sendCommend(data, action: 0)
     }
     
     
     @IBAction func onUnlock(sender: UIButton) {
-        logOnScreen("onUnlock")
+        print("onUnlock")
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
         sendCommend(data, action: 1)
     }
     
     @IBAction func onStart(sender: UIButton) {
+        print("on start: started = \(started)")
         if started {
+            print("go stop engine")
             stopEngine()
         } else {
+            print("go start engine")
             startEngine()
         }
     }
     
     func startEngine() {
-        logOnScreen("on start")
+        print("startEngine")
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
         sendCommend(data, action: 2)
         started = true
@@ -297,7 +286,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func stopEngine() {
-        logOnScreen("on stop")
+        print("stopEngine")
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
         receivedStop = false
         sendCommend(data, action: 3)
@@ -306,6 +295,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func sendCommend(data : NSData, action : Int){
+        print("send command : \(action)")
         count = 0
         var flag : Bool
         switch action {
@@ -326,6 +316,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         flag = false
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            print("go off main thread")
             self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
             dispatch_async(dispatch_get_main_queue(),{
                 self.logOnScreen("Send : 1st time")
@@ -366,6 +357,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func setNotification(enabled: Bool){
+        print("setNotification = true")
         peripheral.setNotifyValue(enabled, forCharacteristic: notificationCharacteristic)
     }
     
@@ -373,26 +365,26 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let val = characteristic.value!.hexString
         if(val=="00008001"){
             //ack for locked
-            logOnScreen("\(val) : \(count)")
+            print("\(val) : \(count)")
             count = count + 1
             receivedLock = true
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         }else if(val=="00000002"){
             //ack for unlocked
-            logOnScreen("\(val) : \(count)")
+            print("\(val) : \(count)")
             count = count + 1
             receivedUnlock = true
             AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
         }else if(val=="00000201"){
             //ack for started
             started = true
-            logOnScreen("\(val) : \(count)")
+            print("\(val) : \(count)")
             count = count + 1
             receivedStart = true
         }else if(val=="00000001"){
             started = false
             //ack for stopped
-            logOnScreen("\(val) : \(count)")
+            print("\(val) : \(count)")
             count = count + 1
             receivedStop = true
         }else if(val=="0240000f"){
@@ -400,18 +392,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonStart.selected = false
             buttonStart.setTitle("Start", forState: UIControlState.Normal)
         }else{
-            logOnScreen("\(val) : \(count)")
+            print("\(val) : \(count)")
             count = count + 1
             receivedLock = true
             receivedStop = true
             receivedStart = true
             receivedUnlock = true
         }
-        logOnScreen("Charateristic's value has updated : \(val!)")
+        print("Charateristic's value has updated : \(val!)")
     }
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        logOnScreen("Disconnected")
+        print("Disconnected")
         if !isManuallyDisconnected {
             central.scanForPeripheralsWithServices(nil, options: nil)
             showControl(false)
@@ -421,7 +413,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         if self.isMovingToParentViewController() {
-            logOnScreen("on back clicked")
+            print("on back clicked")
             isManuallyDisconnected = true
             centralManager.cancelPeripheralConnection(self.peripheral)
         }

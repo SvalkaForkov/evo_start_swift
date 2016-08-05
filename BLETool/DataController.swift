@@ -59,13 +59,13 @@ class DataController {
         return fetchedVehicles
     }
     
-    func saveVehicle(name: String, address: String){
+    func saveVehicle(name: String, module: String){
         print("saveVehicle(\(name))")
 //        var existVehicle = fetchVehicle(name)
 //        if existVehicle != nil {
             let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
             newVehicle.name = name
-            newVehicle.address = address
+            newVehicle.module = module
             do {
                 try self.managedObjectContext.save()
             } catch {
@@ -74,10 +74,11 @@ class DataController {
         }
     }
     
-    func saveVehicle(name: String, make: String, model: String, year: String, address: String){
+    func saveVehicle(name: String, make: String, model: String, year: String, module: String){
+        print("data controller : save vehicle")
         let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
         newVehicle.name = name
-        newVehicle.address = address
+        newVehicle.module = module
         newVehicle.make = make
         newVehicle.model = model
         newVehicle.year = year
