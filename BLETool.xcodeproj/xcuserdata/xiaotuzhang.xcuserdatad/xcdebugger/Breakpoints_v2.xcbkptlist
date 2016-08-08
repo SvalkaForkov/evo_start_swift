@@ -22,15 +22,15 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BLETool/ViewController.swift"
-            timestampString = "492119142.546324"
+            timestampString = "492383488.095265"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "320"
-            endingLineNumber = "320"
+            startingLineNumber = "346"
+            endingLineNumber = "346"
             landmarkName = "sendCommend(_:action:)"
             landmarkType = "5">
          </BreakpointContent>

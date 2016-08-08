@@ -12,6 +12,8 @@ class CustomScanCell: UITableViewCell {
 
     @IBOutlet var labelName: UILabel!
     @IBOutlet var imageSignal: UIButton!
+    @IBOutlet var mainView: UIView!
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code

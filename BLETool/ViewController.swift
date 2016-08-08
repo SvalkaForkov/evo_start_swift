@@ -48,13 +48,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var vehicleName = ""
     var module = ""
     var count = 0
+    var matchFound = false
     var receivedLock = false
     var receivedUnlock = false
     var receivedStart = false
     var receivedStop = false
     var started = false
     var isManuallyDisconnected = false
-    
     
     @IBOutlet var buttonGarage: UIButton!
     @IBOutlet var buttonLock: UIButton!
@@ -64,20 +64,27 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var textViewLog: UITextView!
     @IBOutlet var imageStatus: UIImageView!
     
-    override func viewWillAppear(animated: Bool) {
-        centralManager = CBCentralManager(delegate: self, queue:nil)
-    }
-    
     override func viewDidLoad() {
+        print("ViewController : viewDidLoad")
         super.viewDidLoad()
-        self.navigationController?.navigationBar.barTintColor = UIColor.blackColor()
+        self.navigationController?.navigationBar.barTintColor = getColorFromHex(0x910015)
         self.navigationController?.navigationBar.tintColor = UIColor.whiteColor()
-        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.whiteColor()]
-        //getColorFromHex(0xe21f1d)
+        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.whiteColor()]    //getColorFromHex(0xe21f1d)
+        self.navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!]
+        self.navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
+        self.navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
         removeBorderFromBar()
         textViewLog.text = ""
+    
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        buttonStart.layer.cornerRadius = 30.0
+        buttonStart.clipsToBounds = true
+        buttonGarage.layer.cornerRadius = 24.0
+        buttonGarage.clipsToBounds = true
         getDefault()
-        print("view did load")
+        print("ViewController : viewWillAppear")
         if module != "" {
             print("not nil : " + module)
             centralManager = CBCentralManager(delegate: self, queue:nil)
@@ -85,6 +92,33 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("prompt image")
             imageStatus.image = UIImage(named: "unlock")
             performSegueWithIdentifier("control2scan", sender: self)
+        }
+    }
+    
+    func getDefault(){
+        print("ViewController : check default")
+        let defaultModule =
+            NSUserDefaults.standardUserDefaults().objectForKey("defaultModule")
+                as? String
+        if defaultModule != nil {
+            module = defaultModule!
+            print("default is not nil : \(module)")
+        }else{
+            print("default is nil")
+            module = ""
+            checkDatabase()
+        }
+    }
+    
+    func checkDatabase(){
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let dataController = appDelegate.dataController
+        let vehicles : [Vehicle] = dataController.getAllVehicles()
+        if vehicles.count > 0 {
+            module = vehicles[0].module!
+            print("use first vehicle in the database")
+        }else {
+            print("no vehicle registerd")
         }
     }
     
@@ -126,36 +160,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         self.textViewLog.text = self.textViewLog.text.stringByAppendingString("\(line)\n")
     }
     
-    func getDefault(){
-        print("check default")
-        let defaultName =
-        NSUserDefaults.standardUserDefaults().objectForKey("default")
-        as? String
-        if defaultName != nil {
-            print("default is not nil")
-            module = defaultName!
-        }else{
-            print("default is nil")
-            module = ""
-            checkDatabase()
-        }
-    }
-    
     func setDefault(value: String){
         print("set default : \(value)")
-        NSUserDefaults.standardUserDefaults().setObject(value, forKey: "default")
-    }
-    
-    func checkDatabase(){
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let dataController = appDelegate.dataController
-        let vehicles : [Vehicle] = dataController.getAllVehicles()
-        if vehicles.count > 0 {
-            module = vehicles[0].module!
-            print("use first vehicle in the database")
-        }else {
-            print("no vehicle registerd")
-        }
+        NSUserDefaults.standardUserDefaults().setObject(value, forKey: "defaultModule")
     }
     
     override func didReceiveMemoryWarning() {
@@ -167,6 +174,23 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         switch(central.state){
         case CBCentralManagerState.PoweredOn:
             print("Ble PoweredOn")
+            matchFound = false
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                print("Go off main thread : finding matched module")
+                sleep(2)
+                dispatch_async(dispatch_get_main_queue(),{
+                    if !self.matchFound {
+                        print("No match module found")
+                        self.buttonLock.hidden = true
+                        self.buttonUnlock.hidden = true
+                        self.buttonStart.hidden = true
+                    }else{
+                        self.buttonLock.hidden = false
+                        self.buttonUnlock.hidden = false
+                        self.buttonStart.hidden = false
+                    }
+                })
+            })
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
             print("Scanning bluetooth")
             break
@@ -192,28 +216,30 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
         let nameOfDeviceFound = peripheral.name as String!
         if nameOfDeviceFound != nil {
-            print("Did discover \(nameOfDeviceFound)")
-            print("and name is \(module)")
+            print("Did discover : \(nameOfDeviceFound)")
+            print("Default module is : \(module)")
             if nameOfDeviceFound == module{
-                print("Match")
+                print("Match and stop scan")
+                matchFound = true
                 centralManager.stopScan()
-                print("Stop scanning after \(nameOfDeviceFound) device found")
                 self.peripheral = peripheral
                 self.peripheral.delegate = self
                 centralManager.connectPeripheral(self.peripheral, options: nil)
-                print("Try to connect \(nameOfDeviceFound)")
+                print("Connecting : \(self.peripheral.name)")
             }
         }
     }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
         print("Peripheral connected")
+        print("set default Peripheral")
         setDefault(peripheral.name!)
         peripheral.discoverServices([CBUUID(string: "1234")])
+        print("DiscoverService: 1234")
     }
     
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
-        print("Discovered service")
+        print("Service discoverd")
         for service in peripheral.services! {
             if(service.UUID.UUIDString == "1234"){
                 self.service = service
@@ -322,6 +348,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.logOnScreen("Send : 1st time")
             })
             sleep(1)
+            switch action {
+            case 0:
+                flag = self.receivedLock
+                break
+            case 1:
+                flag = self.receivedUnlock
+                break
+            case 2:
+                flag = self.receivedStart
+                break
+            case 3:
+                flag = self.receivedStop
+                break
+            default:
+                break
+            }
             if flag {
                 return
             }
@@ -330,6 +372,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.logOnScreen("Send : 2nd time")
             })
             sleep(1)
+            switch action {
+            case 0:
+                flag = self.receivedLock
+                break
+            case 1:
+                flag = self.receivedUnlock
+                break
+            case 2:
+                flag = self.receivedStart
+                break
+            case 3:
+                flag = self.receivedStop
+                break
+            default:
+                break
+            }
             if flag {
                 return
             }
@@ -338,6 +396,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.logOnScreen("Send : 3rd time")
             })
             sleep(1)
+            switch action {
+            case 0:
+                flag = self.receivedLock
+                break
+            case 1:
+                flag = self.receivedUnlock
+                break
+            case 2:
+                flag = self.receivedStart
+                break
+            case 3:
+                flag = self.receivedStop
+                break
+            default:
+                break
+            }
             if flag {
                 return
             }
@@ -346,6 +420,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.logOnScreen("Send : 4th time")
             })
             sleep(1)
+            switch action {
+            case 0:
+                flag = self.receivedLock
+                break
+            case 1:
+                flag = self.receivedUnlock
+                break
+            case 2:
+                flag = self.receivedStart
+                break
+            case 3:
+                flag = self.receivedStop
+                break
+            default:
+                break
+            }
             if flag {
                 return
             }

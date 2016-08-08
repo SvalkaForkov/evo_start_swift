@@ -14,12 +14,12 @@ class DataController {
     
     init(moc: NSManagedObjectContext) {
         self.managedObjectContext = moc
-        print("init moc")
+        print("DataController : init moc")
     }
 
 
     convenience init?() {
-        print("convenience init")
+        print("DataController : convenience init")
         guard let modelURL = NSBundle.mainBundle().URLForResource("Vehicle", withExtension: "momd") else {
             return nil
         }
@@ -46,7 +46,7 @@ class DataController {
     }
     
     func getAllVehicles() -> [Vehicle]{
-        print("getAllVehicles()")
+        print("DataController : getAllVehicles")
         let vehicleFetch = NSFetchRequest(entityName: "Vehicle")
         
         var fetchedVehicles: [Vehicle]! = []
@@ -55,7 +55,7 @@ class DataController {
         } catch {
             fatalError("fetch failed")
         }
-        print("fetched \(fetchedVehicles.count)")
+        print("DataController : fetched \(fetchedVehicles.count)")
         return fetchedVehicles
     }
     
@@ -75,7 +75,7 @@ class DataController {
     }
     
     func saveVehicle(name: String, make: String, model: String, year: String, module: String){
-        print("data controller : save vehicle")
+        print("DataController : Save vehicle \(name)")
         let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
         newVehicle.name = name
         newVehicle.module = module
@@ -91,7 +91,7 @@ class DataController {
     }
     
     func fetchVehicle(name: String)-> Vehicle{
-        print("fetchVehicle(\(name))")
+        print("DataController : fetchVehicle \(name)")
         let vehicleFetch = NSFetchRequest(entityName: "Vehicle")
         vehicleFetch.predicate = NSPredicate(format: "name == %@", name)
         
@@ -110,7 +110,7 @@ class DataController {
     }
     
     func updateVehicle(vehicle: Vehicle){
-        print("update vehicle : \(vehicle.name))")
+        print("DataController : update vehicle : \(vehicle.name))")
         let newVehicle = fetchVehicle(vehicle.name!)
         do {
             try newVehicle.managedObjectContext!.save()

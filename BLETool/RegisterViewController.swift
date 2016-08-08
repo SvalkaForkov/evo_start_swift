@@ -19,6 +19,7 @@ class RegisterViewController: UIViewController {
     @IBOutlet var makeField: UITextField!
     @IBOutlet var modelField: UITextField!
     @IBOutlet var yearField: UITextField!
+    @IBOutlet var buttonRegister: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,6 +36,13 @@ class RegisterViewController: UIViewController {
     
     override func viewWillAppear(animated: Bool) {
         print("viewWillAppear: selected \(module)")
+        buttonRegister.layer.cornerRadius = 20.0
+        buttonRegister.clipsToBounds = true
+    }
+    
+    func setDefault(value: String){
+        print("set default : \(value)")
+        NSUserDefaults.standardUserDefaults().setObject(value, forKey: "defaultModule")
     }
     
     @IBAction func onBack(sender: UIButton) {
@@ -45,6 +53,7 @@ class RegisterViewController: UIViewController {
         if checkInfo() {
             print("save vehicle")
             dataController.saveVehicle(nameField.text!, make: makeField.text!, model: modelField.text!, year: yearField.text!, module: self.module!)
+            setDefault(self.module!)
             print("prepare to go back to control")
             self.navigationController?.popToRootViewControllerAnimated(true)
         }else{

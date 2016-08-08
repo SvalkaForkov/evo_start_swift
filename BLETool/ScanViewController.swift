@@ -67,7 +67,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
             }
         }
         
-        cell.layer.cornerRadius = 5.0
+        cell.mainView.layer.cornerRadius = 5.0
         return cell
     }
     
