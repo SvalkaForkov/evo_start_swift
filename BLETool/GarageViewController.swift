@@ -36,8 +36,11 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         tableView.cellLayoutMarginsFollowReadableWidth = false
         centralManager = CBCentralManager(delegate: self, queue:nil)
         print("\(buttonAdd.layer.borderWidth)")
-        buttonAdd.layer.cornerRadius = 19.0
+        buttonAdd.layer.cornerRadius = 30.0
         buttonAdd.clipsToBounds = true
+        buttonAdd.layer.borderWidth = 1
+        buttonAdd.layer.borderColor = getColorFromHex(0x910015).CGColor
+        
         if vehicles.count == 0 {
             print("no vehicle")
         }else{
@@ -47,6 +50,15 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     @IBAction func onAddVehicle(sender: UIButton) {
         print("aGarageViewController : dd click vehicle")
+    }
+    
+    func getColorFromHex(value: UInt) -> UIColor{
+        return UIColor(
+            red: CGFloat((value & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((value & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(value & 0x0000FF) / 255.0,
+            alpha: CGFloat(1.0)
+        )
     }
     
     func setDefault(value: String){

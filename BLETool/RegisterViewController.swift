@@ -36,8 +36,19 @@ class RegisterViewController: UIViewController {
     
     override func viewWillAppear(animated: Bool) {
         print("viewWillAppear: selected \(module)")
-        buttonRegister.layer.cornerRadius = 20.0
+        buttonRegister.layer.cornerRadius = 30.0
         buttonRegister.clipsToBounds = true
+        buttonRegister.layer.borderColor = getColorFromHex(0x910015).CGColor
+        buttonRegister.layer.borderWidth = 1
+    }
+    
+    func getColorFromHex(value: UInt) -> UIColor{
+        return UIColor(
+            red: CGFloat((value & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((value & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(value & 0x0000FF) / 255.0,
+            alpha: CGFloat(1.0)
+        )
     }
     
     func setDefault(value: String){

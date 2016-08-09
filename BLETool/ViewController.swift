@@ -79,9 +79,23 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     override func viewWillAppear(animated: Bool) {
+        buttonStart.backgroundColor = UIColor.clearColor()
+        buttonStart.setTitleColor(getColorFromHex(0x910015), forState: UIControlState.Normal)
+        buttonStart.layer.borderWidth = 1
+        buttonStart.layer.borderColor = getColorFromHex(0x910015).CGColor
         buttonStart.layer.cornerRadius = 30.0
         buttonStart.clipsToBounds = true
+        
+        buttonUnlock.layer.cornerRadius = 30.0
+        buttonUnlock.clipsToBounds = true
+        
+        buttonLock.layer.cornerRadius = 30.0
+        buttonLock.clipsToBounds = true
+        
         buttonGarage.layer.cornerRadius = 24.0
+        buttonGarage.backgroundColor = UIColor.clearColor()
+        buttonGarage.layer.borderWidth = 1
+        buttonGarage.layer.borderColor = getColorFromHex(0x910015).CGColor
         buttonGarage.clipsToBounds = true
         getDefault()
         print("ViewController : viewWillAppear")
@@ -455,33 +469,38 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let val = characteristic.value!.hexString
         if(val=="00008001"){
             //ack for locked
-            print("\(val) : \(count)")
+            logOnScreen("\(val) : \(count)")
             count = count + 1
             receivedLock = true
+            showLocked()
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         }else if(val=="00000002"){
             //ack for unlocked
-            print("\(val) : \(count)")
+            logOnScreen("\(val) : \(count)")
             count = count + 1
             receivedUnlock = true
+            showUnlocked()
             AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
         }else if(val=="00000201"){
             //ack for started
             started = true
-            print("\(val) : \(count)")
+            logOnScreen("\(val) : \(count)")
             count = count + 1
             receivedStart = true
+            showStarted()
         }else if(val=="00000001"){
             started = false
             //ack for stopped
-            print("\(val) : \(count)")
+            logOnScreen("\(val) : \(count)")
             count = count + 1
             receivedStop = true
+            showStopped()
         }else if(val=="0240000f"){
             //ack for locked
-            buttonStart.selected = false
-            buttonStart.setTitle("Start", forState: UIControlState.Normal)
+            logOnScreen("\(val) : \(count)")
+            showStopped()
         }else{
+            logOnScreen("\(val) : \(count)")
             print("\(val) : \(count)")
             count = count + 1
             receivedLock = true
@@ -491,6 +510,29 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         print("Charateristic's value has updated : \(val!)")
     }
+    
+    func showStopped(){
+        buttonStart.setTitleColor(getColorFromHex(0x910015), forState: .Normal)
+        buttonStart.backgroundColor = UIColor.clearColor()
+        buttonStart.setTitle("Start", forState: UIControlState.Normal)
+    }
+    
+    func showStarted(){
+        buttonStart.setTitleColor(UIColor.whiteColor(), forState: .Normal)
+        buttonStart.backgroundColor = getColorFromHex(0x910015)
+        buttonStart.setTitle("Stop", forState: UIControlState.Normal)
+    }
+    
+    func showUnlocked(){
+        buttonLock.backgroundColor = UIColor.clearColor()
+        buttonUnlock.backgroundColor = getColorFromHex(0x910015)
+    }
+
+    func showLocked(){
+        buttonLock.backgroundColor = getColorFromHex(0x910015)
+        buttonUnlock.backgroundColor = UIColor.clearColor()
+    }
+
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
         print("Disconnected")
