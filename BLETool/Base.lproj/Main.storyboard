@@ -252,21 +252,33 @@
                                             <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Car" translatesAutoresizingMaskIntoConstraints="NO" id="J1R-ZM-ez1">
                                                 <rect key="frame" x="0.0" y="0.0" width="552" height="350"/>
                                             </imageView>
-                                            <button opaque="NO" alpha="0.55000001192092896" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HTD-14-Zxz">
-                                                <rect key="frame" x="188" y="136" width="50" height="50"/>
+                                            <button opaque="NO" alpha="0.55000001192092896" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HTD-14-Zxz">
+                                                <rect key="frame" x="184" y="150" width="50" height="50"/>
                                                 <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="0.47825969829999998" colorSpace="calibratedRGB"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="50" id="sCF-lc-lOT"/>
+                                                    <constraint firstAttribute="height" constant="50" id="xip-Aq-6tK"/>
+                                                </constraints>
                                                 <state key="normal" image="Lock"/>
                                             </button>
-                                            <button opaque="NO" alpha="0.55000000000000004" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ejr-XG-N6M">
-                                                <rect key="frame" x="251" y="29" width="50" height="50"/>
+                                            <button opaque="NO" alpha="0.55000000000000004" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ejr-XG-N6M">
+                                                <rect key="frame" x="251" y="37" width="50" height="50"/>
                                                 <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="0.47825969827586207" colorSpace="calibratedRGB"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="50" id="FMV-h2-zjY"/>
+                                                    <constraint firstAttribute="width" constant="50" id="mg0-nK-Rd8"/>
+                                                </constraints>
                                                 <state key="normal" image="Engine"/>
                                             </button>
                                         </subviews>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <constraints>
+                                            <constraint firstItem="ejr-XG-N6M" firstAttribute="centerX" secondItem="J1R-ZM-ez1" secondAttribute="centerX" id="40E-27-eyG"/>
                                             <constraint firstItem="J1R-ZM-ez1" firstAttribute="centerY" secondItem="y12-ry-nPl" secondAttribute="centerY" id="CLb-kD-blZ"/>
+                                            <constraint firstItem="HTD-14-Zxz" firstAttribute="centerY" secondItem="J1R-ZM-ez1" secondAttribute="centerY" id="Hnb-bJ-SW1"/>
+                                            <constraint firstItem="ejr-XG-N6M" firstAttribute="top" secondItem="y12-ry-nPl" secondAttribute="top" constant="37" id="ftL-2D-XzK"/>
                                             <constraint firstItem="J1R-ZM-ez1" firstAttribute="height" secondItem="y12-ry-nPl" secondAttribute="height" id="k8l-qi-6ne"/>
+                                            <constraint firstItem="HTD-14-Zxz" firstAttribute="leading" secondItem="y12-ry-nPl" secondAttribute="leading" constant="184" id="lbT-3w-FYb"/>
                                             <constraint firstItem="J1R-ZM-ez1" firstAttribute="centerX" secondItem="y12-ry-nPl" secondAttribute="centerX" id="p2E-St-zLh"/>
                                             <constraint firstItem="J1R-ZM-ez1" firstAttribute="width" secondItem="y12-ry-nPl" secondAttribute="width" id="qOc-PA-Q8W"/>
                                         </constraints>
