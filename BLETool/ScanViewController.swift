@@ -29,18 +29,24 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        centralManager = CBCentralManager(delegate: self, queue:nil)
+        appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
+        dataController = appDelegeate.dataController
+        
+    }
+    
+    
+    override func viewDidAppear(animated: Bool) {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.cellLayoutMarginsFollowReadableWidth = false
         tableView.layoutMargins = UIEdgeInsetsZero
         tableView.separatorInset = UIEdgeInsetsZero
-        centralManager = CBCentralManager(delegate: self, queue:nil)
-        appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
-        dataController = appDelegeate.dataController
+        
         
         tableView.separatorStyle = UITableViewCellSeparatorStyle.None
+        animateTableView()
     }
-    
     @IBAction func onBack(sender: UIButton) {
         print("return to garage scene")
         performSegueWithIdentifier("segueBackToGarage", sender: sender)
@@ -120,14 +126,15 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
         let nameOfDeviceFound = peripheral.name
-        //            (advertisementData as NSDictionary).objectForKey(CBAdvertisementDataLocalNameKey) as! NSString
-        peripheral.readRSSI()
-        print("\(nameOfDeviceFound) Found")
-        devices.append(peripheral)
-        moduleNames.append("\(nameOfDeviceFound!)")
-        tableView.reloadData()
-        if nameOfDeviceFound!.rangeOfString("EVO") != nil {
-            
+        if nameOfDeviceFound != nil {
+            peripheral.readRSSI()
+            print("\(nameOfDeviceFound) Found")
+            devices.append(peripheral)
+            moduleNames.append("\(nameOfDeviceFound!)")
+            tableView.reloadData()
+            if nameOfDeviceFound!.rangeOfString("EVO") != nil {
+                
+            }
         }
     }
     
@@ -166,4 +173,29 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
             let dest = segue.destinationViewController as! RegisterViewController
             dest.module = selectedName
         }
-    }}
+    }
+    
+    func animateTableView(){
+        tableView.reloadData()
+        
+        let cells = tableView.visibleCells
+        let tableHeight : CGFloat = tableView.bounds.size.height
+        
+        for i in cells {
+            let cell : UITableViewCell = i as UITableViewCell
+            cell.transform = CGAffineTransformMakeTranslation(0, tableHeight)
+        }
+        
+        var index = 0
+        
+        for j in cells {
+            let cell : UITableViewCell = j as UITableViewCell
+            UIView.animateWithDuration(1.5, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
+                cell.transform = CGAffineTransformMakeTranslation(0, 0)
+                }, completion: nil)
+            index += 1
+        }
+    }
+}
+
+

@@ -63,6 +63,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var buttonClearLog: UIButton!
     @IBOutlet var textViewLog: UITextView!
     @IBOutlet var imageStatus: UIImageView!
+    @IBOutlet var buttonDoor: UIButton!
+    @IBOutlet var buttonEngine: UIButton!
     
     override func viewDidLoad() {
         print("ViewController : viewDidLoad")
@@ -83,16 +85,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonStart.setTitleColor(getColorFromHex(0x910015), forState: UIControlState.Normal)
         buttonStart.layer.borderWidth = 1
         buttonStart.layer.borderColor = getColorFromHex(0x910015).CGColor
-        buttonStart.layer.cornerRadius = 30.0
+        buttonStart.layer.cornerRadius = 25.0
         buttonStart.clipsToBounds = true
         
-        buttonUnlock.layer.cornerRadius = 30.0
+        buttonUnlock.layer.cornerRadius = 25.0
         buttonUnlock.clipsToBounds = true
         
-        buttonLock.layer.cornerRadius = 30.0
+        buttonLock.layer.cornerRadius = 25.0
         buttonLock.clipsToBounds = true
         
-        buttonGarage.layer.cornerRadius = 24.0
+        buttonEngine.layer.cornerRadius = 25.0
+        buttonEngine.clipsToBounds = true
+        
+        buttonDoor.layer.cornerRadius = 25.0
+        buttonDoor.clipsToBounds = true
+        
+        buttonGarage.layer.cornerRadius = 25.0
         buttonGarage.backgroundColor = UIColor.clearColor()
         buttonGarage.layer.borderWidth = 1
         buttonGarage.layer.borderColor = getColorFromHex(0x910015).CGColor
@@ -100,12 +108,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         getDefault()
         print("ViewController : viewWillAppear")
         if module != "" {
-            print("not nil : " + module)
+            print("not nil : " + module)	
             centralManager = CBCentralManager(delegate: self, queue:nil)
+            buttonGarage.setImage(UIImage(named: "Garage"), forState: .Normal)
         }else{
             print("prompt image")
-            imageStatus.image = UIImage(named: "unlock")
-            performSegueWithIdentifier("control2scan", sender: self)
+            buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
+//            imageStatus.s = UIImage(named: "Garage")
+            buttonStart.hidden = true
+            buttonLock.hidden = true
+            buttonUnlock.hidden = true
         }
     }
     
@@ -132,6 +144,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             module = vehicles[0].module!
             print("use first vehicle in the database")
         }else {
+            module = ""
             print("no vehicle registerd")
         }
     }
@@ -141,14 +154,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onGarageButton(sender: UIButton) {
-        print("on Garage button clicked")
-        centralManager.stopScan()
-        if peripheral != nil {
-            centralManager.cancelPeripheralConnection(peripheral)
-            centralManager = nil
-            print("disconnect")
+        if module != "" {
+            print("on Garage button clicked")
+            centralManager.stopScan()
+            if peripheral != nil {
+                centralManager.cancelPeripheralConnection(peripheral)
+                centralManager = nil
+                print("disconnect")
+            }
+            performSegueWithIdentifier("control2garage", sender: sender)
+        }else{
+            performSegueWithIdentifier("control2scan", sender: self)
         }
-        performSegueWithIdentifier("control2garage", sender: sender)
     }
     
     func removeBorderFromBar() {
@@ -515,22 +532,26 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonStart.setTitleColor(getColorFromHex(0x910015), forState: .Normal)
         buttonStart.backgroundColor = UIColor.clearColor()
         buttonStart.setTitle("Start", forState: UIControlState.Normal)
+        buttonEngine.setImage(UIImage(named: "Engine"), forState: .Normal)
     }
     
     func showStarted(){
         buttonStart.setTitleColor(UIColor.whiteColor(), forState: .Normal)
         buttonStart.backgroundColor = getColorFromHex(0x910015)
         buttonStart.setTitle("Stop", forState: UIControlState.Normal)
+        buttonEngine.setImage(UIImage(named: "Engine Start"), forState: .Normal)
     }
     
     func showUnlocked(){
         buttonLock.backgroundColor = UIColor.clearColor()
         buttonUnlock.backgroundColor = getColorFromHex(0x910015)
+        buttonDoor.setImage(UIImage(named: "Unlock"), forState: .Normal)
     }
 
     func showLocked(){
         buttonLock.backgroundColor = getColorFromHex(0x910015)
         buttonUnlock.backgroundColor = UIColor.clearColor()
+        buttonDoor.setImage(UIImage(named: "Lock"), forState: .Normal)
     }
 
     

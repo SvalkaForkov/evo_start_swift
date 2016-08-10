@@ -36,7 +36,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         tableView.cellLayoutMarginsFollowReadableWidth = false
         centralManager = CBCentralManager(delegate: self, queue:nil)
         print("\(buttonAdd.layer.borderWidth)")
-        buttonAdd.layer.cornerRadius = 30.0
+        buttonAdd.layer.cornerRadius = 25.0
         buttonAdd.clipsToBounds = true
         buttonAdd.layer.borderWidth = 1
         buttonAdd.layer.borderColor = getColorFromHex(0x910015).CGColor
@@ -46,6 +46,8 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         }else{
             print("found vehicle")
         }
+        
+        animateTableView()
     }
     
     @IBAction func onAddVehicle(sender: UIButton) {
@@ -76,10 +78,11 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
-        cell.mainView.layer.cornerRadius = 5.0
-        cell.label1!.text = vehicles[indexPath.row].name
-        cell.label2!.text = vehicles[indexPath.row].make
-        cell.label3!.text = vehicles[indexPath.row].model
+        cell.mainView.layer.cornerRadius = 15.0
+        
+        cell.label1!.text = vehicles[indexPath.row].name!.capitalizedString
+        cell.label2!.text = vehicles[indexPath.row].make!.capitalizedString
+        cell.label3!.text = vehicles[indexPath.row].model!.capitalizedString
         return cell
     }
     
@@ -136,6 +139,28 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             print("now select name is \(selectedModule)")
             let dest = segue.destinationViewController as! ViewController
             dest.module = selectedModule
+        }
+    }
+    
+    func animateTableView(){
+        tableView.reloadData()
+        
+        let cells = tableView.visibleCells
+        let tableHeight : CGFloat = tableView.bounds.size.height
+        
+        for i in cells {
+            let cell : UITableViewCell = i as UITableViewCell
+            cell.transform = CGAffineTransformMakeTranslation(0, tableHeight)
+        }
+        
+         var index = 0
+        
+        for j in cells {
+            let cell : UITableViewCell = j as UITableViewCell
+            UIView.animateWithDuration(1.5, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
+                cell.transform = CGAffineTransformMakeTranslation(0, 0)
+                }, completion: nil)
+            index += 1
         }
     }
 }

@@ -36,7 +36,7 @@ class RegisterViewController: UIViewController {
     
     override func viewWillAppear(animated: Bool) {
         print("viewWillAppear: selected \(module)")
-        buttonRegister.layer.cornerRadius = 30.0
+        buttonRegister.layer.cornerRadius = 25.0
         buttonRegister.clipsToBounds = true
         buttonRegister.layer.borderColor = getColorFromHex(0x910015).CGColor
         buttonRegister.layer.borderWidth = 1
