@@ -540,6 +540,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonStart.backgroundColor = getColorFromHex(0x910015)
         buttonStart.setTitle("Stop", forState: UIControlState.Normal)
         buttonEngine.setImage(UIImage(named: "Engine Start"), forState: .Normal)
+        
+        
+        UIView.animateWithDuration(1, animations: {
+//            self.setAnchorPoint(CGPoint(x: 0.5, y: 0.0), view: self.buttonStart)
+//            self.buttonStart.layoutIfNeeded()
+            self.buttonStart.layer.anchorPoint = CGPoint(x: 0.5, y: 0.0)
+            var _3Dt = CATransform3DIdentity
+            _3Dt.m34 = 1.0 / -500
+            _3Dt = CATransform3DTranslate(_3Dt, -self.buttonStart.bounds.size.height/2, 0, 0)
+            _3Dt = CATransform3DRotate(_3Dt, CGFloat(M_PI*1.6), 1,0,0)
+            _3Dt = CATransform3DTranslate(_3Dt, self.buttonStart.bounds.size.height/2, 0, 0)
+            self.buttonStart.layer.transform = _3Dt
+        })
     }
     
     func showUnlocked(){
@@ -554,6 +567,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonDoor.setImage(UIImage(named: "Lock"), forState: .Normal)
     }
 
+    func setAnchorPoint(anchorPoint: CGPoint, view: UIView){
+        let oldOrigin = view.frame.origin
+        view.layer.anchorPoint = anchorPoint
+        let newOrigin = view.frame.origin
+        
+        let transition = CGPointMake (newOrigin.x - oldOrigin.x, newOrigin.y - oldOrigin.y)
+        
+        view.center = CGPointMake (view.center.x - transition.x, view.center.y - transition.y)
+    }
+    
+    
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
         print("Disconnected")
