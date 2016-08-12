@@ -60,9 +60,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var buttonLock: UIButton!
     @IBOutlet var buttonUnlock: UIButton!
     @IBOutlet var buttonStart: UIButton!
+    @IBOutlet var buttonCap: UIButton!
     @IBOutlet var buttonClearLog: UIButton!
     @IBOutlet var textViewLog: UITextView!
-    @IBOutlet var imageStatus: UIImageView!
     @IBOutlet var buttonDoor: UIButton!
     @IBOutlet var buttonEngine: UIButton!
     
@@ -77,15 +77,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         self.navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
         removeBorderFromBar()
         textViewLog.text = ""
-    
+        
     }
     
     override func viewWillAppear(animated: Bool) {
+        buttonCap.backgroundColor = UIColor.clearColor()
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.buttonCap)
+        buttonCap.layoutIfNeeded()
+        buttonCap.clipsToBounds = true
+        
         buttonStart.backgroundColor = UIColor.clearColor()
-        buttonStart.setTitleColor(getColorFromHex(0x910015), forState: UIControlState.Normal)
-        buttonStart.layer.borderWidth = 1
-        buttonStart.layer.borderColor = getColorFromHex(0x910015).CGColor
-        buttonStart.layer.cornerRadius = 25.0
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.buttonStart)
+        buttonStart.layoutIfNeeded()
         buttonStart.clipsToBounds = true
         
         buttonUnlock.layer.cornerRadius = 25.0
@@ -108,17 +111,26 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         getDefault()
         print("ViewController : viewWillAppear")
         if module != "" {
-            print("not nil : " + module)	
+            print("not nil : " + module)
             centralManager = CBCentralManager(delegate: self, queue:nil)
             buttonGarage.setImage(UIImage(named: "Garage"), forState: .Normal)
         }else{
             print("prompt image")
             buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
-//            imageStatus.s = UIImage(named: "Garage")
+            //            imageStatus.s = UIImage(named: "Garage")
             buttonStart.hidden = true
+            buttonCap.hidden = true
             buttonLock.hidden = true
             buttonUnlock.hidden = true
         }
+        
+//        let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
+//        swipeUp.direction = UISwipeGestureRecognizerDirection.Up
+//        buttonCap.addGestureRecognizer(swipeUp)
+//        let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
+//        swipeDown.direction = UISwipeGestureRecognizerDirection.Down
+//        buttonCap.addGestureRecognizer(swipeDown)
+
     }
     
     func getDefault(){
@@ -147,6 +159,70 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             module = ""
             print("no vehicle registerd")
         }
+    }
+    
+    @IBOutlet var swipeRecognizer: UISwipeGestureRecognizer!
+    @IBOutlet var swipeDown: UISwipeGestureRecognizer!
+    @IBAction func onSwipe(sender: UISwipeGestureRecognizer) {
+        UIView.animateWithDuration(1, animations: {
+            var transform = CATransform3DIdentity
+            transform.m34 = 1.0 / -1000
+            transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
+            transform = CATransform3DRotate(transform, CGFloat(70.0 * M_PI / 180.0), 1,0,0)
+            transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
+            self.buttonCap.layer.transform = transform
+        })
+        buttonStart.enabled = true
+        longPressOnStart.enabled = true
+    }
+    
+    @IBAction func onSwipeDown(sender: UISwipeGestureRecognizer) {
+        UIView.animateWithDuration(1, animations: {
+            var transform = CATransform3DIdentity
+            transform.m34 = 1.0 / -1000
+            transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
+            transform = CATransform3DRotate(transform, CGFloat(-0.0 * M_PI / 180.0), 1,0,0)
+            transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
+            self.buttonCap.layer.transform = transform
+        })
+        buttonStart.enabled = false
+        longPressOnStart.enabled = false
+    }
+    
+//    func onSwispe(gesture: UISwipeGestureRecognizer){
+//        switch gesture.direction {
+//        case UISwipeGestureRecognizerDirection.Up:
+//            UIView.animateWithDuration(1, animations: {
+//                var transform = CATransform3DIdentity
+//                transform.m34 = 1.0 / -1000
+//                transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
+//                transform = CATransform3DRotate(transform, CGFloat(70.0 * M_PI / 180.0), 1,0,0)
+//                transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
+//                self.buttonCap.layer.transform = transform
+//            })
+//            buttonStart.enabled = true
+//            longPressOnStart.enabled = true
+//            break
+//        case UISwipeGestureRecognizerDirection.Down:
+//            UIView.animateWithDuration(1, animations: {
+//                var transform = CATransform3DIdentity
+//                transform.m34 = 1.0 / -1000
+//                transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
+//                transform = CATransform3DRotate(transform, CGFloat(-0.0 * M_PI / 180.0), 1,0,0)
+//                transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
+//                self.buttonCap.layer.transform = transform
+//            })
+//            buttonStart.enabled = false
+//            longPressOnStart.enabled = false
+//            break
+//        default:
+//            break
+//        }
+//        
+//    }
+    
+    @IBOutlet var longPressOnStart: UILongPressGestureRecognizer!
+    @IBAction func onLongPressOnStart(sender: UILongPressGestureRecognizer) {
     }
     
     @IBAction func onClearLog(sender: UIButton) {
@@ -214,10 +290,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         print("No match module found")
                         self.buttonLock.hidden = true
                         self.buttonUnlock.hidden = true
+                        self.buttonCap.hidden = true
                         self.buttonStart.hidden = true
                     }else{
                         self.buttonLock.hidden = false
                         self.buttonUnlock.hidden = false
+                        self.buttonCap.hidden = false
                         self.buttonStart.hidden = false
                     }
                 })
@@ -301,11 +379,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if(!val){
             buttonLock.enabled = false
             buttonUnlock.enabled = false
+            buttonCap.enabled = false
             buttonStart.enabled = false
         }else{
             buttonLock.enabled = true
             buttonUnlock.enabled = true
-            buttonStart.enabled = true
+            buttonCap.enabled = true
         }
     }
     
@@ -323,6 +402,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         sendCommend(data, action: 1)
     }
     
+    
+    
     @IBAction func onStart(sender: UIButton) {
         print("on start: started = \(started)")
         if started {
@@ -339,7 +420,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
         sendCommend(data, action: 2)
         started = true
-        receivedStart = true
     }
     
     func stopEngine() {
@@ -348,7 +428,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         receivedStop = false
         sendCommend(data, action: 3)
         started = false
-        receivedStop = true
     }
     
     func sendCommend(data : NSData, action : Int){
@@ -357,15 +436,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         var flag : Bool
         switch action {
         case 0:
+            receivedLock = false
             flag = receivedLock
             break
         case 1:
+            receivedUnlock = false
             flag = receivedUnlock
             break
         case 2:
+            receivedStart = false
             flag = receivedStart
             break
         case 3:
+            receivedStop = false
             flag = receivedStop
             break
         default:
@@ -488,30 +571,38 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             //ack for locked
             logOnScreen("\(val) : \(count)")
             count = count + 1
-            receivedLock = true
-            showLocked()
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            if !receivedLock{
+                receivedLock = true
+                showLocked()
+                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            }
         }else if(val=="00000002"){
             //ack for unlocked
             logOnScreen("\(val) : \(count)")
             count = count + 1
-            receivedUnlock = true
-            showUnlocked()
-            AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
+            if !receivedUnlock{
+                receivedUnlock = true
+                showUnlocked()
+                AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
+            }
         }else if(val=="00000201"){
             //ack for started
             started = true
             logOnScreen("\(val) : \(count)")
             count = count + 1
-            receivedStart = true
-            showStarted()
+            if !receivedStart{
+                receivedStart = true
+                showStarted()
+            }
         }else if(val=="00000001"){
             started = false
             //ack for stopped
             logOnScreen("\(val) : \(count)")
             count = count + 1
-            receivedStop = true
-            showStopped()
+            if !receivedStop{
+                receivedStop = true
+                showStopped()
+            }
         }else if(val=="0240000f"){
             //ack for locked
             logOnScreen("\(val) : \(count)")
@@ -529,30 +620,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showStopped(){
-        buttonStart.setTitleColor(getColorFromHex(0x910015), forState: .Normal)
-        buttonStart.backgroundColor = UIColor.clearColor()
-        buttonStart.setTitle("Start", forState: UIControlState.Normal)
         buttonEngine.setImage(UIImage(named: "Engine"), forState: .Normal)
+        
     }
     
     func showStarted(){
-        buttonStart.setTitleColor(UIColor.whiteColor(), forState: .Normal)
-        buttonStart.backgroundColor = getColorFromHex(0x910015)
-        buttonStart.setTitle("Stop", forState: UIControlState.Normal)
         buttonEngine.setImage(UIImage(named: "Engine Start"), forState: .Normal)
-        
-        
-        UIView.animateWithDuration(1, animations: {
-//            self.setAnchorPoint(CGPoint(x: 0.5, y: 0.0), view: self.buttonStart)
-//            self.buttonStart.layoutIfNeeded()
-            self.buttonStart.layer.anchorPoint = CGPoint(x: 0.5, y: 0.0)
-            var _3Dt = CATransform3DIdentity
-            _3Dt.m34 = 1.0 / -500
-            _3Dt = CATransform3DTranslate(_3Dt, -self.buttonStart.bounds.size.height/2, 0, 0)
-            _3Dt = CATransform3DRotate(_3Dt, CGFloat(M_PI*1.6), 1,0,0)
-            _3Dt = CATransform3DTranslate(_3Dt, self.buttonStart.bounds.size.height/2, 0, 0)
-            self.buttonStart.layer.transform = _3Dt
-        })
     }
     
     func showUnlocked(){
@@ -560,21 +633,38 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonUnlock.backgroundColor = getColorFromHex(0x910015)
         buttonDoor.setImage(UIImage(named: "Unlock"), forState: .Normal)
     }
-
+    
     func showLocked(){
         buttonLock.backgroundColor = getColorFromHex(0x910015)
         buttonUnlock.backgroundColor = UIColor.clearColor()
         buttonDoor.setImage(UIImage(named: "Lock"), forState: .Normal)
     }
-
-    func setAnchorPoint(anchorPoint: CGPoint, view: UIView){
-        let oldOrigin = view.frame.origin
+    
+    
+    func setAnchorPoint(anchorPoint: CGPoint, forView view: UIView) {
+        var newPoint = CGPointMake(view.bounds.size.width * anchorPoint.x, view.bounds.size.height * anchorPoint.y)
+        var oldPoint = CGPointMake(view.bounds.size.width * view.layer.anchorPoint.x, view.bounds.size.height * view.layer.anchorPoint.y)
+        print("postion \(view.layer.position)")
+        print("new \(newPoint)")
+        print("old \(oldPoint)")
+        newPoint = CGPointApplyAffineTransform(newPoint, view.transform)
+        oldPoint = CGPointApplyAffineTransform(oldPoint, view.transform)
+        print("new \(newPoint)")
+        print("old \(oldPoint)")
+        var position = view.layer.position
+        position.x -= oldPoint.x
+        position.x += newPoint.x
+        
+        position.y -= oldPoint.y
+        position.y += newPoint.y
+        
         view.layer.anchorPoint = anchorPoint
-        let newOrigin = view.frame.origin
-        
-        let transition = CGPointMake (newOrigin.x - oldOrigin.x, newOrigin.y - oldOrigin.y)
-        
-        view.center = CGPointMake (view.center.x - transition.x, view.center.y - transition.y)
+        view.layoutIfNeeded()
+        print("postion \(view.layer.position)")
+        UIView.animateWithDuration(0, animations: {
+            view.center = oldPoint
+        })
+        print("postion final \(view.layer.position)")
     }
     
     
