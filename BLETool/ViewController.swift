@@ -81,13 +81,68 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     override func viewWillAppear(animated: Bool) {
+        buttonCover.backgroundColor = UIColor.clearColor()
+        
+        buttonCover.clipsToBounds = true
+//        buttonCover.frame = CGRectMake(0,0,buttonCap.bounds.width,buttonCap.bounds.height)
+        let cons = NSLayoutConstraint(
+            item: stackView,
+            attribute: .Bottom,
+            relatedBy: .Equal,
+            toItem: stackView.superview,
+            attribute: .Bottom,
+            multiplier: 1.0,
+            constant: -buttonCap.bounds.height/2
+        )
+        let cons0 = NSLayoutConstraint(
+            item: buttonCap,
+            attribute: .Bottom,
+            relatedBy: .Equal,
+            toItem: buttonCap.superview,
+            attribute: .Bottom,
+            multiplier: 1.0,
+            constant: -buttonCap.bounds.height/2
+        )
+        let cons1 = NSLayoutConstraint(
+            item: buttonCover,
+            attribute: .Top,
+            relatedBy: .Equal,
+            toItem: buttonCover.superview,
+            attribute: .Top,
+            multiplier: 1.0,
+            constant: 0
+        )
+        let cons3 = NSLayoutConstraint(
+            item: buttonCover,
+            attribute: .Bottom,
+            relatedBy: .Equal,
+            toItem: buttonCover.superview,
+            attribute: .Bottom,
+            multiplier: 1.0,
+            constant: 0
+        )
+        let cons2 = NSLayoutConstraint(
+            item: buttonStart,
+            attribute: .Top,
+            relatedBy: .Equal,
+            toItem: buttonCap,
+            attribute: .Top,
+            multiplier: 1.0,
+            constant: 0
+        )
+        NSLayoutConstraint.activateConstraints([cons0,cons1,cons3,cons,cons2])
+//        buttonCover.transform = CGAffineTransformMakeTranslation( 0.0, buttonCap.bounds.height / 2 )
+//        buttonCover.layoutIfNeeded()
+        
         buttonCap.backgroundColor = UIColor.clearColor()
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.buttonCap)
+        
         buttonCap.layoutIfNeeded()
         buttonCap.clipsToBounds = true
         
         buttonStart.backgroundColor = UIColor.clearColor()
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.buttonStart)
+        
         buttonStart.layoutIfNeeded()
         buttonStart.clipsToBounds = true
         
@@ -124,13 +179,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonUnlock.hidden = true
         }
         
-//        let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
-//        swipeUp.direction = UISwipeGestureRecognizerDirection.Up
-//        buttonCap.addGestureRecognizer(swipeUp)
-//        let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
-//        swipeDown.direction = UISwipeGestureRecognizerDirection.Down
-//        buttonCap.addGestureRecognizer(swipeDown)
-
+        //        let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
+        //        swipeUp.direction = UISwipeGestureRecognizerDirection.Up
+        //        buttonCap.addGestureRecognizer(swipeUp)
+        //        let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
+        //        swipeDown.direction = UISwipeGestureRecognizerDirection.Down
+        //        buttonCap.addGestureRecognizer(swipeDown)
+        
     }
     
     func getDefault(){
@@ -159,70 +214,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             module = ""
             print("no vehicle registerd")
         }
-    }
-    
-    @IBOutlet var swipeRecognizer: UISwipeGestureRecognizer!
-    @IBOutlet var swipeDown: UISwipeGestureRecognizer!
-    @IBAction func onSwipe(sender: UISwipeGestureRecognizer) {
-        UIView.animateWithDuration(1, animations: {
-            var transform = CATransform3DIdentity
-            transform.m34 = 1.0 / -1000
-            transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
-            transform = CATransform3DRotate(transform, CGFloat(70.0 * M_PI / 180.0), 1,0,0)
-            transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
-            self.buttonCap.layer.transform = transform
-        })
-        buttonStart.enabled = true
-        longPressOnStart.enabled = true
-    }
-    
-    @IBAction func onSwipeDown(sender: UISwipeGestureRecognizer) {
-        UIView.animateWithDuration(1, animations: {
-            var transform = CATransform3DIdentity
-            transform.m34 = 1.0 / -1000
-            transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
-            transform = CATransform3DRotate(transform, CGFloat(-0.0 * M_PI / 180.0), 1,0,0)
-            transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
-            self.buttonCap.layer.transform = transform
-        })
-        buttonStart.enabled = false
-        longPressOnStart.enabled = false
-    }
-    
-//    func onSwispe(gesture: UISwipeGestureRecognizer){
-//        switch gesture.direction {
-//        case UISwipeGestureRecognizerDirection.Up:
-//            UIView.animateWithDuration(1, animations: {
-//                var transform = CATransform3DIdentity
-//                transform.m34 = 1.0 / -1000
-//                transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
-//                transform = CATransform3DRotate(transform, CGFloat(70.0 * M_PI / 180.0), 1,0,0)
-//                transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
-//                self.buttonCap.layer.transform = transform
-//            })
-//            buttonStart.enabled = true
-//            longPressOnStart.enabled = true
-//            break
-//        case UISwipeGestureRecognizerDirection.Down:
-//            UIView.animateWithDuration(1, animations: {
-//                var transform = CATransform3DIdentity
-//                transform.m34 = 1.0 / -1000
-//                transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
-//                transform = CATransform3DRotate(transform, CGFloat(-0.0 * M_PI / 180.0), 1,0,0)
-//                transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
-//                self.buttonCap.layer.transform = transform
-//            })
-//            buttonStart.enabled = false
-//            longPressOnStart.enabled = false
-//            break
-//        default:
-//            break
-//        }
-//        
-//    }
-    
-    @IBOutlet var longPressOnStart: UILongPressGestureRecognizer!
-    @IBAction func onLongPressOnStart(sender: UILongPressGestureRecognizer) {
     }
     
     @IBAction func onClearLog(sender: UIButton) {
@@ -377,11 +368,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func showControl(val: Bool){
         if(!val){
+            print("set disable")
             buttonLock.enabled = false
             buttonUnlock.enabled = false
             buttonCap.enabled = false
             buttonStart.enabled = false
         }else{
+            print("set enable")
             buttonLock.enabled = true
             buttonUnlock.enabled = true
             buttonCap.enabled = true
@@ -685,5 +678,64 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             centralManager.cancelPeripheralConnection(self.peripheral)
         }
     }
+    
+    @IBOutlet var buttonCover: UIButton!
+    @IBOutlet var swipeDown: UISwipeGestureRecognizer!
+    @IBOutlet var swipeUp: UISwipeGestureRecognizer!
+    @IBOutlet var longPressStart: UILongPressGestureRecognizer!
+    
+    @IBOutlet var stackView: UIStackView!
+    var startTime : NSDate = NSDate()
+    var longPressCountDown = 0
+    @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
+        let s = sender.state
+        switch s {
+        case UIGestureRecognizerState.Began:
+            print("began")
+            startTime = NSDate()
+            break
+        case UIGestureRecognizerState.Ended:
+            print("ended")
+            break
+        default:
+            let timeInterval = NSDate().timeIntervalSinceDate(startTime)
+            if longPressCountDown == 3 {
+                print("should send start")
+                longPressCountDown = 4
+            }else if timeInterval >= 1 && longPressCountDown < 3 {
+                startTime = NSDate()
+                longPressCountDown += 1
+                print("conut + 1 : [\(longPressCountDown)]")
+            }
+            break
+        }
+    }
+    
+    @IBAction func onDown(sender: UISwipeGestureRecognizer) {
+        print("swipe down")
+        UIView.animateWithDuration(1, animations: {
+            var transform = CATransform3DIdentity
+            transform.m34 = 1.0 / -1000
+            transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
+            transform = CATransform3DRotate(transform, CGFloat(-0.0 * M_PI / 180.0), 1,0,0)
+            transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
+            self.buttonCap.layer.transform = transform
+        })
+        longPressStart.enabled = false
+    }
+    @IBAction func onUp(sender: UISwipeGestureRecognizer) {
+        print("swipe up")
+        UIView.animateWithDuration(1, animations: {
+            var transform = CATransform3DIdentity
+            transform.m34 = 1.0 / -1000
+            transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
+            transform = CATransform3DRotate(transform, CGFloat(70.0 * M_PI / 180.0), 1,0,0)
+            transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
+            self.buttonCap.layer.transform = transform
+        })
+        longPressStart.enabled = true
+    }
+    
+    
 }
 
