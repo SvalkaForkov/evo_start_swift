@@ -65,7 +65,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var textViewLog: UITextView!
     @IBOutlet var buttonDoor: UIButton!
     @IBOutlet var buttonEngine: UIButton!
-    
+    var signal : [UIButton] = []
     override func viewDidLoad() {
         print("ViewController : viewDidLoad")
         super.viewDidLoad()
@@ -77,6 +77,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         self.navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
         removeBorderFromBar()
         textViewLog.text = ""
+        signal = [signal1,signal2,signal3,signal4,signal5,signal6]
         
     }
     
@@ -173,10 +174,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("prompt image")
             buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
             //            imageStatus.s = UIImage(named: "Garage")
-            buttonStart.hidden = true
-            buttonCap.hidden = true
-            buttonLock.hidden = true
-            buttonUnlock.hidden = true
+//            buttonStart.hidden = true
+//            buttonCap.hidden = true
+//            buttonLock.hidden = true
+//            buttonUnlock.hidden = true
         }
         
         //        let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
@@ -685,25 +686,30 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var longPressStart: UILongPressGestureRecognizer!
     
     @IBOutlet var stackView: UIStackView!
-    var startTime : NSDate = NSDate()
+    var startTime = 0.0
     var longPressCountDown = 0
     @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
-        let s = sender.state
-        switch s {
+        switch sender.state {
         case UIGestureRecognizerState.Began:
             print("began")
-            startTime = NSDate()
+            startTime = NSDate().timeIntervalSince1970
+            longPressCountDown = 0
             break
         case UIGestureRecognizerState.Ended:
             print("ended")
+            for index in 0...5 {
+                signal[index].setImage(UIImage(named: "Arrow"), forState: .Normal)
+                }
+            
             break
         default:
-            let timeInterval = NSDate().timeIntervalSinceDate(startTime)
-            if longPressCountDown == 3 {
+            let timeInterval = NSDate().timeIntervalSince1970 - startTime
+            if longPressCountDown == 6 {
                 print("should send start")
-                longPressCountDown = 4
-            }else if timeInterval >= 1 && longPressCountDown < 3 {
-                startTime = NSDate()
+                longPressCountDown = 7
+            }else if timeInterval >= 0.300 && longPressCountDown < 6 {
+                startTime = NSDate().timeIntervalSince1970
+                signal[longPressCountDown].setImage(UIImage(named: "Filled Arrow"), forState: .Normal)
                 longPressCountDown += 1
                 print("conut + 1 : [\(longPressCountDown)]")
             }
@@ -736,6 +742,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         longPressStart.enabled = true
     }
     
+    @IBOutlet var signal6: UIButton!
+    @IBOutlet var signal5: UIButton!
+    @IBOutlet var signal4: UIButton!
+    @IBOutlet var signal3: UIButton!
+    @IBOutlet var signal2: UIButton!
+    @IBOutlet var signal1: UIButton!
+    @IBOutlet var stackViewLongPress: UIStackView!
     
 }
 
