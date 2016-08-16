@@ -47,7 +47,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     var vehicleName = ""
     var module = ""
-    var count = 0
+    var countSendTime = 0
     var matchFound = false
     var receivedLock = false
     var receivedUnlock = false
@@ -55,37 +55,57 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var receivedStop = false
     var started = false
     var isManuallyDisconnected = false
-    
+    var signal : [UIButton] = []
+    var startTime = 0.0
+    var longPressCountDown = 0
+    var isPressing = false
+    var indicator = 0 // 0: Whole car;  1: Engine; 2: Trunk
     @IBOutlet var buttonGarage: UIButton!
     @IBOutlet var buttonLock: UIButton!
     @IBOutlet var buttonUnlock: UIButton!
-    @IBOutlet var buttonStart: UIButton!
-    @IBOutlet var buttonCap: UIButton!
+    
+    @IBOutlet var imageDoorIndicator: UIImageView!
+    @IBOutlet var imageEngineIndicator: UIImageView!
+    @IBOutlet var imageIndicator: UIImageView!
+    @IBOutlet var imageCap: UIImageView!
+    @IBOutlet var imageStart: UIImageView!
     @IBOutlet var buttonClearLog: UIButton!
     @IBOutlet var textViewLog: UITextView!
     @IBOutlet var buttonDoor: UIButton!
     @IBOutlet var buttonEngine: UIButton!
-    var signal : [UIButton] = []
+    @IBOutlet var signal6: UIButton!
+    @IBOutlet var signal5: UIButton!
+    @IBOutlet var signal4: UIButton!
+    @IBOutlet var signal3: UIButton!
+    @IBOutlet var signal2: UIButton!
+    @IBOutlet var signal1: UIButton!
+    @IBOutlet var stackViewLongPress: UIStackView!
+    @IBOutlet var buttonCover: UIButton!
+    @IBOutlet var swipeDown: UISwipeGestureRecognizer!
+    @IBOutlet var swipeUp: UISwipeGestureRecognizer!
+    @IBOutlet var longPressStart: UILongPressGestureRecognizer!
+    @IBOutlet var stackView: UIStackView!
+
     override func viewDidLoad() {
         print("ViewController : viewDidLoad")
         super.viewDidLoad()
-        self.navigationController?.navigationBar.barTintColor = getColorFromHex(0x910015)
-        self.navigationController?.navigationBar.tintColor = UIColor.whiteColor()
-        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.whiteColor()]    //getColorFromHex(0xe21f1d)
-        self.navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!]
-        self.navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
-        self.navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
+        navigationController?.navigationBar.barTintColor = UIColor.whiteColor() // Set top bar color
+//        navigationController?.navigationBar.tintColor = UIColor.whiteColor()
+        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.blackColor()]    //set Title color
+        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!]
+        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
+        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
         removeBorderFromBar()
         textViewLog.text = ""
         signal = [signal1,signal2,signal3,signal4,signal5,signal6]
-        
+        longPressStart.enabled = false
     }
     
     override func viewWillAppear(animated: Bool) {
-        buttonCover.backgroundColor = UIColor.clearColor()
         
+        buttonCover.backgroundColor = UIColor.clearColor()
         buttonCover.clipsToBounds = true
-//        buttonCover.frame = CGRectMake(0,0,buttonCap.bounds.width,buttonCap.bounds.height)
+        //        buttonCover.frame = CGRectMake(0,0,imageCap.bounds.width,imageCap.bounds.height)
         let cons = NSLayoutConstraint(
             item: stackView,
             attribute: .Bottom,
@@ -93,16 +113,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             toItem: stackView.superview,
             attribute: .Bottom,
             multiplier: 1.0,
-            constant: -buttonCap.bounds.height/2
+            constant: -imageCap.bounds.height/2
         )
         let cons0 = NSLayoutConstraint(
-            item: buttonCap,
+            item: imageCap,
             attribute: .Bottom,
             relatedBy: .Equal,
-            toItem: buttonCap.superview,
+            toItem: imageCap.superview,
             attribute: .Bottom,
             multiplier: 1.0,
-            constant: -buttonCap.bounds.height/2
+            constant: -imageCap.bounds.height/2
         )
         let cons1 = NSLayoutConstraint(
             item: buttonCover,
@@ -123,29 +143,29 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             constant: 0
         )
         let cons2 = NSLayoutConstraint(
-            item: buttonStart,
+            item: imageStart,
             attribute: .Top,
             relatedBy: .Equal,
-            toItem: buttonCap,
+            toItem: imageCap,
             attribute: .Top,
             multiplier: 1.0,
             constant: 0
         )
         NSLayoutConstraint.activateConstraints([cons0,cons1,cons3,cons,cons2])
-//        buttonCover.transform = CGAffineTransformMakeTranslation( 0.0, buttonCap.bounds.height / 2 )
-//        buttonCover.layoutIfNeeded()
+        //        buttonCover.transform = CGAffineTransformMakeTranslation( 0.0, imageCap.bounds.height / 2 )
+        //        buttonCover.layoutIfNeeded()
         
-        buttonCap.backgroundColor = UIColor.clearColor()
-        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.buttonCap)
+        imageCap.backgroundColor = UIColor.clearColor()
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
         
-        buttonCap.layoutIfNeeded()
-        buttonCap.clipsToBounds = true
+        imageCap.layoutIfNeeded()
+        imageCap.clipsToBounds = true
         
-        buttonStart.backgroundColor = UIColor.clearColor()
-        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.buttonStart)
+        imageStart.backgroundColor = UIColor.clearColor()
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
         
-        buttonStart.layoutIfNeeded()
-        buttonStart.clipsToBounds = true
+        imageStart.layoutIfNeeded()
+        imageStart.clipsToBounds = true
         
         buttonUnlock.layer.cornerRadius = 25.0
         buttonUnlock.clipsToBounds = true
@@ -164,6 +184,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonGarage.layer.borderWidth = 1
         buttonGarage.layer.borderColor = getColorFromHex(0x910015).CGColor
         buttonGarage.clipsToBounds = true
+        
+        imageEngineIndicator.alpha = 0
         getDefault()
         print("ViewController : viewWillAppear")
         if module != "" {
@@ -174,18 +196,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("prompt image")
             buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
             //            imageStatus.s = UIImage(named: "Garage")
-//            buttonStart.hidden = true
-//            buttonCap.hidden = true
-//            buttonLock.hidden = true
-//            buttonUnlock.hidden = true
+            //            imageStart.hidden = true
+            //            imageCap.hidden = true
+            //            buttonLock.hidden = true
+            //            buttonUnlock.hidden = true
         }
         
         //        let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
         //        swipeUp.direction = UISwipeGestureRecognizerDirection.Up
-        //        buttonCap.addGestureRecognizer(swipeUp)
+        //        imageCap.addGestureRecognizer(swipeUp)
         //        let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
         //        swipeDown.direction = UISwipeGestureRecognizerDirection.Down
-        //        buttonCap.addGestureRecognizer(swipeDown)
+        //        imageCap.addGestureRecognizer(swipeDown)
         
     }
     
@@ -219,6 +241,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onClearLog(sender: UIButton) {
         self.textViewLog.text = ""
+        if indicator == 1 {
+            newEngineToDoor()
+        }else if indicator == 0 {
+            newDoorToEngine()
+        }
+        
     }
     
     @IBAction func onGarageButton(sender: UIButton) {
@@ -282,13 +310,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         print("No match module found")
                         self.buttonLock.hidden = true
                         self.buttonUnlock.hidden = true
-                        self.buttonCap.hidden = true
-                        self.buttonStart.hidden = true
+                        self.imageCap.hidden = true
+                        self.imageStart.hidden = true
                     }else{
                         self.buttonLock.hidden = false
                         self.buttonUnlock.hidden = false
-                        self.buttonCap.hidden = false
-                        self.buttonStart.hidden = false
+                        self.imageCap.hidden = false
+                        self.imageStart.hidden = false
                     }
                 })
             })
@@ -372,13 +400,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("set disable")
             buttonLock.enabled = false
             buttonUnlock.enabled = false
-            buttonCap.enabled = false
-            buttonStart.enabled = false
         }else{
             print("set enable")
             buttonLock.enabled = true
             buttonUnlock.enabled = true
-            buttonCap.enabled = true
         }
     }
     
@@ -426,7 +451,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func sendCommend(data : NSData, action : Int){
         print("send command : \(action)")
-        count = 0
+        countSendTime = 0
         var flag : Bool
         switch action {
         case 0:
@@ -559,12 +584,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         peripheral.setNotifyValue(enabled, forCharacteristic: notificationCharacteristic)
     }
     
+    
+    
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
         let val = characteristic.value!.hexString
         if(val=="00008001"){
             //ack for locked
-            logOnScreen("\(val) : \(count)")
-            count = count + 1
+            logOnScreen("\(val) : \(countSendTime)")
+            countSendTime += 1
             if !receivedLock{
                 receivedLock = true
                 showLocked()
@@ -572,8 +599,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
         }else if(val=="00000002"){
             //ack for unlocked
-            logOnScreen("\(val) : \(count)")
-            count = count + 1
+            logOnScreen("\(val) : \(countSendTime)")
+            countSendTime += 1
             if !receivedUnlock{
                 receivedUnlock = true
                 showUnlocked()
@@ -582,8 +609,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else if(val=="00000201"){
             //ack for started
             started = true
-            logOnScreen("\(val) : \(count)")
-            count = count + 1
+            logOnScreen("\(val) : \(countSendTime)")
+            countSendTime += 1
             if !receivedStart{
                 receivedStart = true
                 showStarted()
@@ -591,20 +618,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else if(val=="00000001"){
             started = false
             //ack for stopped
-            logOnScreen("\(val) : \(count)")
-            count = count + 1
+            logOnScreen("\(val) : \(countSendTime)")
+            countSendTime += 1
             if !receivedStop{
                 receivedStop = true
                 showStopped()
             }
         }else if(val=="0240000f"){
             //ack for locked
-            logOnScreen("\(val) : \(count)")
+            logOnScreen("\(val) : \(countSendTime)")
             showStopped()
         }else{
-            logOnScreen("\(val) : \(count)")
-            print("\(val) : \(count)")
-            count = count + 1
+            logOnScreen("\(val) : \(countSendTime)")
+            print("\(val) : \(countSendTime)")
+            countSendTime += 1
             receivedLock = true
             receivedStop = true
             receivedStart = true
@@ -680,39 +707,50 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    @IBOutlet var buttonCover: UIButton!
-    @IBOutlet var swipeDown: UISwipeGestureRecognizer!
-    @IBOutlet var swipeUp: UISwipeGestureRecognizer!
-    @IBOutlet var longPressStart: UILongPressGestureRecognizer!
     
-    @IBOutlet var stackView: UIStackView!
-    var startTime = 0.0
-    var longPressCountDown = 0
     @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
+        //        print("asdasdasd")
         switch sender.state {
         case UIGestureRecognizerState.Began:
             print("began")
-            startTime = NSDate().timeIntervalSince1970
+            isPressing = true
             longPressCountDown = 0
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                print("now \(self.longPressCountDown)")
+                while self.isPressing && self.longPressCountDown <= 5{
+                    dispatch_async(dispatch_get_main_queue(),{
+                        
+                        self.signal[self.longPressCountDown].setImage(UIImage(named: "Filled Arrow"), forState: .Normal)
+                        self.longPressCountDown += 1
+                        print("set \(self.longPressCountDown)")
+                        
+                        
+                    })
+                    usleep(150000)
+                }
+            })
+            //            startTime = NSDate().timeIntervalSince1970
+            //            longPressCountDown = 0
             break
         case UIGestureRecognizerState.Ended:
             print("ended")
+            isPressing = false
             for index in 0...5 {
                 signal[index].setImage(UIImage(named: "Arrow"), forState: .Normal)
-                }
+            }
             
             break
         default:
-            let timeInterval = NSDate().timeIntervalSince1970 - startTime
-            if longPressCountDown == 6 {
-                print("should send start")
-                longPressCountDown = 7
-            }else if timeInterval >= 0.300 && longPressCountDown < 6 {
-                startTime = NSDate().timeIntervalSince1970
-                signal[longPressCountDown].setImage(UIImage(named: "Filled Arrow"), forState: .Normal)
-                longPressCountDown += 1
-                print("conut + 1 : [\(longPressCountDown)]")
-            }
+            //            let timeInterval = NSDate().timeIntervalSince1970 - startTime
+            //            if longPressCountDown == 6 {
+            //                print("should send start")
+            //                longPressCountDown = 7
+            //            }else if timeInterval >= 0.2 && longPressCountDown < 6 {
+            //                startTime = NSDate().timeIntervalSince1970
+            //                signal[longPressCountDown].setImage(UIImage(named: "Filled Arrow"), forState: .Normal)
+            //                longPressCountDown += 1
+            //                print("conut + 1 : [\(longPressCountDown)]")
+            //            }
             break
         }
     }
@@ -722,33 +760,97 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         UIView.animateWithDuration(1, animations: {
             var transform = CATransform3DIdentity
             transform.m34 = 1.0 / -1000
-            transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
+            transform = CATransform3DTranslate(transform, -self.imageCap.bounds.size.height/4, 0, 0)
             transform = CATransform3DRotate(transform, CGFloat(-0.0 * M_PI / 180.0), 1,0,0)
-            transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
-            self.buttonCap.layer.transform = transform
+            transform = CATransform3DTranslate(transform, self.imageCap.bounds.size.height/4, 0, 0)
+            self.imageCap.layer.transform = transform
         })
         longPressStart.enabled = false
     }
+    
     @IBAction func onUp(sender: UISwipeGestureRecognizer) {
         print("swipe up")
         UIView.animateWithDuration(1, animations: {
             var transform = CATransform3DIdentity
             transform.m34 = 1.0 / -1000
-            transform = CATransform3DTranslate(transform, -self.buttonCap.bounds.size.height/4, 0, 0)
+            transform = CATransform3DTranslate(transform, -self.imageCap.bounds.size.height/4, 0, 0)
             transform = CATransform3DRotate(transform, CGFloat(70.0 * M_PI / 180.0), 1,0,0)
-            transform = CATransform3DTranslate(transform, self.buttonCap.bounds.size.height/4, 0, 0)
-            self.buttonCap.layer.transform = transform
+            transform = CATransform3DTranslate(transform, self.imageCap.bounds.size.height/4, 0, 0)
+            self.imageCap.layer.transform = transform
         })
         longPressStart.enabled = true
     }
     
-    @IBOutlet var signal6: UIButton!
-    @IBOutlet var signal5: UIButton!
-    @IBOutlet var signal4: UIButton!
-    @IBOutlet var signal3: UIButton!
-    @IBOutlet var signal2: UIButton!
-    @IBOutlet var signal1: UIButton!
-    @IBOutlet var stackViewLongPress: UIStackView!
+    func newDoorToEngine() {
+        print("start: \(self.imageIndicator.layer.position)")
+        UIView.animateWithDuration(1, animations: {
+            let fullRotation = CGFloat(M_PI * 2)
+            var transform = CGAffineTransformIdentity
+            transform = CGAffineTransformScale(transform, 1.5, 1.5)
+            transform = CGAffineTransformRotate(transform, 3/4 * fullRotation)
+            transform = CGAffineTransformTranslate(transform, -0,100)
+            self.imageIndicator.transform = transform
+            }, completion: {finished in
+                // any code entered here will be applied
+                // once the animation has completed
+                self.imageIndicator.layoutIfNeeded()
+                print("end: \(self.buttonGarage.layer.position)")
+            })
+        UIView.animateWithDuration(1, animations: {
+            let fullRotation = CGFloat(M_PI * 2)
+            var transform = CGAffineTransformIdentity
+            transform = CGAffineTransformScale(transform, 1.5, 1.5)
+            transform = CGAffineTransformRotate(transform, 3/4 * fullRotation)
+            transform = CGAffineTransformTranslate(transform, -0,100)
+            self.imageEngineIndicator.alpha = 1
+            self.imageEngineIndicator.transform = transform
+            }, completion: {finished in
+                self.imageEngineIndicator.layoutIfNeeded()
+                print("end: \(self.buttonGarage.layer.position)")
+        })
+        indicator = 1
+    }
     
+    func newEngineToDoor() {
+        UIView.animateWithDuration(1, animations: {
+            let transform = CGAffineTransformIdentity
+            self.imageIndicator.transform = transform
+            }, completion: {finished in
+                self.imageIndicator.layoutIfNeeded()
+        })
+        UIView.animateWithDuration(1, animations: {
+            let transform = CGAffineTransformIdentity
+            self.imageEngineIndicator.transform = transform
+            self.imageEngineIndicator.alpha = 0
+            }, completion: {finished in
+                self.imageEngineIndicator.layoutIfNeeded()
+        })
+        indicator = 0
+    }
+    
+    func doorToEngine(){
+        let fullRotation = CGFloat(M_PI * 2)
+        UIView.animateKeyframesWithDuration(2, delay: 0, options: UIViewKeyframeAnimationOptions.BeginFromCurrentState, animations: {
+            // each keyframe needs to be added here
+            // within each keyframe the relativeStartTime and relativeDuration need to be values between 0.0 and 1.0
+            UIView.addKeyframeWithRelativeStartTime(0, relativeDuration: 1, animations: {
+                // start at 0.00s (5s × 0)
+                // duration 1.67s (5s × 1/3)
+                // end at   1.67s (0.00s + 1.67s)
+                self.buttonGarage.transform = CGAffineTransformMakeScale(2.0,2.0)
+            })
+            UIView.addKeyframeWithRelativeStartTime(0, relativeDuration: 1, animations: {
+                self.buttonGarage.transform = CGAffineTransformMakeRotation(3/4 * fullRotation)
+            })
+            UIView.addKeyframeWithRelativeStartTime(0, relativeDuration: 1, animations: {
+                self.buttonGarage.transform = CGAffineTransformMakeTranslation(-self.buttonGarage.frame.origin.x, -self.buttonGarage.frame.origin.y)
+            })
+            
+            }, completion: {finished in
+                // any code entered here will be applied
+                // once the animation has completed
+                self.buttonGarage.layoutIfNeeded()
+        })
+    }
 }
 
