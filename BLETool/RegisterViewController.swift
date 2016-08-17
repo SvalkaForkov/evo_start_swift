@@ -42,6 +42,11 @@ class RegisterViewController: UIViewController {
         buttonRegister.layer.borderWidth = 1
     }
     
+    override func viewDidAppear(animated: Bool) {
+        print(viewDidAppear)
+        setLastScene()
+    }
+    
     func getColorFromHex(value: UInt) -> UIColor{
         return UIColor(
             red: CGFloat((value & 0xFF0000) >> 16) / 255.0,
@@ -112,5 +117,22 @@ class RegisterViewController: UIViewController {
             }
         }
         return true
+    }
+    
+    func getLastScene() -> String{
+        print("getLastScene")
+        let lastScene =
+            NSUserDefaults.standardUserDefaults().objectForKey("lastScene")
+                as? String
+        if lastScene != nil {
+            return lastScene!
+        }else{
+            return ""
+        }
+    }
+    
+    func setLastScene(){
+        print("getLsetLastScene : Register")
+        NSUserDefaults.standardUserDefaults().setObject("Register", forKey: "lastScene")
     }
 }

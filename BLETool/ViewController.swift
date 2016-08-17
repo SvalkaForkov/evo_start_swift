@@ -85,27 +85,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var swipeUp: UISwipeGestureRecognizer!
     @IBOutlet var longPressStart: UILongPressGestureRecognizer!
     @IBOutlet var stackView: UIStackView!
-
+    
     override func viewDidLoad() {
         print("ViewController : viewDidLoad")
         super.viewDidLoad()
-        navigationController?.navigationBar.barTintColor = UIColor.whiteColor() // Set top bar color
-//        navigationController?.navigationBar.tintColor = UIColor.whiteColor()
-        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.blackColor()]    //set Title color
-        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!]
-        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
-        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
-        removeBorderFromBar()
+        setUpNavigationBar()
         textViewLog.text = ""
-        signal = [signal1,signal2,signal3,signal4,signal5,signal6]
         longPressStart.enabled = false
-    }
-    
-    override func viewWillAppear(animated: Bool) {
-        
         buttonCover.backgroundColor = UIColor.clearColor()
         buttonCover.clipsToBounds = true
-        //        buttonCover.frame = CGRectMake(0,0,imageCap.bounds.width,imageCap.bounds.height)
+        
         let cons = NSLayoutConstraint(
             item: stackView,
             attribute: .Bottom,
@@ -152,8 +141,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             constant: 0
         )
         NSLayoutConstraint.activateConstraints([cons0,cons1,cons3,cons,cons2])
-        //        buttonCover.transform = CGAffineTransformMakeTranslation( 0.0, imageCap.bounds.height / 2 )
-        //        buttonCover.layoutIfNeeded()
         
         imageCap.backgroundColor = UIColor.clearColor()
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
@@ -182,12 +169,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonGarage.layer.cornerRadius = 25.0
         buttonGarage.backgroundColor = UIColor.clearColor()
         buttonGarage.layer.borderWidth = 1
-        buttonGarage.layer.borderColor = getColorFromHex(0x910015).CGColor
+        //        buttonGarage.layer.borderColor = getColorFromHex(0x910015).CGColor
         buttonGarage.clipsToBounds = true
         
         imageEngineIndicator.alpha = 0
-        getDefault()
+    }
+    
+    override func viewWillAppear(animated: Bool) {
         print("ViewController : viewWillAppear")
+        getDefaultModule()
         if module != "" {
             print("not nil : " + module)
             centralManager = CBCentralManager(delegate: self, queue:nil)
@@ -195,101 +185,21 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             print("prompt image")
             buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
-            //            imageStatus.s = UIImage(named: "Garage")
-            //            imageStart.hidden = true
-            //            imageCap.hidden = true
-            //            buttonLock.hidden = true
-            //            buttonUnlock.hidden = true
         }
-        
-        //        let swipeUp = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
-        //        swipeUp.direction = UISwipeGestureRecognizerDirection.Up
-        //        imageCap.addGestureRecognizer(swipeUp)
-        //        let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(ViewController.onSwispe(_:)))
-        //        swipeDown.direction = UISwipeGestureRecognizerDirection.Down
-        //        imageCap.addGestureRecognizer(swipeDown)
-        
+        signal = [signal1,signal2,signal3,signal4,signal5,signal6]
     }
     
-    func getDefault(){
-        print("ViewController : check default")
-        let defaultModule =
-            NSUserDefaults.standardUserDefaults().objectForKey("defaultModule")
-                as? String
-        if defaultModule != nil {
-            module = defaultModule!
-            print("default is not nil : \(module)")
-        }else{
-            print("default is nil")
-            module = ""
-            checkDatabase()
+    override func viewDidAppear(animated: Bool) {
+        print("viewDidAppear")
+        setLastScene()
+    }
+    
+    override func viewWillDisappear(animated: Bool) {
+        super.viewWillDisappear(animated)
+        print("viewWillDisappear")
+        if centralManager != nil {
+            centralManager.cancelPeripheralConnection(self.peripheral)
         }
-    }
-    
-    func checkDatabase(){
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let dataController = appDelegate.dataController
-        let vehicles : [Vehicle] = dataController.getAllVehicles()
-        if vehicles.count > 0 {
-            module = vehicles[0].module!
-            print("use first vehicle in the database")
-        }else {
-            module = ""
-            print("no vehicle registerd")
-        }
-    }
-    
-    @IBAction func onClearLog(sender: UIButton) {
-        self.textViewLog.text = ""
-        if indicator == 1 {
-            newEngineToDoor()
-        }else if indicator == 0 {
-            newDoorToEngine()
-        }
-        
-    }
-    
-    @IBAction func onGarageButton(sender: UIButton) {
-        if module != "" {
-            print("on Garage button clicked")
-            centralManager.stopScan()
-            if peripheral != nil {
-                centralManager.cancelPeripheralConnection(peripheral)
-                centralManager = nil
-                print("disconnect")
-            }
-            performSegueWithIdentifier("control2garage", sender: sender)
-        }else{
-            performSegueWithIdentifier("control2scan", sender: self)
-        }
-    }
-    
-    func removeBorderFromBar() {
-        for p in self.navigationController!.navigationBar.subviews {
-            for c in p.subviews {
-                if c is UIImageView {
-                    c.removeFromSuperview()
-                }
-            }
-        }
-    }
-    
-    func getColorFromHex(value: UInt) -> UIColor{
-        return UIColor(
-            red: CGFloat((value & 0xFF0000) >> 16) / 255.0,
-            green: CGFloat((value & 0x00FF00) >> 8) / 255.0,
-            blue: CGFloat(value & 0x0000FF) / 255.0,
-            alpha: CGFloat(1.0)
-        )
-    }
-    
-    func logOnScreen(line: String){
-        self.textViewLog.text = self.textViewLog.text.stringByAppendingString("\(line)\n")
-    }
-    
-    func setDefault(value: String){
-        print("set default : \(value)")
-        NSUserDefaults.standardUserDefaults().setObject(value, forKey: "defaultModule")
     }
     
     override func didReceiveMemoryWarning() {
@@ -300,11 +210,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
         case CBCentralManagerState.PoweredOn:
-            print("Ble PoweredOn")
+            print("CBCentralManagerState.PoweredOn")
             matchFound = false
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                print("Go off main thread : finding matched module")
-                sleep(2)
+                print("dispatch_async : find matched module")
+                sleep(1)
                 dispatch_async(dispatch_get_main_queue(),{
                     if !self.matchFound {
                         print("No match module found")
@@ -313,6 +223,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         self.imageCap.hidden = true
                         self.imageStart.hidden = true
                     }else{
+                        print("Match module found")
                         self.buttonLock.hidden = false
                         self.buttonUnlock.hidden = false
                         self.imageCap.hidden = false
@@ -321,23 +232,23 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 })
             })
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            print("Scanning bluetooth")
+            print("scanForPeripheralsWithServices")
             break
         case CBCentralManagerState.PoweredOff:
-            print("Ble PoweredOff")
+            print("CBCentralManagerState.PoweredOff")
             centralManager.stopScan()
             break
         case CBCentralManagerState.Unauthorized:
-            print("Unauthorized state")
+            print("CBCentralManagerState.Unauthorized")
             break
         case CBCentralManagerState.Resetting:
-            print("Resetting state")
+            print("CBCentralManagerState.Resetting")
             break
         case CBCentralManagerState.Unknown:
-            print("unknown state")
+            print("CBCentralManagerState.Unknown")
             break
         case CBCentralManagerState.Unsupported:
-            print("Unsupported state")
+            print("CBCentralManagerState.Unsupported")
             break
         }
     }
@@ -360,9 +271,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
-        print("Peripheral connected")
-        print("set default Peripheral")
-        setDefault(peripheral.name!)
+        print("didConnectPeripheral")
+        setDefaultModule(peripheral.name!)
         peripheral.discoverServices([CBUUID(string: "1234")])
         print("DiscoverService: 1234")
     }
@@ -395,6 +305,60 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         showControl(true)
     }
     
+    func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
+        let val = characteristic.value!.hexString
+        if(val=="00008001"){
+            //ack for locked
+            print("\(val) : \(countSendTime)")
+            countSendTime += 1
+            if !receivedLock{
+                receivedLock = true
+                showLocked()
+                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            }
+        }else if(val=="00000002"){
+            //ack for unlocked
+            print("\(val) : \(countSendTime)")
+            countSendTime += 1
+            if !receivedUnlock{
+                receivedUnlock = true
+                showUnlocked()
+                AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
+            }
+        }else if(val=="00000201"){
+            //ack for started
+            started = true
+            print("\(val) : \(countSendTime)")
+            countSendTime += 1
+            if !receivedStart{
+                receivedStart = true
+                showStarted()
+            }
+        }else if(val=="00000001"){
+            started = false
+            //ack for stopped
+            print("\(val) : \(countSendTime)")
+            countSendTime += 1
+            if !receivedStop{
+                receivedStop = true
+                showStopped()
+            }
+        }else if(val=="0240000f"){
+            //ack for locked
+            print("\(val) : \(countSendTime)")
+            showStopped()
+        }else{
+            print("\(val) : \(countSendTime)")
+            print("\(val) : \(countSendTime)")
+            countSendTime += 1
+            receivedLock = true
+            receivedStop = true
+            receivedStart = true
+            receivedUnlock = true
+        }
+        print("Charateristic's value has updated : \(val!)")
+    }
+    
     func showControl(val: Bool){
         if(!val){
             print("set disable")
@@ -406,7 +370,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonUnlock.enabled = true
         }
     }
-    
     
     @IBAction func onLock(sender: UIButton) {
         print("onlock")
@@ -450,7 +413,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func sendCommend(data : NSData, action : Int){
-        print("send command : \(action)")
+        print("ViewController : sendCommend")
         countSendTime = 0
         var flag : Bool
         switch action {
@@ -475,10 +438,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         flag = false
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-            print("go off main thread")
             self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
             dispatch_async(dispatch_get_main_queue(),{
-                self.logOnScreen("Send : 1st time")
+                print("Send : 1st time")
             })
             sleep(1)
             switch action {
@@ -502,7 +464,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
             dispatch_async(dispatch_get_main_queue(),{
-                self.logOnScreen("Send : 2nd time")
+                print("Send : 2nd time")
             })
             sleep(1)
             switch action {
@@ -526,7 +488,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
             dispatch_async(dispatch_get_main_queue(),{
-                self.logOnScreen("Send : 3rd time")
+                print("Send : 3rd time")
             })
             sleep(1)
             switch action {
@@ -550,7 +512,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
             dispatch_async(dispatch_get_main_queue(),{
-                self.logOnScreen("Send : 4th time")
+                print("Send : 4th time")
             })
             sleep(1)
             switch action {
@@ -574,7 +536,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
             dispatch_async(dispatch_get_main_queue(),{
-                self.logOnScreen("Send : 5th time")
+                print("Send : 5th time")
             })
         })
     }
@@ -586,59 +548,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     
     
-    func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        let val = characteristic.value!.hexString
-        if(val=="00008001"){
-            //ack for locked
-            logOnScreen("\(val) : \(countSendTime)")
-            countSendTime += 1
-            if !receivedLock{
-                receivedLock = true
-                showLocked()
-                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            }
-        }else if(val=="00000002"){
-            //ack for unlocked
-            logOnScreen("\(val) : \(countSendTime)")
-            countSendTime += 1
-            if !receivedUnlock{
-                receivedUnlock = true
-                showUnlocked()
-                AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
-            }
-        }else if(val=="00000201"){
-            //ack for started
-            started = true
-            logOnScreen("\(val) : \(countSendTime)")
-            countSendTime += 1
-            if !receivedStart{
-                receivedStart = true
-                showStarted()
-            }
-        }else if(val=="00000001"){
-            started = false
-            //ack for stopped
-            logOnScreen("\(val) : \(countSendTime)")
-            countSendTime += 1
-            if !receivedStop{
-                receivedStop = true
-                showStopped()
-            }
-        }else if(val=="0240000f"){
-            //ack for locked
-            logOnScreen("\(val) : \(countSendTime)")
-            showStopped()
-        }else{
-            logOnScreen("\(val) : \(countSendTime)")
-            print("\(val) : \(countSendTime)")
-            countSendTime += 1
-            receivedLock = true
-            receivedStop = true
-            receivedStart = true
-            receivedUnlock = true
-        }
-        print("Charateristic's value has updated : \(val!)")
-    }
+    
     
     func showStopped(){
         buttonEngine.setImage(UIImage(named: "Engine"), forState: .Normal)
@@ -698,42 +608,29 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    override func viewWillDisappear(animated: Bool) {
-        super.viewWillDisappear(animated)
-        if self.isMovingToParentViewController() {
-            print("on back clicked")
-            isManuallyDisconnected = true
-            centralManager.cancelPeripheralConnection(self.peripheral)
-        }
-    }
+    
     
     
     @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
-        //        print("asdasdasd")
         switch sender.state {
         case UIGestureRecognizerState.Began:
-            print("began")
+            print("UIGestureRecognizerState.Began")
             isPressing = true
             longPressCountDown = 0
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 print("now \(self.longPressCountDown)")
                 while self.isPressing && self.longPressCountDown <= 5{
                     dispatch_async(dispatch_get_main_queue(),{
-                        
                         self.signal[self.longPressCountDown].setImage(UIImage(named: "Filled Arrow"), forState: .Normal)
                         self.longPressCountDown += 1
                         print("set \(self.longPressCountDown)")
-                        
-                        
                     })
                     usleep(150000)
                 }
             })
-            //            startTime = NSDate().timeIntervalSince1970
-            //            longPressCountDown = 0
             break
         case UIGestureRecognizerState.Ended:
-            print("ended")
+            print("UIGestureRecognizerState.Ended")
             isPressing = false
             for index in 0...5 {
                 signal[index].setImage(UIImage(named: "Arrow"), forState: .Normal)
@@ -741,16 +638,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             
             break
         default:
-            //            let timeInterval = NSDate().timeIntervalSince1970 - startTime
-            //            if longPressCountDown == 6 {
-            //                print("should send start")
-            //                longPressCountDown = 7
-            //            }else if timeInterval >= 0.2 && longPressCountDown < 6 {
-            //                startTime = NSDate().timeIntervalSince1970
-            //                signal[longPressCountDown].setImage(UIImage(named: "Filled Arrow"), forState: .Normal)
-            //                longPressCountDown += 1
-            //                print("conut + 1 : [\(longPressCountDown)]")
-            //            }
             break
         }
     }
@@ -795,7 +682,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 // once the animation has completed
                 self.imageIndicator.layoutIfNeeded()
                 print("end: \(self.buttonGarage.layer.position)")
-            })
+        })
         UIView.animateWithDuration(1, animations: {
             let fullRotation = CGFloat(M_PI * 2)
             var transform = CGAffineTransformIdentity
@@ -851,6 +738,115 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 // once the animation has completed
                 self.buttonGarage.layoutIfNeeded()
         })
+    }
+    
+    func checkDatabase(){
+        print("ViewController : checkDatabase")
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let dataController = appDelegate.dataController
+        let vehicles : [Vehicle] = dataController.getAllVehicles()
+        if vehicles.count > 0 {
+            module = vehicles[0].module!
+            print("use first vehicle in the database")
+        }else {
+            module = ""
+            print("no vehicle registerd")
+        }
+    }
+    
+    @IBAction func onClearLog(sender: UIButton) {
+        self.textViewLog.text = ""
+        if indicator == 1 {
+            newEngineToDoor()
+        }else if indicator == 0 {
+            newDoorToEngine()
+        }
+        
+    }
+    
+    @IBAction func onGarageButton(sender: UIButton) {
+        if module != "" {
+            print("on Garage button clicked")
+            centralManager.stopScan()
+            if peripheral != nil {
+                centralManager.cancelPeripheralConnection(peripheral)
+                centralManager = nil
+                print("disconnect")
+            }
+            performSegueWithIdentifier("control2garage", sender: sender)
+        }else{
+            performSegueWithIdentifier("control2scan", sender: self)
+        }
+    }
+    
+    func removeBorderFromBar() {
+        for p in navigationController!.navigationBar.subviews {
+            for c in p.subviews {
+                if c is UIImageView {
+                    c.removeFromSuperview()
+                }
+            }
+        }
+    }
+    func setUpNavigationBar(){
+        navigationController?.navigationBar.barTintColor = UIColor.whiteColor() // Set top bar color
+        navigationController?.navigationBar.tintColor = UIColor.blackColor()
+        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.blackColor()]    //set Title color
+        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!]
+        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
+        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
+        removeBorderFromBar()
+    }
+    
+    func getColorFromHex(value: UInt) -> UIColor{
+        return UIColor(
+            red: CGFloat((value & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((value & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(value & 0x0000FF) / 255.0,
+            alpha: CGFloat(1.0)
+        )
+    }
+    
+    func logOnScreen(line: String){
+        self.textViewLog.text = self.textViewLog.text.stringByAppendingString("\(line)\n")
+    }
+    
+    func getDefaultModule(){
+        print("ViewController : getDefaultModule")
+        let defaultModule =
+            NSUserDefaults.standardUserDefaults().objectForKey("defaultModule")
+                as? String
+        if defaultModule != nil {
+            module = defaultModule!
+            print("default is not nil : \(module)")
+        }else{
+            print("default is nil")
+            module = ""
+            checkDatabase()
+        }
+    }
+
+    
+    func setDefaultModule(value: String){
+        print("set default : \(value)")
+        NSUserDefaults.standardUserDefaults().setObject(value, forKey: "defaultModule")
+    }
+    
+    func getLastScene() -> String{
+        print("getLastScene")
+        let lastScene =
+            NSUserDefaults.standardUserDefaults().objectForKey("lastScene")
+                as? String
+        if lastScene != nil {
+            return lastScene!
+        }else{
+            return ""
+        }
+    }
+    
+    func setLastScene(){
+        print("getLsetLastScene : Control")
+        NSUserDefaults.standardUserDefaults().setObject("Control", forKey: "lastScene")
     }
 }
 

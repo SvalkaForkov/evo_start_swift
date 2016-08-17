@@ -14,72 +14,76 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
     
-    
     @IBOutlet var topBar: UIView!
     @IBOutlet var tableView: UITableView!
     
-    var moduleNames : [String] = []
-    var deviceWithRssi = [String : Int]()
     var devices : [CBPeripheral] = []
+    var deviceWithRssi = Dictionary<String,Int>()
     var selectedName : String = ""
     
-    var dataController : DataController!
-    var appDelegeate : AppDelegate!
     var vehicles : [Vehicle] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("viewDidLoad")
         centralManager = CBCentralManager(delegate: self, queue:nil)
-        appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
-        dataController = appDelegeate.dataController
         
     }
     
+    override func viewWillAppear(animated: Bool) {
+        print("viewWillAppear")
+        
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let dataController = appDelegate.dataController
+        vehicles = dataController.getAllVehicles()
+        
+    }
     
     override func viewDidAppear(animated: Bool) {
+        print("viewDidAppear")
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.cellLayoutMarginsFollowReadableWidth = false
-        tableView.layoutMargins = UIEdgeInsetsZero
         tableView.separatorInset = UIEdgeInsetsZero
-        
-        
         tableView.separatorStyle = UITableViewCellSeparatorStyle.None
-        animateTableView()
+        animateTableView(false)
+        setLastScene()
     }
+    
     @IBAction func onBack(sender: UIButton) {
         print("return to garage scene")
         performSegueWithIdentifier("segueBackToGarage", sender: sender)
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return moduleNames.count
+        return devices.count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("ScanCell", forIndexPath: indexPath) as! CustomScanCell
-        let moduleNameString = moduleNames[indexPath.row] as String
-        cell.labelName!.text = moduleNameString
-        let rssi = deviceWithRssi[moduleNameString]
+        let deviceName = devices[indexPath.row].name! as String
+        cell.labelName!.text = deviceName
+        let rssi = deviceWithRssi[deviceName]
         
         if rssi != nil {
-            if rssi > -30 && rssi < -50 {
+            print("rssi : \(rssi)")
+            if rssi < 0 && rssi > -50 {
                 cell.imageSignal.setImage(UIImage(named: "High Connection"), forState: .Normal)
-            }else if rssi >= -50 && rssi < -70 {
+            }else if rssi <= -50 && rssi > -70 {
                 cell.imageSignal.setImage(UIImage(named: "Medium Connection"), forState: .Normal)
-                
-            }else if rssi >= -70{
+            }else if rssi <= -70{
                 cell.imageSignal.setImage(UIImage(named: "Low Connection"), forState: .Normal)
             }
+        }else{
+            print("rssi is nil")
         }
         
-        cell.mainView.layer.cornerRadius = 5.0
+        cell.mainView.layer.cornerRadius = 2.0
         return cell
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        selectedName = moduleNames[indexPath.row] as String
-        print("\(selectedName)")
+        selectedName = devices[indexPath.row].name! as String
+        print("didSelectRowAtIndexPath : \(selectedName)")
         var existing = false
         if vehicles.count > 0 {
             for vehicle in vehicles {
@@ -95,62 +99,68 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
             performSegueWithIdentifier("scan2register", sender: nil)
         }else{
             print("return to garage scene")
-            self.navigationController?.popViewControllerAnimated(true)
+            showAlert()
+            //            self.navigationController?.popViewControllerAnimated(true)
         }
+    }
+    
+    func showAlert() {
+        if NSClassFromString("UIAlertController") != nil {
+            let alertController = UIAlertController(title: "Again?", message: "This one is registered already", preferredStyle: UIAlertControllerStyle.Alert)
+            presentViewController(alertController, animated: true, completion:{
+                alertController.view.superview?.userInteractionEnabled = true
+                alertController.view.superview?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.alertControllerBackgroundTapped)))
+            })
+        }
+    }
+    
+    func alertControllerBackgroundTapped()    {
+        self.dismissViewControllerAnimated(true, completion: nil)
     }
     
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
         case CBCentralManagerState.PoweredOn:
-            print("powered on")
+            print("CBCentralManagerState.PoweredOn")
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            print("scan for peripherals")
+            print("scanForPeripheralsWithServices")
             break
         case CBCentralManagerState.PoweredOff:
-            print("powered on")
+            print("CBCentralManagerState.PoweredOff")
+            centralManager.stopScan()
             break
         case CBCentralManagerState.Unauthorized:
-            print("Unauthorized state")
+            print("CBCentralManagerState.Unauthorized")
             break
         case CBCentralManagerState.Resetting:
-            print("Resetting state")
+            print("CBCentralManagerState.Resetting")
             break
         case CBCentralManagerState.Unknown:
-            print("unknown state")
+            print("CBCentralManagerState.Unknown")
             break
         case CBCentralManagerState.Unsupported:
-            print("Unsupported state")
+            print("CBCentralManagerState.Unsupported")
             break
         }
     }
     
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
+        print("didDiscoverPeripheral")
         let nameOfDeviceFound = peripheral.name
         if nameOfDeviceFound != nil {
-            peripheral.readRSSI()
-            print("\(nameOfDeviceFound) Found")
+            print("\(nameOfDeviceFound!) Found")
             devices.append(peripheral)
-            moduleNames.append("\(nameOfDeviceFound!)")
+            deviceWithRssi[peripheral.name!] = RSSI.integerValue
             tableView.reloadData()
-            if nameOfDeviceFound!.rangeOfString("EVO") != nil {
-                
-            }
         }
     }
     
-    func peripheralDidUpdateRSSI(peripheral: CBPeripheral, error: NSError?) {
-        print("\(peripheral.name!) updated : \(peripheral.RSSI?.integerValue)")
-        deviceWithRssi[peripheral.name!] = peripheral.RSSI?.integerValue
-        tableView.reloadData()
-    }
-    
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
-        print("Peripheral connected")
-        
+        print("didConnectPeripheral : \(peripheral.name)")
     }
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        print("Disconnected")
+        print("didDisconnectPeripheral")
         central.scanForPeripheralsWithServices(nil, options: nil)
     }
     
@@ -162,6 +172,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         print("Discovering services & characteristics")
         
     }
+    
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
         
     }
@@ -175,26 +186,51 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         }
     }
     
-    func animateTableView(){
+    func animateTableView(vertical : Bool){
         tableView.reloadData()
-        
+        var index = 0
         let cells = tableView.visibleCells
         let tableHeight : CGFloat = tableView.bounds.size.height
-        
-        for i in cells {
-            let cell : UITableViewCell = i as UITableViewCell
-            cell.transform = CGAffineTransformMakeTranslation(0, tableHeight)
+        let tableWidth : CGFloat = tableView.bounds.size.width
+        if vertical {
+            for i in cells {
+                let cell : UITableViewCell = i as UITableViewCell
+                cell.transform = CGAffineTransformMakeTranslation(0, tableHeight)
+            }
+        } else {
+            for cell in cells {
+                //old expression                let cell : UITableViewCell = i as UITableViewCell
+                if getLastScene() == "Garage" {
+                    cell.transform = CGAffineTransformMakeTranslation(tableWidth, 0)
+                }else if getLastScene() == "Register" {
+                    cell.transform = CGAffineTransformMakeTranslation(-tableWidth, 0)
+                }
+            }
         }
-        
-        var index = 0
-        
-        for j in cells {
-            let cell : UITableViewCell = j as UITableViewCell
+        for cell in cells {
+            //old expression           let cell : UITableViewCell = j as UITableViewCell
             UIView.animateWithDuration(1.5, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
                 cell.transform = CGAffineTransformMakeTranslation(0, 0)
                 }, completion: nil)
             index += 1
         }
+    }
+    
+    func getLastScene() -> String{
+        print("getLastScene")
+        let lastScene =
+            NSUserDefaults.standardUserDefaults().objectForKey("lastScene")
+                as? String
+        if lastScene != nil {
+            return lastScene!
+        }else{
+            return ""
+        }
+    }
+    
+    func setLastScene(){
+        print("getLsetLastScene : Scan")
+        NSUserDefaults.standardUserDefaults().setObject("Scan", forKey: "lastScene")
     }
 }
 

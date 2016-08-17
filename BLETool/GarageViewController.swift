@@ -46,8 +46,74 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         }else{
             print("found vehicle")
         }
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        print("viewDidAppear")
+        animateTableView(false)
+        setLastScene()
+    }
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return vehicles.count
+    }
+    
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
+        cell.mainView.layer.cornerRadius = 2.0
         
-        animateTableView()
+        cell.label1!.text = vehicles[indexPath.row].name!.capitalizedString
+        cell.label2!.text = vehicles[indexPath.row].make!.capitalizedString
+        cell.label3!.text = vehicles[indexPath.row].model!.capitalizedString
+        return cell
+    }
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        selectedModule = vehicles[indexPath.row].module!
+        print("click \(selectedModule)")
+        centralManager.scanForPeripheralsWithServices(nil, options: nil)
+        print("scan for selected module")
+        tableView.deselectRowAtIndexPath(indexPath, animated: false)
+    }
+    
+    func centralManagerDidUpdateState(central: CBCentralManager) {
+        switch(central.state){
+        case CBCentralManagerState.PoweredOn:
+            print("CBCentralManagerState.PoweredOn")
+            break
+        case CBCentralManagerState.PoweredOff:
+            print("CBCentralManagerState.PoweredOff")
+            centralManager.stopScan()
+            break
+        case CBCentralManagerState.Unauthorized:
+            print("CBCentralManagerState.Unauthorized")
+            break
+        case CBCentralManagerState.Resetting:
+            print("CBCentralManagerState.Resetting")
+            break
+        case CBCentralManagerState.Unknown:
+            print("CBCentralManagerState.Unknown")
+            break
+        case CBCentralManagerState.Unsupported:
+            print("CBCentralManagerState.Unsupported")
+            break
+        }
+    }
+    
+    func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
+        let nameOfDeviceFound = peripheral.name as String!
+        if nameOfDeviceFound != nil {
+            print("Did discover \(nameOfDeviceFound)")
+            print("Selected module is \(selectedModule)")
+            if nameOfDeviceFound == selectedModule{
+                print("Match")
+                centralManager.stopScan()
+                print("Stop scanning after \(nameOfDeviceFound) device found")
+                setDefault(selectedModule)
+                centralManager = nil
+                self.navigationController?.popToRootViewControllerAnimated(true)
+            }
+        }
     }
     
     @IBAction func onAddVehicle(sender: UIButton) {
@@ -72,67 +138,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         print("Default now is : \(defaultModule)")
     }
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return vehicles.count
-    }
-    
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
-        cell.mainView.layer.cornerRadius = 15.0
-        
-        cell.label1!.text = vehicles[indexPath.row].name!.capitalizedString
-        cell.label2!.text = vehicles[indexPath.row].make!.capitalizedString
-        cell.label3!.text = vehicles[indexPath.row].model!.capitalizedString
-        return cell
-    }
-    
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        selectedModule = vehicles[indexPath.row].module!
-        print("click \(selectedModule)")
-        centralManager.scanForPeripheralsWithServices(nil, options: nil)
-        print("scan for selected module")
-        tableView.deselectRowAtIndexPath(indexPath, animated: false)
-    }
-    
-    func centralManagerDidUpdateState(central: CBCentralManager) {
-        switch(central.state){
-        case CBCentralManagerState.PoweredOn:
-            print("Ble PoweredOn")
-            break
-        case CBCentralManagerState.PoweredOff:
-            print("Ble PoweredOff")
-            centralManager.stopScan()
-            break
-        case CBCentralManagerState.Unauthorized:
-            print("Unauthorized state")
-            break
-        case CBCentralManagerState.Resetting:
-            print("Resetting state")
-            break
-        case CBCentralManagerState.Unknown:
-            print("unknown state")
-            break
-        case CBCentralManagerState.Unsupported:
-            print("Unsupported state")
-            break
-        }
-    }
-    
-    func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        let nameOfDeviceFound = peripheral.name as String!
-        if nameOfDeviceFound != nil {
-            print("Did discover \(nameOfDeviceFound)")
-            print("Selected module is \(selectedModule)")
-            if nameOfDeviceFound == selectedModule{
-                print("Match")
-                centralManager.stopScan()
-                print("Stop scanning after \(nameOfDeviceFound) device found")
-                setDefault(selectedModule)
-                centralManager = nil
-                self.navigationController?.popToRootViewControllerAnimated(true)
-            }
-        }
-    }
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "garage2control" {
             print("prepareForSegue -> control scene")
@@ -142,25 +147,50 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         }
     }
     
-    func animateTableView(){
+    func animateTableView(vertical : Bool){
         tableView.reloadData()
-        
+        var index = 0
         let cells = tableView.visibleCells
         let tableHeight : CGFloat = tableView.bounds.size.height
-        
-        for i in cells {
-            let cell : UITableViewCell = i as UITableViewCell
-            cell.transform = CGAffineTransformMakeTranslation(0, tableHeight)
+        let tableWidth : CGFloat = tableView.bounds.size.width
+        if vertical {
+            for i in cells {
+                let cell : UITableViewCell = i as UITableViewCell
+                cell.transform = CGAffineTransformMakeTranslation(0, tableHeight)
+            }
+        } else {
+            for cell in cells {
+//old expression                let cell : UITableViewCell = i as UITableViewCell
+                if getLastScene() == "Control" {
+                    cell.transform = CGAffineTransformMakeTranslation(tableWidth, 0)
+                }else if getLastScene() == "Scan" {
+                    cell.transform = CGAffineTransformMakeTranslation(-tableWidth, 0)
+                }
+            }
         }
-        
-         var index = 0
-        
-        for j in cells {
-            let cell : UITableViewCell = j as UITableViewCell
+        for cell in cells {
+//old expression           let cell : UITableViewCell = j as UITableViewCell
             UIView.animateWithDuration(1.5, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
                 cell.transform = CGAffineTransformMakeTranslation(0, 0)
                 }, completion: nil)
             index += 1
         }
+    }
+    
+    func getLastScene() -> String{
+        print("getLastScene")
+        let lastScene =
+            NSUserDefaults.standardUserDefaults().objectForKey("lastScene")
+                as? String
+        if lastScene != nil {
+            return lastScene!
+        }else{
+            return ""
+        }
+    }
+    
+    func setLastScene(){
+        print("getLsetLastScene : Garage")
+        NSUserDefaults.standardUserDefaults().setObject("Garage", forKey: "lastScene")
     }
 }

@@ -14,8 +14,6 @@
 		CF1C2AC11C766F6B009F2892 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CF1C2ABF1C766F6B009F2892 /* LaunchScreen.storyboard */; };
 		CF1C2ACC1C766F6B009F2892 /* BLEToolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1C2ACB1C766F6B009F2892 /* BLEToolTests.swift */; };
 		CF3E512D1D131C3A00301C7C /* Vehicle.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CF3E512B1D131C3A00301C7C /* Vehicle.xcdatamodeld */; };
-		CF4C33001C887E8300B26FC2 /* unlock.png in Resources */ = {isa = PBXBuildFile; fileRef = CF4C32FE1C887E8200B26FC2 /* unlock.png */; };
-		CF4C33011C887E8300B26FC2 /* lock.png in Resources */ = {isa = PBXBuildFile; fileRef = CF4C32FF1C887E8200B26FC2 /* lock.png */; };
 		CF69D9761D133A7F006FD908 /* Vehicle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9741D133A7F006FD908 /* Vehicle+CoreDataProperties.swift */; };
 		CF69D9771D133A7F006FD908 /* Vehicle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9751D133A7F006FD908 /* Vehicle.swift */; };
 		CF69D97A1D133B59006FD908 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9791D133B59006FD908 /* DataController.swift */; };
@@ -24,8 +22,6 @@
 		CF69D9801D187333006FD908 /* CustomScanCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97F1D187333006FD908 /* CustomScanCell.swift */; };
 		CFC8D37B1D10529500D61D73 /* GarageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37A1D10529500D61D73 /* GarageViewController.swift */; };
 		CFC8D37D1D10A8EE00D61D73 /* ScanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */; };
-		CFCEC1351C77CA890007F037 /* appiconx3.png in Resources */ = {isa = PBXBuildFile; fileRef = CFCEC1341C77CA890007F037 /* appiconx3.png */; };
-		CFCEC1371C77CA930007F037 /* appiconx2.png in Resources */ = {isa = PBXBuildFile; fileRef = CFCEC1361C77CA930007F037 /* appiconx2.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,8 +46,6 @@
 		CF1C2ACB1C766F6B009F2892 /* BLEToolTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEToolTests.swift; sourceTree = "<group>"; };
 		CF1C2ACD1C766F6B009F2892 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CF3E512C1D131C3A00301C7C /* Vehicle.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Vehicle.xcdatamodel; sourceTree = "<group>"; };
-		CF4C32FE1C887E8200B26FC2 /* unlock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = unlock.png; sourceTree = "<group>"; };
-		CF4C32FF1C887E8200B26FC2 /* lock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lock.png; sourceTree = "<group>"; };
 		CF69D9741D133A7F006FD908 /* Vehicle+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Vehicle+CoreDataProperties.swift"; path = "../Vehicle+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		CF69D9751D133A7F006FD908 /* Vehicle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Vehicle.swift; path = ../Vehicle.swift; sourceTree = "<group>"; };
 		CF69D9791D133B59006FD908 /* DataController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
@@ -60,8 +54,6 @@
 		CF69D97F1D187333006FD908 /* CustomScanCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomScanCell.swift; sourceTree = "<group>"; };
 		CFC8D37A1D10529500D61D73 /* GarageViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GarageViewController.swift; sourceTree = "<group>"; };
 		CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScanViewController.swift; sourceTree = "<group>"; };
-		CFCEC1341C77CA890007F037 /* appiconx3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = appiconx3.png; sourceTree = "<group>"; };
-		CFCEC1361C77CA930007F037 /* appiconx2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = appiconx2.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,10 +80,6 @@
 				CF1C2AB51C766F6B009F2892 /* BLETool */,
 				CF1C2ACA1C766F6B009F2892 /* BLEToolTests */,
 				CF1C2AB41C766F6B009F2892 /* Products */,
-				CFCEC1341C77CA890007F037 /* appiconx3.png */,
-				CFCEC1361C77CA930007F037 /* appiconx2.png */,
-				CF4C32FE1C887E8200B26FC2 /* unlock.png */,
-				CF4C32FF1C887E8200B26FC2 /* lock.png */,
 			);
 			sourceTree = "<group>";
 			usesTabs = 0;
@@ -228,12 +216,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CF1C2AC11C766F6B009F2892 /* LaunchScreen.storyboard in Resources */,
-				CF4C33001C887E8300B26FC2 /* unlock.png in Resources */,
-				CFCEC1351C77CA890007F037 /* appiconx3.png in Resources */,
 				CF1C2ABE1C766F6B009F2892 /* Assets.xcassets in Resources */,
-				CFCEC1371C77CA930007F037 /* appiconx2.png in Resources */,
 				CF1C2ABC1C766F6B009F2892 /* Main.storyboard in Resources */,
-				CF4C33011C887E8300B26FC2 /* lock.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
