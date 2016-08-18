@@ -14,15 +14,16 @@ class CustomGarageCell: UITableViewCell {
     @IBOutlet var label2: UILabel!
     @IBOutlet var label3: UILabel!
     @IBOutlet var mainView: UIView!
-    
+    var dataController : DataController!
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        dataController = appDelegate.dataController
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
         // Configure the view for the selected state
     }
-
 }

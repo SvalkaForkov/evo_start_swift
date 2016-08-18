@@ -18,7 +18,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     var centralManager:CBCentralManager!
     var vehicles : [Vehicle] = []
     var selectedModule = ""
-    
+    var dataController : DataController?
     override func viewDidLoad() {
         super.viewDidLoad()
         print("GarageViewController : garage viewDidLoad")
@@ -26,32 +26,36 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     override func viewWillAppear(animated: Bool) {
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let dataController = appDelegate.dataController
+        dataController = appDelegate.dataController
         print("GarageViewController : setting up delegate and core data")
-        vehicles = dataController.getAllVehicles()
+        vehicles = dataController!.getAllVehicles()
         print("GarageViewController : fetching vehicle list")
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.separatorStyle = UITableViewCellSeparatorStyle.None
-        tableView.cellLayoutMarginsFollowReadableWidth = false
+        
         centralManager = CBCentralManager(delegate: self, queue:nil)
         print("\(buttonAdd.layer.borderWidth)")
         buttonAdd.layer.cornerRadius = 25.0
         buttonAdd.clipsToBounds = true
         buttonAdd.layer.borderWidth = 1
         buttonAdd.layer.borderColor = getColorFromHex(0x910015).CGColor
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.separatorStyle = UITableViewCellSeparatorStyle.None
+        tableView.cellLayoutMarginsFollowReadableWidth = false
         
         if vehicles.count == 0 {
             print("no vehicle")
         }else{
             print("found vehicle")
         }
+        animateTableView(false)
     }
     
     override func viewDidAppear(animated: Bool) {
         print("viewDidAppear")
-        animateTableView(false)
         setLastScene()
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.longPress))
+        longPressRecognizer.minimumPressDuration = 1.5
+        tableView.addGestureRecognizer(longPressRecognizer)
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -61,10 +65,10 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
         cell.mainView.layer.cornerRadius = 2.0
-        
         cell.label1!.text = vehicles[indexPath.row].name!.capitalizedString
         cell.label2!.text = vehicles[indexPath.row].make!.capitalizedString
         cell.label3!.text = vehicles[indexPath.row].model!.capitalizedString
+        
         return cell
     }
     
@@ -74,6 +78,18 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         centralManager.scanForPeripheralsWithServices(nil, options: nil)
         print("scan for selected module")
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
+    }
+    
+     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if editingStyle == UITableViewCellEditingStyle.Delete {
+            let vehicleToDelete = vehicles[indexPath.row]
+            vehicles.removeAtIndex(indexPath.row)
+            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+            dataController!.deleteVehicleByName(vehicleToDelete.name!)
+            if vehicles.count == 0 {
+                setDefault("")
+            }
+        }
     }
     
     func centralManagerDidUpdateState(central: CBCentralManager) {
@@ -160,7 +176,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             }
         } else {
             for cell in cells {
-//old expression                let cell : UITableViewCell = i as UITableViewCell
+                //old expression                let cell : UITableViewCell = i as UITableViewCell
                 if getLastScene() == "Control" {
                     cell.transform = CGAffineTransformMakeTranslation(tableWidth, 0)
                 }else if getLastScene() == "Scan" {
@@ -169,7 +185,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             }
         }
         for cell in cells {
-//old expression           let cell : UITableViewCell = j as UITableViewCell
+            //old expression           let cell : UITableViewCell = j as UITableViewCell
             UIView.animateWithDuration(1.5, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
                 cell.transform = CGAffineTransformMakeTranslation(0, 0)
                 }, completion: nil)
@@ -192,5 +208,21 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func setLastScene(){
         print("getLsetLastScene : Garage")
         NSUserDefaults.standardUserDefaults().setObject("Garage", forKey: "lastScene")
+    }
+    
+    func longPress(longPressGestureRecognizer: UILongPressGestureRecognizer) {
+        print("longpress on cell")
+        if longPressGestureRecognizer.state == UIGestureRecognizerState.Began {
+            print("UIGestureRecognizerState.Began")
+            let touchPoint = longPressGestureRecognizer.locationInView(tableView)
+            print(touchPoint)
+            if let indexPath = tableView.indexPathForRowAtPoint(touchPoint) {
+                print("indexPath.\(indexPath)")
+                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade);
+                            tableView.reloadData()
+            }
+        }else if longPressGestureRecognizer.state == UIGestureRecognizerState.Ended {
+            print("UIGestureRecognizerState.Ended")
+        }
     }
 }

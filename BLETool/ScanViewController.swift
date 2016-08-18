@@ -20,8 +20,8 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     var devices : [CBPeripheral] = []
     var deviceWithRssi = Dictionary<String,Int>()
     var selectedName : String = ""
-    
     var vehicles : [Vehicle] = []
+    var lastScene : String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,7 +32,6 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     override func viewWillAppear(animated: Bool) {
         print("viewWillAppear")
-        
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         let dataController = appDelegate.dataController
         vehicles = dataController.getAllVehicles()
@@ -41,6 +40,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     override func viewDidAppear(animated: Bool) {
         print("viewDidAppear")
+        lastScene = getLastScene()
         tableView.dataSource = self
         tableView.delegate = self
         tableView.separatorInset = UIEdgeInsetsZero
@@ -76,8 +76,16 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         }else{
             print("rssi is nil")
         }
-        
+        let tableWidth : CGFloat = tableView.bounds.size.width
         cell.mainView.layer.cornerRadius = 2.0
+        if lastScene == "Garage" {
+            cell.transform = CGAffineTransformMakeTranslation(tableWidth, 0)
+        }else if lastScene == "Register" {
+            cell.transform = CGAffineTransformMakeTranslation(-tableWidth, 0)
+        }
+        UIView.animateWithDuration(1.5, delay: 0.2, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
+            cell.transform = CGAffineTransformMakeTranslation(0, 0)
+            }, completion: nil)
         return cell
     }
     
@@ -200,9 +208,9 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         } else {
             for cell in cells {
                 //old expression                let cell : UITableViewCell = i as UITableViewCell
-                if getLastScene() == "Garage" {
+                if lastScene == "Garage" {
                     cell.transform = CGAffineTransformMakeTranslation(tableWidth, 0)
-                }else if getLastScene() == "Register" {
+                }else if lastScene == "Register" {
                     cell.transform = CGAffineTransformMakeTranslation(-tableWidth, 0)
                 }
             }
@@ -215,6 +223,8 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
             index += 1
         }
     }
+    
+    
     
     func getLastScene() -> String{
         print("getLastScene")

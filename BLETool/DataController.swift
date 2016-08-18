@@ -16,8 +16,8 @@ class DataController {
         self.managedObjectContext = moc
         print("DataController : init moc")
     }
-
-
+    
+    
     convenience init?() {
         print("DataController : convenience init")
         guard let modelURL = NSBundle.mainBundle().URLForResource("Vehicle", withExtension: "momd") else {
@@ -61,16 +61,16 @@ class DataController {
     
     func saveVehicle(name: String, module: String){
         print("saveVehicle(\(name))")
-//        var existVehicle = fetchVehicle(name)
-//        if existVehicle != nil {
-            let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
-            newVehicle.name = name
-            newVehicle.module = module
-            do {
-                try self.managedObjectContext.save()
-            } catch {
-                fatalError("couldn't save context")
-//            }
+        //        var existVehicle = fetchVehicle(name)
+        //        if existVehicle != nil {
+        let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
+        newVehicle.name = name
+        newVehicle.module = module
+        do {
+            try self.managedObjectContext.save()
+        } catch {
+            fatalError("couldn't save context")
+            //            }
         }
     }
     
@@ -90,34 +90,53 @@ class DataController {
         }
     }
     
-    func fetchVehicle(name: String)-> Vehicle{
-        print("DataController : fetchVehicle \(name)")
-        let vehicleFetch = NSFetchRequest(entityName: "Vehicle")
-        vehicleFetch.predicate = NSPredicate(format: "name == %@", name)
+    func fetchVehicleByName(name: String)-> [Vehicle]{
+        print("fetchVehicleByName: \(name)")
         
+        let fetchRequest = NSFetchRequest()
+        let entityDescription = NSEntityDescription.entityForName("Vehicle", inManagedObjectContext: self.managedObjectContext)
+        fetchRequest.entity = entityDescription
         var fetchedVehicle: [Vehicle]!
         do {
-            fetchedVehicle = try self.managedObjectContext.executeFetchRequest(vehicleFetch) as! [Vehicle]
+            fetchedVehicle = try self.managedObjectContext.executeFetchRequest(fetchRequest) as! [Vehicle]
         } catch {
             fatalError("fetch failed")
         }
-        if fetchedVehicle.count > 1 {
-            print("more than one fetched")
+        
+        if fetchedVehicle.count == 0 {
+            print("none fetched")
         }else{
-            print("fetched one")
+            print("\(fetchedVehicle.count) fetched")
         }
-        return fetchedVehicle[0]
+        return fetchedVehicle
     }
     
     func updateVehicle(vehicle: Vehicle){
-        print("DataController : update vehicle : \(vehicle.name))")
-        let newVehicle = fetchVehicle(vehicle.name!)
+        print("updateVehicle: \(vehicle.name))")
+        let result = fetchVehicleByName(vehicle.name!)
+        let newVehicle = result[0] as Vehicle
+        newVehicle.name = vehicle.name
+        newVehicle.module = vehicle.module
+        newVehicle.make = vehicle.make
+        newVehicle.model = vehicle.model
+        newVehicle.year = vehicle.year
         do {
             try newVehicle.managedObjectContext!.save()
         } catch {
             fatalError("couldn't save context")
         }
-        
     }
-
+    
+    func deleteVehicleByName(name : String){
+        print("deleteVehicle")
+        let result = fetchVehicleByName(name)
+        let vehicle = result[0]
+        self.managedObjectContext.deleteObject(vehicle)
+        do {
+            try self.managedObjectContext.save()
+        } catch {
+            let saveError = error as NSError
+            print(saveError)
+        }
+    }
 }
