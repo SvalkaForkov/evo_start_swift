@@ -85,15 +85,63 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonCover.backgroundColor = UIColor.clearColor()
         buttonCover.clipsToBounds = true
         
-//        let cons = NSLayoutConstraint(
-//            item: capContainerView,
-//            attribute: .Bottom,
-//            relatedBy: .Equal,
-//            toItem: capContainerView.superview,
-//            attribute: .Bottom,
-//            multiplier: 1.0,
-//            constant: -imageCap.bounds.height/2
-//        )
+        
+        
+        imageCap.backgroundColor = UIColor.clearColor()
+        
+        
+        imageCap.layoutIfNeeded()
+        imageCap.clipsToBounds = true
+        
+        imageStart.backgroundColor = UIColor.clearColor()
+//        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
+        
+        imageStart.layoutIfNeeded()
+        imageStart.clipsToBounds = true
+        
+        buttonUnlock.layer.cornerRadius = 25.0
+        buttonUnlock.clipsToBounds = true
+        
+        buttonLock.layer.cornerRadius = 25.0
+        buttonLock.clipsToBounds = true
+        
+        buttonGarage.layer.cornerRadius = 25.0
+        buttonGarage.backgroundColor = UIColor.clearColor()
+        buttonGarage.layer.borderWidth = 1
+        //        buttonGarage.layer.borderColor = getColorFromHex(0x910015).CGColor
+        buttonGarage.clipsToBounds = true
+        
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
+        imageEngineIndicator.alpha = 0
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        
+        
+        print("ViewController : viewWillAppear")
+        getDefaultModule()
+        if module != "" {
+            print("not nil : " + module)
+            centralManager = CBCentralManager(delegate: self, queue:nil)
+            buttonGarage.setImage(UIImage(named: "Garage"), forState: .Normal)
+        }else{
+            print("prompt image")
+            buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
+        }
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        print("viewDidAppear")
+        let cons = NSLayoutConstraint(
+            item: capContainerView,
+            attribute: .Bottom,
+            relatedBy: .Equal,
+            toItem: capContainerView.superview,
+            attribute: .Bottom,
+            multiplier: 1.0,
+            constant: 0
+        )
+        
         let cons0 = NSLayoutConstraint(
             item: imageCap,
             attribute: .Bottom,
@@ -128,52 +176,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             toItem: imageCap,
             attribute: .Top,
             multiplier: 1.0,
-            constant: imageCap.bounds.height/2
+            constant: 0
         )
-        NSLayoutConstraint.activateConstraints([cons0,cons1,cons3,cons2])
         
-        imageCap.backgroundColor = UIColor.clearColor()
-        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
-        
-        imageCap.layoutIfNeeded()
-        imageCap.clipsToBounds = true
-        
-        imageStart.backgroundColor = UIColor.clearColor()
-        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
-        
-        imageStart.layoutIfNeeded()
-        imageStart.clipsToBounds = true
-        
-        buttonUnlock.layer.cornerRadius = 25.0
-        buttonUnlock.clipsToBounds = true
-        
-        buttonLock.layer.cornerRadius = 25.0
-        buttonLock.clipsToBounds = true
-        
-        buttonGarage.layer.cornerRadius = 25.0
-        buttonGarage.backgroundColor = UIColor.clearColor()
-        buttonGarage.layer.borderWidth = 1
-        //        buttonGarage.layer.borderColor = getColorFromHex(0x910015).CGColor
-        buttonGarage.clipsToBounds = true
-        
-        imageEngineIndicator.alpha = 0
-    }
-    
-    override func viewWillAppear(animated: Bool) {
-        print("ViewController : viewWillAppear")
-        getDefaultModule()
-        if module != "" {
-            print("not nil : " + module)
-            centralManager = CBCentralManager(delegate: self, queue:nil)
-            buttonGarage.setImage(UIImage(named: "Garage"), forState: .Normal)
-        }else{
-            print("prompt image")
-            buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
-        }
-    }
-    
-    override func viewDidAppear(animated: Bool) {
-        print("viewDidAppear")
+        NSLayoutConstraint.activateConstraints([cons, cons0,cons1,cons3,cons2])
         setLastScene()
     }
     
