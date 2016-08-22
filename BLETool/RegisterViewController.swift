@@ -8,7 +8,7 @@
 
 import UIKit
 
-class RegisterViewController: UIViewController {
+class RegisterViewController: UIViewController , UITextFieldDelegate{
 
     var dataController : DataController!
     var appDelegeate : AppDelegate!
@@ -26,6 +26,10 @@ class RegisterViewController: UIViewController {
         appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegeate.dataController
         vehicles = dataController.getAllVehicles()
+        nameField.delegate = self
+        makeField.delegate = self
+        modelField.delegate = self
+        yearField.delegate = self
         // Do any additional setup after loading the view.
     }
 
@@ -45,6 +49,11 @@ class RegisterViewController: UIViewController {
     override func viewDidAppear(animated: Bool) {
         print(viewDidAppear)
         setLastScene()
+    }
+    
+    func textFieldShouldReturn(textField: UITextField) -> Bool {
+        self.view.endEditing(true)
+        return false
     }
     
     func getColorFromHex(value: UInt) -> UIColor{
