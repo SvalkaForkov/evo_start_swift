@@ -80,6 +80,25 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         print("ViewController : viewDidLoad")
         super.viewDidLoad()
         setUpNavigationBar()
+        setupViews()
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        activateConstrains()
+        print("ViewController : viewWillAppear")
+        getDefaultModule()
+        if module != "" {
+            print("not nil : " + module)
+            centralManager = CBCentralManager(delegate: self, queue:nil)
+            buttonGarage.setImage(UIImage(named: "Garage"), forState: .Normal)
+        }else{
+            print("prompt image")
+            buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
+        }
+    }
+    
+    func setupViews(){
+        print("setupViews")
         textViewLog.text = ""
         longPressStart.enabled = false
         buttonCover.backgroundColor = UIColor.clearColor()
@@ -94,7 +113,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         imageCap.clipsToBounds = true
         
         imageStart.backgroundColor = UIColor.clearColor()
-//        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
+        //        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
         
         imageStart.layoutIfNeeded()
         imageStart.clipsToBounds = true
@@ -112,26 +131,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonGarage.clipsToBounds = true
         
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
+        print("\(imageCap.layer)")
+
         imageEngineIndicator.alpha = 0
     }
     
-    override func viewWillAppear(animated: Bool) {
-        
-        
-        print("ViewController : viewWillAppear")
-        getDefaultModule()
-        if module != "" {
-            print("not nil : " + module)
-            centralManager = CBCentralManager(delegate: self, queue:nil)
-            buttonGarage.setImage(UIImage(named: "Garage"), forState: .Normal)
-        }else{
-            print("prompt image")
-            buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
-        }
-    }
-    
-    override func viewDidAppear(animated: Bool) {
-        print("viewDidAppear")
+    func activateConstrains() {
+        print("activateConstrains")
         let cons = NSLayoutConstraint(
             item: capContainerView,
             attribute: .Bottom,
@@ -139,7 +145,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             toItem: capContainerView.superview,
             attribute: .Bottom,
             multiplier: 1.0,
-            constant: 0
+            constant: imageCap.bounds.height/2
         )
         
         let cons0 = NSLayoutConstraint(
@@ -149,7 +155,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             toItem: imageCap.superview,
             attribute: .Bottom,
             multiplier: 1.0,
-            constant: -imageCap.bounds.height/2
+            constant: imageCap.bounds.height/2
         )
         let cons1 = NSLayoutConstraint(
             item: buttonCover,
@@ -180,6 +186,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         )
         
         NSLayoutConstraint.activateConstraints([cons, cons0,cons1,cons3,cons2])
+        print("\(imageCap.layer)")
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        print("viewDidAppear")
         setLastScene()
     }
     
@@ -565,12 +576,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         var newPoint = CGPointMake(view.bounds.size.width * anchorPoint.x, view.bounds.size.height * anchorPoint.y)
         var oldPoint = CGPointMake(view.bounds.size.width * view.layer.anchorPoint.x, view.bounds.size.height * view.layer.anchorPoint.y)
         print("postion \(view.layer.position)")
-        print("new \(newPoint)")
-        print("old \(oldPoint)")
         newPoint = CGPointApplyAffineTransform(newPoint, view.transform)
         oldPoint = CGPointApplyAffineTransform(oldPoint, view.transform)
-        print("new \(newPoint)")
-        print("old \(oldPoint)")
+        
         var position = view.layer.position
         position.x -= oldPoint.x
         position.x += newPoint.x
@@ -579,11 +587,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         position.y += newPoint.y
         
         view.layer.anchorPoint = anchorPoint
+        view.center = oldPoint
         view.layoutIfNeeded()
-        print("postion \(view.layer.position)")
-        UIView.animateWithDuration(0, animations: {
-            view.center = oldPoint
-        })
         print("postion final \(view.layer.position)")
     }
     
