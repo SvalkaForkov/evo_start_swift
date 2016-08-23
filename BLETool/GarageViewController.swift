@@ -25,6 +25,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     override func viewWillAppear(animated: Bool) {
+        setUpNavigationBar()
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegate.dataController
         print("GarageViewController : setting up delegate and core data")
@@ -224,5 +225,15 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         }else if longPressGestureRecognizer.state == UIGestureRecognizerState.Ended {
             print("UIGestureRecognizerState.Ended")
         }
+    }
+    
+    func setUpNavigationBar(){
+        print("setUpNavigationBar")
+        navigationController?.navigationBar.barTintColor = UIColor.yellowColor() // Set top bar color
+        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
+        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
+        navigationController?.navigationBar.tintColor = UIColor.blueColor()//navigation item text color
+        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.greenColor()]    //set Title color
+        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 20)!]
     }
 }

@@ -22,6 +22,7 @@
 		CF69D9801D187333006FD908 /* CustomScanCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97F1D187333006FD908 /* CustomScanCell.swift */; };
 		CFC8D37B1D10529500D61D73 /* GarageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37A1D10529500D61D73 /* GarageViewController.swift */; };
 		CFC8D37D1D10A8EE00D61D73 /* ScanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */; };
+		CFE1928C1D6CF3AF00F20C21 /* CustomMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFE1928B1D6CF3AF00F20C21 /* CustomMessageCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,6 +55,7 @@
 		CF69D97F1D187333006FD908 /* CustomScanCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomScanCell.swift; sourceTree = "<group>"; };
 		CFC8D37A1D10529500D61D73 /* GarageViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GarageViewController.swift; sourceTree = "<group>"; };
 		CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScanViewController.swift; sourceTree = "<group>"; };
+		CFE1928B1D6CF3AF00F20C21 /* CustomMessageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomMessageCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +105,7 @@
 				CFC8D37A1D10529500D61D73 /* GarageViewController.swift */,
 				CF69D97B1D182D41006FD908 /* CustomGarageCell.swift */,
 				CF69D97F1D187333006FD908 /* CustomScanCell.swift */,
+				CFE1928B1D6CF3AF00F20C21 /* CustomMessageCell.swift */,
 				CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */,
 				CF1C2ABA1C766F6B009F2892 /* Main.storyboard */,
 				CF1C2ABD1C766F6B009F2892 /* Assets.xcassets */,
@@ -241,6 +244,7 @@
 				CF69D9761D133A7F006FD908 /* Vehicle+CoreDataProperties.swift in Sources */,
 				CF1C2AB71C766F6B009F2892 /* AppDelegate.swift in Sources */,
 				CF69D97C1D182D41006FD908 /* CustomGarageCell.swift in Sources */,
+				CFE1928C1D6CF3AF00F20C21 /* CustomMessageCell.swift in Sources */,
 				CF69D9771D133A7F006FD908 /* Vehicle.swift in Sources */,
 				CF69D97A1D133B59006FD908 /* DataController.swift in Sources */,
 				CF69D9801D187333006FD908 /* CustomScanCell.swift in Sources */,
