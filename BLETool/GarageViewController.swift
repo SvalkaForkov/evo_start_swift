@@ -229,11 +229,11 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func setUpNavigationBar(){
         print("setUpNavigationBar")
-        navigationController?.navigationBar.barTintColor = UIColor.yellowColor() // Set top bar color
-        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
-        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
-        navigationController?.navigationBar.tintColor = UIColor.blueColor()//navigation item text color
-        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.greenColor()]    //set Title color
-        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 20)!]
+//        navigationController?.navigationBar.barTintColor = UIColor.yellowColor() // Set top bar color
+//        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
+//        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
+//        navigationController?.navigationBar.tintColor = UIColor.blueColor()//navigation item text color
+//        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.blackColor()]    //set navigation item text color
+//        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 20)!]
     }
 }

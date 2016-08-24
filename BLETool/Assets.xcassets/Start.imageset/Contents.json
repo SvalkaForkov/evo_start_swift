@@ -2,16 +2,17 @@
   "images" : [
     {
       "idiom" : "universal",
+      "filename" : "button Start-2.png",
       "scale" : "1x"
     },
     {
       "idiom" : "universal",
-      "filename" : "v2_start_bg_big.png",
+      "filename" : "button Start-1.png",
       "scale" : "2x"
     },
     {
       "idiom" : "universal",
-      "filename" : "v2_start_bg_big-1.png",
+      "filename" : "button Start.png",
       "scale" : "3x"
     }
   ],

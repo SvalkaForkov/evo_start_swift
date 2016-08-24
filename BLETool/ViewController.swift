@@ -66,13 +66,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var imageCap: UIImageView!
     @IBOutlet var imageStart: UIImageView!
     @IBOutlet var buttonClearLog: UIButton!
-    @IBOutlet var textViewLog: UITextView!
     @IBOutlet var buttonCover: UIButton!
     @IBOutlet var swipeDown: UISwipeGestureRecognizer!
     @IBOutlet var swipeUp: UISwipeGestureRecognizer!
     @IBOutlet var longPressStart: UILongPressGestureRecognizer!
     
-    @IBOutlet var logBackgroundView: UIView!
     @IBOutlet var capContainerView: UIView!
     
     let ACK_door_unlocked = "00000002"
@@ -87,17 +85,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidLoad() {
         print("ViewController : viewDidLoad")
         super.viewDidLoad()
-        
+        tableBackgroundView.layer.cornerRadius = 2.0
     }
     
     override func viewWillAppear(animated: Bool) {
         setUpNavigationBar()
         setupViews()
         messages = []
+        tableView.dataSource = self
+        tableView.delegate = self
         //        activateConstrains()
         
         print("ViewController : viewWillAppear")
-        getDefaultModule()
+        getDefaultModuleName()
         if module != "" {
             print("not nil : " + module)
             centralManager = CBCentralManager(delegate: self, queue:nil)
@@ -113,35 +113,28 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
-        cell.mainView.layer.cornerRadius = 2.0
-        cell.label1!.text = vehicles[indexPath.row].name!.capitalizedString
-        cell.label2!.text = vehicles[indexPath.row].make!.capitalizedString
-        cell.label3!.text = vehicles[indexPath.row].model!.capitalizedString
-        
+        let cell = tableView.dequeueReusableCellWithIdentifier("MessageCell", forIndexPath: indexPath) as! CustomMessageCell
+        cell.button!.setTitle(messages[indexPath.row],forState: .Normal)
+        cell.button!.layer.cornerRadius = 15.0
+        cell.button!.contentEdgeInsets = UIEdgeInsets(top: 0, left: 15.0, bottom: 0, right: 15.0)
+        //        cell.button!.titleEdgeInsets = UIEdgeInsets(top: 0, left: 15.0, bottom: 0, right: 15.0)
+        //        cell.button!.sizeToFit()
         return cell
     }
     
+    @IBOutlet var tableBackgroundView: UIView!
     func setupViews(){
         print("setupViews")
-        textViewLog.text = ""
-        logBackgroundView.layer.cornerRadius = 5.0
-        logBackgroundView.layer.shadowOffset = CGSizeMake(2.0, 2.0)
         longPressStart.enabled = false
         buttonCover.backgroundColor = UIColor.clearColor()
         buttonCover.clipsToBounds = true
         
-        
-        
         imageCap.backgroundColor = UIColor.clearColor()
-        
         
         imageCap.layoutIfNeeded()
         imageCap.clipsToBounds = true
         
         imageStart.backgroundColor = UIColor.clearColor()
-        //        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
-        
         imageStart.layoutIfNeeded()
         imageStart.clipsToBounds = true
         
@@ -151,117 +144,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonLock.layer.cornerRadius = 25.0
         buttonLock.clipsToBounds = true
         
-        buttonGarage.layer.cornerRadius = 25.0
-        buttonGarage.backgroundColor = UIColor.clearColor()
-        buttonGarage.layer.borderWidth = 1
-        //        buttonGarage.layer.borderColor = getColorFromHex(0x910015).CGColor
         buttonGarage.clipsToBounds = true
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
         print("\(imageCap.layer)")
     }
-    
-    //    func applyNewCons(){
-    //        let cons = NSLayoutConstraint(
-    //            item: capContainerView,
-    //            attribute: .Bottom,
-    //            relatedBy: .Equal,
-    //            toItem: capContainerView.superview,
-    //            attribute: .Bottom,
-    //            multiplier: 1.0,
-    //            constant: -imageCap.bounds.height/2
-    //        )
-    //        let cons0 = NSLayoutConstraint(
-    //            item: imageCap,
-    //            attribute: .Bottom,
-    //            relatedBy: .Equal,
-    //            toItem: imageCap.superview,
-    //            attribute: .Bottom,
-    //            multiplier: 1.0,
-    //            constant: -imageCap.bounds.height/2
-    //        )
-    //        let cons1 = NSLayoutConstraint(
-    //            item: buttonCover,
-    //            attribute: .Top,
-    //            relatedBy: .Equal,
-    //            toItem: buttonCover.superview,
-    //            attribute: .Top,
-    //            multiplier: 1.0,
-    //            constant: 0
-    //        )
-    //        let cons3 = NSLayoutConstraint(
-    //            item: buttonCover,
-    //            attribute: .Bottom,
-    //            relatedBy: .Equal,
-    //            toItem: buttonCover.superview,
-    //            attribute: .Bottom,
-    //            multiplier: 1.0,
-    //            constant: 0
-    //        )
-    //        let cons2 = NSLayoutConstraint(
-    //            item: imageStart,
-    //            attribute: .Top,
-    //            relatedBy: .Equal,
-    //            toItem: imageStart,
-    //            attribute: .Top,
-    //            multiplier: 1.0,
-    //            constant: 0
-    //        )
-    //        NSLayoutConstraint.activateConstraints([cons0,cons1,cons3,cons,cons2])
-    //    }
-    //
-    //    func activateConstrains() {
-    //        print("activateConstrains")
-    //        let cons = NSLayoutConstraint(
-    //            item: capContainerView,
-    //            attribute: .Bottom,
-    //            relatedBy: .Equal,
-    //            toItem: capContainerView.superview,
-    //            attribute: .Bottom,
-    //            multiplier: 1.0,
-    //            constant: imageCap.bounds.height/2
-    //        )
-    //
-    //        let cons0 = NSLayoutConstraint(
-    //            item: imageCap,
-    //            attribute: .Bottom,
-    //            relatedBy: .Equal,
-    //            toItem: imageCap.superview,
-    //            attribute: .Bottom,
-    //            multiplier: 1.0,
-    //            constant: imageCap.bounds.height/2
-    //        )
-    //        let cons1 = NSLayoutConstraint(
-    //            item: buttonCover,
-    //            attribute: .Top,
-    //            relatedBy: .Equal,
-    //            toItem: buttonCover.superview,
-    //            attribute: .Top,
-    //            multiplier: 1.0,
-    //            constant: 0
-    //        )
-    //        let cons3 = NSLayoutConstraint(
-    //            item: buttonCover,
-    //            attribute: .Bottom,
-    //            relatedBy: .Equal,
-    //            toItem: buttonCover.superview,
-    //            attribute: .Bottom,
-    //            multiplier: 1.0,
-    //            constant: 0
-    //        )
-    //        let cons2 = NSLayoutConstraint(
-    //            item: imageStart,
-    //            attribute: .Top,
-    //            relatedBy: .Equal,
-    //            toItem: imageCap,
-    //            attribute: .Top,
-    //            multiplier: 1.0,
-    //            constant: 0
-    //        )
-    //
-    //        NSLayoutConstraint.activateConstraints([cons, cons0,cons1,cons3,cons2])
-    //        print("\(imageCap.layer)")
-    //    }
     
     override func viewDidAppear(animated: Bool) {
         print("viewDidAppear")
@@ -292,10 +179,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 dispatch_async(dispatch_get_main_queue(),{
                     if !self.matchFound {
                         print("No match module found")
-                        self.buttonLock.hidden = true
-                        self.buttonUnlock.hidden = true
-                        self.imageCap.hidden = true
-                        self.imageStart.hidden = true
+//                        self.buttonLock.hidden = true
+//                        self.buttonUnlock.hidden = true
+//                        self.imageCap.hidden = true
+//                        self.imageStart.hidden = true
                     }else{
                         print("Match module found")
                         self.buttonLock.hidden = false
@@ -420,7 +307,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else if(val == "0240000f"){
             //ack for locked
             print("\(val) : \(countSendTime)")
-            logOnScreen("0240000f")
+            displayMessage("0240000f")
         }else{
             print("\(val) : \(countSendTime)")
             print("\(val) : \(countSendTime)")
@@ -626,25 +513,25 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func showStopped(){
         //        buttonEngine.setImage(UIImage(named: "Engine"), forState: .Normal)
-        logOnScreen("Engine shut off")
+        displayMessage("Engine shut off")
     }
     
     func showStarted(){
         //        buttonEngine.setImage(UIImage(named: "Engine Start"), forState: .Normal)
-        logOnScreen("Engine started")
+        displayMessage("Engine started")
     }
     
     func showUnlocked(){
         buttonLock.setImage(UIImage(named: "Lock"), forState: .Normal)
         buttonUnlock.setImage(UIImage(named: "Unlock_Glow"), forState: .Normal)
-        logOnScreen("Door unlocked")
+        displayMessage("Door unlocked")
         //        buttonDoor.setImage(UIImage(named: "Unlock"), forState: .Normal)
     }
     
     func showLocked(){
         buttonLock.setImage(UIImage(named: "Lock_Glow"), forState: .Normal)
         buttonUnlock.setImage(UIImage(named: "Unlock"), forState: .Normal)
-        logOnScreen("Door locked")
+        displayMessage("Door locked")
         //        buttonDoor.setImage(UIImage(named: "Lock"), forState: .Normal)
     }
     
@@ -702,6 +589,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             break;
         case 5:
             ledRed.image = UIImage(named: "LED_Red_Bright")
+            if started {
+                stopEngine()
+            }else {
+                startEngine()
+            }
             break;
         default:
             ledRed.image = UIImage(named: "LED_Dark")
@@ -717,12 +609,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("UIGestureRecognizerState.Began")
             isPressing = true
             longPressCountDown = 0
-            UIView.animateWithDuration(0.2, animations: {
-                var transform = CGAffineTransformIdentity
-                transform = CGAffineTransformScale(transform, 0.9, 0.9)
-                self.imageStart.transform = transform
-            })
-            
+//            UIView.animateWithDuration(0.2, animations: {
+//                var transform = CGAffineTransformIdentity
+//                transform = CGAffineTransformScale(transform, 0.9, 0.9)
+//                self.imageStart.transform = transform
+//            })
+            imageStart.image = UIImage(named: "Start Small")
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 print("now \(self.longPressCountDown)")
                 while self.isPressing && self.longPressCountDown <= 5{
@@ -743,10 +635,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             //            for index in 0...5 {
             //                signal[index].setImage(UIImage(named: "Arrow"), forState: .Normal)
             //            }
-            UIView.animateWithDuration(0.2, animations: {
-                let transform = CGAffineTransformIdentity
-                self.imageStart.transform = transform
-            })
+//            UIView.animateWithDuration(0.2, animations: {
+//                let transform = CGAffineTransformIdentity
+//                self.imageStart.transform = transform
+//            })
+            imageStart.image = UIImage(named: "Start")
             break
         default:
             break
@@ -868,7 +761,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onClearLog(sender: UIButton) {
-        self.textViewLog.text = ""
         if indicator == 1 {
             //            newEngineToDoor()
         }else if indicator == 0 {
@@ -903,7 +795,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     func setUpNavigationBar(){
         print("setUpNavigationBar")
-//        navigationController?.navigationBar.barTintColor = UIColor.whiteColor() // Set top bar color
+        //        navigationController?.navigationBar.barTintColor = UIColor.whiteColor() // Set top bar color
         
         navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
         navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.yellowColor()], forState: UIControlState.Normal)
@@ -911,8 +803,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         navigationController?.navigationBar.shadowImage = UIImage()
         navigationController?.navigationBar.translucent = true
         navigationController?.navigationBar.barStyle = UIBarStyle.BlackTranslucent
-        navigationController?.navigationBar.tintColor = UIColor.greenColor()
-        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.redColor()]    //set Title color
+        navigationController?.navigationBar.tintColor = UIColor.darkGrayColor()  //set navigation item title color
+        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.blueColor()]    //set Title color
         navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 20)!]
         removeBorderFromBar()
     }
@@ -925,12 +817,23 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             alpha: CGFloat(1.0)
         )
     }
+    @IBOutlet var tableView: UITableView!
     
-    func logOnScreen(line: String){
-        self.textViewLog.text = self.textViewLog.text.stringByAppendingString("\(line)\n")
+    func displayMessage(line: String){
+        if messages.count == 0 {
+            messages.append("\(line)")
+            tableView.reloadData()
+        }else{
+            messages.append("\(line)")
+            tableView.beginUpdates()
+            tableView.insertRowsAtIndexPaths([NSIndexPath(forRow: messages.count - 1, inSection : 0)], withRowAnimation: UITableViewRowAnimation.Bottom)
+            tableView.endUpdates()
+            tableView.scrollToRowAtIndexPath(NSIndexPath(forRow: messages.count - 1, inSection : 0), atScrollPosition: UITableViewScrollPosition.Bottom, animated: true)
+        }
+        
     }
     
-    func getDefaultModule(){
+    func getDefaultModuleName(){
         print("ViewController : getDefaultModule")
         let defaultModule =
             NSUserDefaults.standardUserDefaults().objectForKey("defaultModule")

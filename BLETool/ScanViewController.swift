@@ -208,7 +208,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         } else {
             for cell in cells {
                 //old expression                let cell : UITableViewCell = i as UITableViewCell
-                if lastScene == "Garage" {
+                if lastScene == "Garage" || lastScene == "Control"{
                     cell.transform = CGAffineTransformMakeTranslation(tableWidth, 0)
                 }else if lastScene == "Register" {
                     cell.transform = CGAffineTransformMakeTranslation(-tableWidth, 0)

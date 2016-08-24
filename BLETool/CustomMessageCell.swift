@@ -10,8 +10,8 @@ import UIKit
 
 class CustomMessageCell: UITableViewCell {
 
-    @IBOutlet var textField: UITextField!
-    @IBOutlet var imageViewIcon: UIImageView!
+    @IBOutlet var labelBackground: UIView!
+    @IBOutlet var button: UIButton!
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
