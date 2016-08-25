@@ -27,7 +27,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         super.viewDidLoad()
         print("viewDidLoad")
         centralManager = CBCentralManager(delegate: self, queue:nil)
-        
+//        addLayer()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -43,10 +43,9 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         lastScene = getLastScene()
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.separatorInset = UIEdgeInsetsZero
-        tableView.separatorStyle = UITableViewCellSeparatorStyle.None
         animateTableView(false)
         setLastScene()
+        
     }
     
     @IBAction func onBack(sender: UIButton) {
@@ -224,7 +223,14 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         }
     }
     
-    
+    func addLayer(){
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.frame = self.view.bounds
+        let colorTop = UIColor.clearColor().CGColor
+        let colorBottom = UIColor.whiteColor().CGColor
+        gradientLayer.colors = [colorTop, colorBottom]
+        self.view.layer.addSublayer(gradientLayer)
+    }
     
     func getLastScene() -> String{
         print("getLastScene")

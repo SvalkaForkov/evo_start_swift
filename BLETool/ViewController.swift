@@ -45,7 +45,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var writeCharacteristic : CBCharacteristic!
     var notificationCharacteristic : CBCharacteristic!
     
-    var vehicleName = ""
     var module = ""
     var countSendTime = 0
     var matchFound = false
@@ -63,6 +62,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var buttonLock: UIButton!
     @IBOutlet var buttonUnlock: UIButton!
     
+    @IBOutlet var buttonGPS: UIButton!
     @IBOutlet var imageCap: UIImageView!
     @IBOutlet var imageStart: UIImageView!
     @IBOutlet var buttonClearLog: UIButton!
@@ -179,10 +179,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 dispatch_async(dispatch_get_main_queue(),{
                     if !self.matchFound {
                         print("No match module found")
-//                        self.buttonLock.hidden = true
-//                        self.buttonUnlock.hidden = true
-//                        self.imageCap.hidden = true
-//                        self.imageStart.hidden = true
+                        //                        self.buttonLock.hidden = true
+                        //                        self.buttonUnlock.hidden = true
+                        //                        self.imageCap.hidden = true
+                        //                        self.imageStart.hidden = true
                     }else{
                         print("Match module found")
                         self.buttonLock.hidden = false
@@ -375,149 +375,149 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func sendCommend(data : NSData, action : Int){
         print("ViewController : sendCommend")
-        countSendTime = 0
-        var flag : Bool
-        switch action {
-        case 0:
-            receivedLock = false
-            flag = receivedLock
-            break
-        case 1:
-            receivedUnlock = false
-            flag = receivedUnlock
-            break
-        case 2:
-            receivedStart = false
-            flag = receivedStart
-            break
-        case 3:
-            receivedStop = false
-            flag = receivedStop
-            break
-        default:
-            break
+        if peripheral != nil && writeCharacteristic != nil {
+            countSendTime = 0
+            var flag : Bool
+            switch action {
+            case 0:
+                receivedLock = false
+                flag = receivedLock
+                break
+            case 1:
+                receivedUnlock = false
+                flag = receivedUnlock
+                break
+            case 2:
+                receivedStart = false
+                flag = receivedStart
+                break
+            case 3:
+                receivedStop = false
+                flag = receivedStop
+                break
+            default:
+                break
+            }
+            flag = false
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                dispatch_async(dispatch_get_main_queue(),{
+                    print("Send : 1st time")
+                })
+                sleep(1)
+                switch action {
+                case 0:
+                    flag = self.receivedLock
+                    break
+                case 1:
+                    flag = self.receivedUnlock
+                    break
+                case 2:
+                    flag = self.receivedStart
+                    break
+                case 3:
+                    flag = self.receivedStop
+                    break
+                default:
+                    break
+                }
+                if flag {
+                    return
+                }
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                dispatch_async(dispatch_get_main_queue(),{
+                    print("Send : 2nd time")
+                })
+                sleep(1)
+                switch action {
+                case 0:
+                    flag = self.receivedLock
+                    break
+                case 1:
+                    flag = self.receivedUnlock
+                    break
+                case 2:
+                    flag = self.receivedStart
+                    break
+                case 3:
+                    flag = self.receivedStop
+                    break
+                default:
+                    break
+                }
+                if flag {
+                    return
+                }
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                dispatch_async(dispatch_get_main_queue(),{
+                    print("Send : 3rd time")
+                })
+                sleep(1)
+                switch action {
+                case 0:
+                    flag = self.receivedLock
+                    break
+                case 1:
+                    flag = self.receivedUnlock
+                    break
+                case 2:
+                    flag = self.receivedStart
+                    break
+                case 3:
+                    flag = self.receivedStop
+                    break
+                default:
+                    break
+                }
+                if flag {
+                    return
+                }
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                dispatch_async(dispatch_get_main_queue(),{
+                    print("Send : 4th time")
+                })
+                sleep(1)
+                switch action {
+                case 0:
+                    flag = self.receivedLock
+                    break
+                case 1:
+                    flag = self.receivedUnlock
+                    break
+                case 2:
+                    flag = self.receivedStart
+                    break
+                case 3:
+                    flag = self.receivedStop
+                    break
+                default:
+                    break
+                }
+                if flag {
+                    return
+                }
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                dispatch_async(dispatch_get_main_queue(),{
+                    print("Send : 5th time")
+                })
+            })
+        } else {
+            print("peripheral or writeCharateristic is nil")
         }
-        flag = false
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-            dispatch_async(dispatch_get_main_queue(),{
-                print("Send : 1st time")
-            })
-            sleep(1)
-            switch action {
-            case 0:
-                flag = self.receivedLock
-                break
-            case 1:
-                flag = self.receivedUnlock
-                break
-            case 2:
-                flag = self.receivedStart
-                break
-            case 3:
-                flag = self.receivedStop
-                break
-            default:
-                break
-            }
-            if flag {
-                return
-            }
-            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-            dispatch_async(dispatch_get_main_queue(),{
-                print("Send : 2nd time")
-            })
-            sleep(1)
-            switch action {
-            case 0:
-                flag = self.receivedLock
-                break
-            case 1:
-                flag = self.receivedUnlock
-                break
-            case 2:
-                flag = self.receivedStart
-                break
-            case 3:
-                flag = self.receivedStop
-                break
-            default:
-                break
-            }
-            if flag {
-                return
-            }
-            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-            dispatch_async(dispatch_get_main_queue(),{
-                print("Send : 3rd time")
-            })
-            sleep(1)
-            switch action {
-            case 0:
-                flag = self.receivedLock
-                break
-            case 1:
-                flag = self.receivedUnlock
-                break
-            case 2:
-                flag = self.receivedStart
-                break
-            case 3:
-                flag = self.receivedStop
-                break
-            default:
-                break
-            }
-            if flag {
-                return
-            }
-            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-            dispatch_async(dispatch_get_main_queue(),{
-                print("Send : 4th time")
-            })
-            sleep(1)
-            switch action {
-            case 0:
-                flag = self.receivedLock
-                break
-            case 1:
-                flag = self.receivedUnlock
-                break
-            case 2:
-                flag = self.receivedStart
-                break
-            case 3:
-                flag = self.receivedStop
-                break
-            default:
-                break
-            }
-            if flag {
-                return
-            }
-            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-            dispatch_async(dispatch_get_main_queue(),{
-                print("Send : 5th time")
-            })
-        })
     }
     
     func setNotification(enabled: Bool){
         print("setNotification = true")
-        peripheral.setNotifyValue(enabled, forCharacteristic: notificationCharacteristic)
+        if peripheral != nil && notificationCharacteristic != nil {
+            peripheral.setNotifyValue(enabled, forCharacteristic: notificationCharacteristic)
+        }
     }
     
-    
-    
-    
-    
     func showStopped(){
-        //        buttonEngine.setImage(UIImage(named: "Engine"), forState: .Normal)
         displayMessage("Engine shut off")
     }
     
     func showStarted(){
-        //        buttonEngine.setImage(UIImage(named: "Engine Start"), forState: .Normal)
         displayMessage("Engine started")
     }
     
@@ -525,14 +525,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonLock.setImage(UIImage(named: "Lock"), forState: .Normal)
         buttonUnlock.setImage(UIImage(named: "Unlock_Glow"), forState: .Normal)
         displayMessage("Door unlocked")
-        //        buttonDoor.setImage(UIImage(named: "Unlock"), forState: .Normal)
     }
     
     func showLocked(){
         buttonLock.setImage(UIImage(named: "Lock_Glow"), forState: .Normal)
         buttonUnlock.setImage(UIImage(named: "Unlock"), forState: .Normal)
         displayMessage("Door locked")
-        //        buttonDoor.setImage(UIImage(named: "Lock"), forState: .Normal)
     }
     
     
@@ -555,8 +553,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         view.layoutIfNeeded()
         print("postion final \(view.layer.position)")
     }
-    
-    
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
         print("Disconnected")
@@ -609,17 +605,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("UIGestureRecognizerState.Began")
             isPressing = true
             longPressCountDown = 0
-//            UIView.animateWithDuration(0.2, animations: {
-//                var transform = CGAffineTransformIdentity
-//                transform = CGAffineTransformScale(transform, 0.9, 0.9)
-//                self.imageStart.transform = transform
-//            })
             imageStart.image = UIImage(named: "Start Small")
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 print("now \(self.longPressCountDown)")
                 while self.isPressing && self.longPressCountDown <= 5{
                     dispatch_async(dispatch_get_main_queue(),{
-                        //                        self.dislongPressCountDown].setImage(UIImage(named: "Filled Arrow"), forState: .Normal)
                         self.displayPressState(self.longPressCountDown)
                         self.longPressCountDown += 1
                         print("set \(self.longPressCountDown)")
@@ -632,13 +622,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             print("UIGestureRecognizerState.Ended")
             isPressing = false
             self.displayPressState(6)
-            //            for index in 0...5 {
-            //                signal[index].setImage(UIImage(named: "Arrow"), forState: .Normal)
-            //            }
-//            UIView.animateWithDuration(0.2, animations: {
-//                let transform = CGAffineTransformIdentity
-//                self.imageStart.transform = transform
-//            })
             imageStart.image = UIImage(named: "Start")
             break
         default:
@@ -671,80 +654,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         })
         longPressStart.enabled = true
     }
-    
-    //    func newDoorToEngine() {
-    //        print("start: \(self.imageIndicator.layer.position)")
-    //        UIView.animateWithDuration(1, animations: {
-    //            let fullRotation = CGFloat(M_PI * 2)
-    //            var transform = CGAffineTransformIdentity
-    //            transform = CGAffineTransformScale(transform, 1.5, 1.5)
-    //            transform = CGAffineTransformRotate(transform, 3/4 * fullRotation)
-    //            transform = CGAffineTransformTranslate(transform, 0, 4*self.imageIndicator.frame.origin.y )
-    //            self.imageIndicator.transform = transform
-    //            }, completion: {finished in
-    //                // any code entered here will be applied
-    //                // once the animation has completed
-    //                self.imageIndicator.layoutIfNeeded()
-    //                print("end: \(self.buttonGarage.layer.position)")
-    //        })
-    //        UIView.animateWithDuration(1, animations: {
-    //            let fullRotation = CGFloat(M_PI * 2)
-    //            var transform = CGAffineTransformIdentity
-    //            transform = CGAffineTransformScale(transform, 1.5, 1.5)
-    //            transform = CGAffineTransformRotate(transform, 3/4 * fullRotation)
-    //            transform = CGAffineTransformTranslate(transform, -0,4*self.imageEngineIndicator.frame.origin.y )
-    //            self.imageEngineIndicator.image = UIImage(named: "Stopped")
-    //            self.imageEngineIndicator.alpha = 1
-    //            self.imageEngineIndicator.transform = transform
-    //            }, completion: {finished in
-    //                self.imageEngineIndicator.layoutIfNeeded()
-    //                print("end: \(self.buttonGarage.layer.position)")
-    //        })
-    //        indicator = 1
-    //    }
-    //
-    //    func newEngineToDoor() {
-    //        UIView.animateWithDuration(1, animations: {
-    //            let transform = CGAffineTransformIdentity
-    //            self.imageIndicator.transform = transform
-    //            }, completion: {finished in
-    //                self.imageIndicator.layoutIfNeeded()
-    //        })
-    //        UIView.animateWithDuration(1, animations: {
-    //            let transform = CGAffineTransformIdentity
-    //            self.imageEngineIndicator.transform = transform
-    //            self.imageEngineIndicator.alpha = 0
-    //            }, completion: {finished in
-    //                self.imageEngineIndicator.layoutIfNeeded()
-    //        })
-    //        indicator = 0
-    //    }
-    //
-    //    func doorToEngine(){
-    //        let fullRotation = CGFloat(M_PI * 2)
-    //        UIView.animateKeyframesWithDuration(3, delay: 0, options: UIViewKeyframeAnimationOptions.CalculationModeLinear, animations: {
-    //            // each keyframe needs to be added here
-    //            // within each keyframe the relativeStartTime and relativeDuration need to be values between 0.0 and 1.0
-    //            UIView.addKeyframeWithRelativeStartTime(0, relativeDuration: 1, animations: {
-    //                self.buttonGarage.transform = CGAffineTransformMakeTranslation(-self.buttonGarage.frame.origin.x * 1 / 4, -self.buttonGarage.frame.origin.y / 2)
-    //            })
-    //            //
-    //            //            UIView.addKeyframeWithRelativeStartTime(1, relativeDuration: 1, animations: {
-    //            //                // start at 0.00s (5s × 0)
-    //            //                // duration 1.67s (5s × 1/3)
-    //            //                // end at   1.67s (0.00s + 1.67s)
-    //            //                self.buttonGarage.transform = CGAffineTransformMakeScale(2.0,2.0)
-    //            //            })
-    //            UIView.addKeyframeWithRelativeStartTime(2, relativeDuration: 1, animations: {
-    //                self.buttonGarage.transform = CGAffineTransformMakeRotation(3/4 * fullRotation)
-    //            })
-    //
-    //            }, completion: {finished in
-    //                // any code entered here will be applied
-    //                // once the animation has completed
-    //                self.buttonGarage.layoutIfNeeded()
-    //        })
-    //    }
     
     func checkDatabase(){
         print("ViewController : checkDatabase")
@@ -780,10 +689,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             performSegueWithIdentifier("control2garage", sender: sender)
         }else{
-            performSegueWithIdentifier("control2scan", sender: self)
+            performSegueWithIdentifier("control2scan", sender: sender)
         }
     }
     
+    @IBAction func onGPSButton(sender: UIButton) {
+        performSegueWithIdentifier("control2map", sender: sender)
+    }
     func removeBorderFromBar() {
         for p in navigationController!.navigationBar.subviews {
             for c in p.subviews {
@@ -795,8 +707,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     func setUpNavigationBar(){
         print("setUpNavigationBar")
-        //        navigationController?.navigationBar.barTintColor = UIColor.whiteColor() // Set top bar color
-        
         navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
         navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.yellowColor()], forState: UIControlState.Normal)
         navigationController?.navigationBar.setBackgroundImage(UIImage(), forBarMetrics: .Default)

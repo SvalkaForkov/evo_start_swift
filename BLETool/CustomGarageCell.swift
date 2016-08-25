@@ -10,9 +10,10 @@ import UIKit
 
 class CustomGarageCell: UITableViewCell {
 
-    @IBOutlet var label1: UILabel!
-    @IBOutlet var label2: UILabel!
-    @IBOutlet var label3: UILabel!
+    @IBOutlet var labelModel: UILabel!
+    @IBOutlet var labelMake: UILabel!
+    @IBOutlet var labelName: UILabel!
+    
     @IBOutlet var mainView: UIView!
     var dataController : DataController!
     override func awakeFromNib() {

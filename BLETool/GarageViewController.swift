@@ -22,6 +22,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     override func viewDidLoad() {
         super.viewDidLoad()
         print("GarageViewController : garage viewDidLoad")
+//        addLayer()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -34,14 +35,9 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         
         centralManager = CBCentralManager(delegate: self, queue:nil)
         print("\(buttonAdd.layer.borderWidth)")
-        buttonAdd.layer.cornerRadius = 25.0
         buttonAdd.clipsToBounds = true
-        buttonAdd.layer.borderWidth = 1
-        buttonAdd.layer.borderColor = getColorFromHex(0x910015).CGColor
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.separatorStyle = UITableViewCellSeparatorStyle.None
-        tableView.cellLayoutMarginsFollowReadableWidth = false
         
         if vehicles.count == 0 {
             print("no vehicle")
@@ -49,6 +45,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             print("found vehicle")
         }
         animateTableView(false)
+        
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -66,9 +63,9 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
         cell.mainView.layer.cornerRadius = 2.0
-        cell.label1!.text = vehicles[indexPath.row].name!.capitalizedString
-        cell.label2!.text = vehicles[indexPath.row].make!.capitalizedString
-        cell.label3!.text = vehicles[indexPath.row].model!.capitalizedString
+        cell.labelName!.text = vehicles[indexPath.row].name!.capitalizedString
+        cell.labelMake!.text = vehicles[indexPath.row].make!.capitalizedString
+        cell.labelModel!.text = vehicles[indexPath.row].model!.capitalizedString
         
         return cell
     }
@@ -236,4 +233,14 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
 //        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.blackColor()]    //set navigation item text color
 //        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 20)!]
     }
+    
+    func addLayer(){
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.frame = self.view.bounds
+        let colorTop = UIColor.clearColor().CGColor
+        let colorBottom = UIColor.whiteColor().CGColor
+        gradientLayer.colors = [colorTop, colorBottom]
+        self.view.layer.addSublayer(gradientLayer)
+    }
+
 }
