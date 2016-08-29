@@ -12,7 +12,7 @@ import GoogleMaps
 class MapViewController: UIViewController,CLLocationManagerDelegate {
 
     @IBOutlet var mapView: GMSMapView!
-    var locationManager : CLLocationManager
+    var locationManager : CLLocationManager!
     override func viewDidLoad() {
         super.viewDidLoad()
 
