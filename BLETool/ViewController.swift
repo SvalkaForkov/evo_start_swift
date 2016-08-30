@@ -55,7 +55,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var service : CBService!
     var writeCharacteristic : CBCharacteristic!
     var notificationCharacteristic : CBCharacteristic!
-    
+    var showingBack = false
     var module = ""
     var countSendTime = 0
     var matchFound = false
@@ -87,8 +87,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var imageViewCar: UIImageView!
     @IBOutlet var labelMessage: UILabel!
     @IBOutlet var capContainerView: UIView!
+    @IBOutlet weak var capContainerViewBack: UIView!
+    
     @IBOutlet var imageViewTempretureBackground: UIImageView!
     @IBOutlet var imageViewFuelBackground: UIImageView!
+    @IBOutlet var needleFuel: UIImageView!
+    @IBOutlet var needleTemp: UIImageView!
+    @IBOutlet var needleBatt: UIImageView!
+    @IBOutlet var needleRPM: UIImageView!
     override func viewDidLoad() {
         logEvent("ViewController : viewDidLoad")
         super.viewDidLoad()
@@ -136,6 +142,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidAppear(animated: Bool) {
         logEvent("viewDidAppear")
         setLastScene()
+        needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
+        needleRPM.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getRPMAngle(0) / 180)
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -253,9 +261,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             countSendTime += 1
             if !receivedLock{
                 receivedLock = true
-                showLocked()
-                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            }
+                showLocked()            }
         }else if(val == ACK_door_unlocked){
             //ack for unlocked
             logEvent("\(val) : \(countSendTime)")
@@ -263,7 +269,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if !receivedUnlock{
                 receivedUnlock = true
                 showUnlocked()
-                AudioServicesPlayAlertSound(SystemSoundID(kSystemSoundID_Vibrate))
             }
         }else if(val == ACK_engine_started){
             //ack for started
@@ -312,14 +317,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onLock(sender: UIButton) {
+        
         logEvent("onlock")
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
         sendCommend(data, action: 0)
     }
     
     
-    @IBAction func onUnlock(sender: UIButton) {
-        logEvent("onUnlock")
+    @IBAction func onUnlock(sender: UIButton) {        logEvent("onUnlock")
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
         sendCommend(data, action: 1)
     }
@@ -497,6 +502,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         UIView.animateWithDuration(200, animations: {
             self.imageViewEngine.image = UIImage(named: "engineoff")
         })
+        
+        updateRPM(0)
+        updateBatt(0)
+        updateFuel(0)
+        updateTemperature(0)
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
     }
     
     func showStarted(){
@@ -504,14 +515,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         UIView.animateWithDuration(200, animations: {
             self.imageViewEngine.image = UIImage(named: "engineon")
         })
+        updateRPM(2500)
+        updateBatt(50)
+        updateFuel(50)
+        updateTemperature(30)
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
     }
     
     func showUnlocked(){
         UIView.animateWithDuration(200, animations: {
-        self.buttonLock.setImage(UIImage(named: "Lock"), forState: .Normal)
-        self.buttonUnlock.setImage(UIImage(named: "Unlock_Glow"), forState: .Normal)
-        self.imageViewDoors.image = UIImage(named: "doorunlocked")
-            })
+            self.buttonLock.setImage(UIImage(named: "Lock"), forState: .Normal)
+            self.buttonUnlock.setImage(UIImage(named: "Unlock_Glow"), forState: .Normal)
+            self.imageViewDoors.image = UIImage(named: "doorunlocked")
+        })
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         displayMessage("Door unlocked")
     }
     
@@ -521,7 +538,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             self.buttonUnlock.setImage(UIImage(named: "Unlock"), forState: .Normal)
             self.imageViewDoors.image = UIImage(named: "doorlocked")
         })
-        
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         displayMessage("Door locked")
     }
     
@@ -629,18 +646,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onGarageButton(sender: UIButton) {
-        if module != "" {
-            logEvent("on Garage button clicked")
-            centralManager.stopScan()
-            if peripheral != nil {
-                centralManager.cancelPeripheralConnection(peripheral)
-                centralManager = nil
-                logEvent("disconnect")
-            }
-            performSegueWithIdentifier("control2garage", sender: sender)
-        }else{
-            performSegueWithIdentifier("control2scan", sender: sender)
-        }
+        flipControl()
+//        if module != "" {
+//            logEvent("on Garage button clicked")
+//            centralManager.stopScan()
+//            if peripheral != nil {
+//                centralManager.cancelPeripheralConnection(peripheral)
+//                centralManager = nil
+//                logEvent("disconnect")
+//            }
+//            performSegueWithIdentifier("control2garage", sender: sender)
+//        }else{
+//            performSegueWithIdentifier("control2scan", sender: sender)
+//        }
     }
     
     
@@ -681,7 +699,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         )
     }
     
-    
     func displayMessage(line: String){
         labelMessage.text = line
         UIView.animateWithDuration(200, animations: {
@@ -693,7 +710,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func getDefaultModuleName(){
         logEvent("Get Default Module Name")
         let defaultModule = NSUserDefaults.standardUserDefaults().objectForKey(tag_default_module)
-                as? String
+            as? String
         if defaultModule != nil {
             module = defaultModule!
             logEvent("default is not nil : \(module)")
@@ -729,6 +746,60 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func logEvent(string :String){
         if DBG {
             print("\(string)")
+        }
+    }
+    
+    func rotateViewToAngle(view:UIView, angle: CGFloat){
+        UIView.animateWithDuration(1.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
+            view.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * angle / 180)
+            }, completion: nil)
+    }
+    
+    func getBattAngle(percentage: CGFloat) -> CGFloat{
+        return 313 - percentage/10*12.5
+    }
+    
+    func getFuelAngle(percentage: CGFloat) -> CGFloat{
+        return 60 + 240 * percentage/100
+    }
+    
+    func getTempAngle(temp: CGFloat) -> CGFloat{
+        return 360 * temp / 100
+    }
+    
+    func getRPMAngle(rpm: CGFloat) -> CGFloat{
+        if rpm < 2000 {
+            return 45 + rpm/500*13
+        }else{
+            return 45 + 52 + (rpm-2000)/1000*13
+        }
+    }
+    
+    func updateBatt(percentage: CGFloat){
+        rotateViewToAngle(needleBatt, angle: getBattAngle(percentage))
+    }
+    
+    func updateRPM(rpm : CGFloat){
+        rotateViewToAngle(needleRPM, angle: getRPMAngle(rpm))
+    }
+    
+    func updateFuel(percentage : CGFloat){
+        rotateViewToAngle(needleFuel, angle: getFuelAngle(percentage))
+    }
+    
+    func updateTemperature(temp: CGFloat){
+        rotateViewToAngle(needleTemp, angle: getTempAngle(temp))
+    }
+    
+    func flipControl(){
+        if showingBack {
+            showingBack = false
+            UIView.transitionFromView(capContainerViewBack, toView: capContainerView, duration: 1, options: UIViewAnimationOptions.BeginFromCurrentState, completion: nil)
+            capContainerViewBack.hidden = true
+        }else{
+            showingBack = true
+            UIView.transitionFromView(capContainerView, toView: capContainerViewBack, duration: 1, options: UIViewAnimationOptions.BeginFromCurrentState, completion: nil)
+            capContainerViewBack.hidden = false
         }
     }
 }
