@@ -87,7 +87,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var imageViewCar: UIImageView!
     @IBOutlet var labelMessage: UILabel!
     @IBOutlet var capContainerView: UIView!
-    @IBOutlet weak var capContainerViewBack: UIView!
+    @IBOutlet var capContainerViewBack: UIView!
     
     @IBOutlet var imageViewTempretureBackground: UIImageView!
     @IBOutlet var imageViewFuelBackground: UIImageView!
@@ -791,15 +791,41 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         rotateViewToAngle(needleTemp, angle: getTempAngle(temp))
     }
     
+    func animateFlip(){
+            UIView.transitionFromView(capContainerView, toView: capContainerViewBack, duration: 1, options: UIViewAnimationOptions.TransitionFlipFromRight, completion: nil)
+            
+    }
+    
     func flipControl(){
         if showingBack {
             showingBack = false
-            UIView.transitionFromView(capContainerViewBack, toView: capContainerView, duration: 1, options: UIViewAnimationOptions.BeginFromCurrentState, completion: nil)
-            capContainerViewBack.hidden = true
+            UIView.animateWithDuration(0.5, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.capContainerViewBack.alpha = 0
+                self.capContainerViewBack.center.y = self.capContainerViewBack.center.y + self.capContainerViewBack.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonGarage.transform = transform
+                }, completion: { finished in
+                  self.capContainerViewBack.hidden = true
+            })
         }else{
             showingBack = true
-            UIView.transitionFromView(capContainerView, toView: capContainerViewBack, duration: 1, options: UIViewAnimationOptions.BeginFromCurrentState, completion: nil)
-            capContainerViewBack.hidden = false
+            self.capContainerViewBack.alpha = 0
+            self.capContainerViewBack.hidden = false
+            UIView.animateWithDuration(0.5, delay: 0, options: UIViewAnimationOptions.CurveEaseInOut, animations: {
+                self.capContainerViewBack.alpha = 1
+                self.capContainerViewBack.center.y = self.capContainerViewBack.center.y - self.capContainerViewBack.bounds.height
+                self.capContainerViewBack.hidden = false
+                self.capContainerView.alpha = 0
+                self.buttonLock.alpha = 0
+                self.buttonUnlock.alpha = 0
+                var transform = CGAffineTransformIdentity
+                transform = CGAffineTransformRotate(transform, CGFloat(M_PI / 2))
+                self.buttonGarage.transform = transform
+                }, completion: { finished in
+            })
         }
     }
 }
