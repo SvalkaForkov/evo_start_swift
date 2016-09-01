@@ -95,6 +95,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var needleTemp: UIImageView!
     @IBOutlet var needleBatt: UIImageView!
     @IBOutlet var needleRPM: UIImageView!
+    
+    var stateDoor = false
+    var stateEngine = false
+    var stateTrunk = false
+    var stateBattery = 0
+    var stateTemperature = 0
+    var stateRPM = 0
+    var stateFuel = 0
+    
     override func viewDidLoad() {
         logEvent("ViewController : viewDidLoad")
         super.viewDidLoad()
@@ -171,12 +180,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     if !self.matchFound {
                         self.logEvent("No match module found")
                     }else{
-                        self.logEvent("Match module found")
-                        self.buttonLock.hidden = false
-                        self.buttonUnlock.hidden = false
-                        self.imageCap.hidden = false
-                        self.imageStart.hidden = false
-                    }
+                        self.logEvent("Match module found")                    }
                 })
             })
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
@@ -530,6 +534,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         })
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         displayMessage("Door unlocked")
+        
     }
     
     func showLocked(){
@@ -588,10 +593,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     })
                     usleep(150000)
                 }
-                if self.started {
-                    self.stopEngine()
-                }else {
-                    self.startEngine()
+                if self.longPressCountDown>5{
+                    if self.started {
+                        self.stopEngine()
+                    }else {
+                        self.startEngine()
+                    }
                 }
             })
             break
