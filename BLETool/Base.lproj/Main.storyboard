@@ -503,7 +503,7 @@
                                         </constraints>
                                         <state key="normal" image="More Control"/>
                                         <connections>
-                                            <action selector="onGarageButton:" destination="qfS-tC-vNs" eventType="touchUpInside" id="n5Q-vb-vDB"/>
+                                            <action selector="onButtonMore:" destination="qfS-tC-vNs" eventType="touchUpInside" id="Dnb-ce-yNP"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BYm-sd-Oo9">
@@ -701,14 +701,23 @@
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S7n-zd-nQS">
                                                 <rect key="frame" x="0.0" y="0.0" width="126" height="233"/>
                                                 <state key="normal" image="Valet"/>
+                                                <connections>
+                                                    <action selector="onValet:" destination="qfS-tC-vNs" eventType="touchUpInside" id="3qk-0a-Bbd"/>
+                                                </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tTH-9d-SAt">
                                                 <rect key="frame" x="126" y="0.0" width="125" height="233"/>
                                                 <state key="normal" image="Trunk"/>
+                                                <connections>
+                                                    <action selector="onTrunk:" destination="qfS-tC-vNs" eventType="touchUpInside" id="mk5-tJ-8dg"/>
+                                                </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yu9-6M-re0">
                                                 <rect key="frame" x="251" y="0.0" width="125" height="233"/>
                                                 <state key="normal" image="Garage"/>
+                                                <connections>
+                                                    <action selector="onGarage:" destination="qfS-tC-vNs" eventType="touchUpInside" id="Z43-bC-9Rh"/>
+                                                </connections>
                                             </button>
                                         </subviews>
                                     </stackView>
@@ -721,9 +730,57 @@
                                     <constraint firstItem="eRp-km-MKL" firstAttribute="width" secondItem="DBD-Vz-uBo" secondAttribute="width" id="yBD-Yn-UL6"/>
                                 </constraints>
                             </view>
+                            <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vsZ-dw-lBN">
+                                <rect key="frame" x="-1" y="0.0" width="376" height="667"/>
+                                <subviews>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Panel Texture" translatesAutoresizingMaskIntoConstraints="NO" id="0Nc-oE-yEs">
+                                        <rect key="frame" x="0.0" y="0.0" width="376" height="667"/>
+                                    </imageView>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Empty Garage" translatesAutoresizingMaskIntoConstraints="NO" id="Z4r-w6-LDF">
+                                        <rect key="frame" x="94" y="183" width="188" height="201"/>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Garage is empty, let's add a car." textAlignment="center" lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wvJ-2M-sSv">
+                                        <rect key="frame" x="76" y="392" width="225" height="60"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="60" id="2j1-4S-jd3"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" name="Avenir-Book" family="Avenir" pointSize="20"/>
+                                        <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="28F-fV-F60">
+                                        <rect key="frame" x="163" y="460" width="50" height="50"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="50" id="4pn-p6-Cxe"/>
+                                            <constraint firstAttribute="width" constant="50" id="G4A-Zy-vMv"/>
+                                        </constraints>
+                                        <state key="normal" image="Add Car"/>
+                                        <connections>
+                                            <action selector="onAddFromEmpty:" destination="qfS-tC-vNs" eventType="touchUpInside" id="suP-Su-qIG"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstItem="0Nc-oE-yEs" firstAttribute="width" secondItem="vsZ-dw-lBN" secondAttribute="width" id="0Gt-Vk-qcA"/>
+                                    <constraint firstItem="wvJ-2M-sSv" firstAttribute="width" secondItem="vsZ-dw-lBN" secondAttribute="width" multiplier="0.6" id="1KO-lh-tgN"/>
+                                    <constraint firstItem="0Nc-oE-yEs" firstAttribute="height" secondItem="vsZ-dw-lBN" secondAttribute="height" id="36t-S4-f0u"/>
+                                    <constraint firstItem="28F-fV-F60" firstAttribute="top" secondItem="wvJ-2M-sSv" secondAttribute="bottom" constant="8" id="519-Eu-9wC"/>
+                                    <constraint firstItem="Z4r-w6-LDF" firstAttribute="height" secondItem="vsZ-dw-lBN" secondAttribute="height" multiplier="0.3" id="HZw-u4-u8A"/>
+                                    <constraint firstItem="Z4r-w6-LDF" firstAttribute="centerX" secondItem="vsZ-dw-lBN" secondAttribute="centerX" id="IM8-5w-1qS"/>
+                                    <constraint firstItem="Z4r-w6-LDF" firstAttribute="centerY" secondItem="vsZ-dw-lBN" secondAttribute="centerY" constant="-50" id="Pjb-Rh-qvC"/>
+                                    <constraint firstItem="wvJ-2M-sSv" firstAttribute="centerX" secondItem="vsZ-dw-lBN" secondAttribute="centerX" id="WN9-qC-6Ev"/>
+                                    <constraint firstItem="28F-fV-F60" firstAttribute="centerX" secondItem="vsZ-dw-lBN" secondAttribute="centerX" id="Z2h-R7-DBV"/>
+                                    <constraint firstItem="0Nc-oE-yEs" firstAttribute="centerY" secondItem="vsZ-dw-lBN" secondAttribute="centerY" id="klI-La-fcA"/>
+                                    <constraint firstItem="wvJ-2M-sSv" firstAttribute="top" secondItem="Z4r-w6-LDF" secondAttribute="bottom" constant="8" id="mVe-ew-53h"/>
+                                    <constraint firstItem="Z4r-w6-LDF" firstAttribute="width" secondItem="vsZ-dw-lBN" secondAttribute="width" multiplier="0.5" id="tfz-TF-udN"/>
+                                    <constraint firstItem="0Nc-oE-yEs" firstAttribute="centerX" secondItem="vsZ-dw-lBN" secondAttribute="centerX" id="xmn-6f-GMt"/>
+                                </constraints>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
+                            <constraint firstItem="vsZ-dw-lBN" firstAttribute="height" secondItem="nDc-ZK-bwG" secondAttribute="height" id="2CQ-Kv-uNr"/>
                             <constraint firstItem="nqU-El-9Bz" firstAttribute="top" secondItem="sI7-1T-UjK" secondAttribute="bottom" id="2N7-ID-GVK"/>
                             <constraint firstItem="dIm-tV-bx7" firstAttribute="bottom" secondItem="BYm-sd-Oo9" secondAttribute="bottom" id="6Pf-G3-BUW"/>
                             <constraint firstItem="Z1K-DU-Rfs" firstAttribute="top" secondItem="nqU-El-9Bz" secondAttribute="bottom" id="8sz-Kp-dEe"/>
@@ -739,12 +796,15 @@
                             <constraint firstItem="4lF-0q-5ND" firstAttribute="width" secondItem="nDc-ZK-bwG" secondAttribute="width" multiplier="0.25" id="OZ9-Rl-fW0"/>
                             <constraint firstItem="nqU-El-9Bz" firstAttribute="width" secondItem="nDc-ZK-bwG" secondAttribute="width" id="Ptf-eG-58S"/>
                             <constraint firstItem="HGk-aW-Csd" firstAttribute="top" secondItem="brE-C5-MEC" secondAttribute="bottom" id="QpK-Ll-nRx"/>
+                            <constraint firstItem="vsZ-dw-lBN" firstAttribute="centerY" secondItem="nDc-ZK-bwG" secondAttribute="centerY" id="V6w-RW-6iA"/>
                             <constraint firstItem="DBD-Vz-uBo" firstAttribute="height" secondItem="nDc-ZK-bwG" secondAttribute="height" multiplier="0.35" id="V9j-pD-uJk"/>
+                            <constraint firstItem="vsZ-dw-lBN" firstAttribute="width" secondItem="nDc-ZK-bwG" secondAttribute="width" id="Vt5-OI-9yV"/>
                             <constraint firstItem="dIm-tV-bx7" firstAttribute="width" secondItem="nDc-ZK-bwG" secondAttribute="width" multiplier="0.6" constant="-46" id="fOq-kh-NG8"/>
                             <constraint firstItem="DBD-Vz-uBo" firstAttribute="centerX" secondItem="nDc-ZK-bwG" secondAttribute="centerX" id="ftX-T3-4XH"/>
                             <constraint firstItem="nqU-El-9Bz" firstAttribute="height" secondItem="nDc-ZK-bwG" secondAttribute="height" multiplier="0.5" id="gAj-Zx-Tta"/>
                             <constraint firstItem="dIm-tV-bx7" firstAttribute="top" secondItem="HGk-aW-Csd" secondAttribute="bottom" constant="8" id="go8-ub-0cM"/>
                             <constraint firstItem="HGk-aW-Csd" firstAttribute="width" secondItem="nDc-ZK-bwG" secondAttribute="width" multiplier="0.55" id="gpg-VF-kqc"/>
+                            <constraint firstItem="vsZ-dw-lBN" firstAttribute="centerX" secondItem="nDc-ZK-bwG" secondAttribute="centerX" id="jKG-ur-yZB"/>
                             <constraint firstItem="sI7-1T-UjK" firstAttribute="top" secondItem="brE-C5-MEC" secondAttribute="bottom" id="lym-9d-tym"/>
                             <constraint firstItem="Crt-36-j5b" firstAttribute="centerY" secondItem="nDc-ZK-bwG" secondAttribute="centerY" id="oeK-6r-AC2"/>
                             <constraint firstItem="sI7-1T-UjK" firstAttribute="width" secondItem="nDc-ZK-bwG" secondAttribute="width" multiplier="0.25" id="qgd-Yb-06F"/>
@@ -758,13 +818,17 @@
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina47"/>
                     <connections>
+                        <outlet property="buttonAddFromEmpty" destination="28F-fV-F60" id="esC-Ff-aHe"/>
                         <outlet property="buttonCover" destination="Imi-Q4-fYY" id="u5m-wJ-Egt"/>
                         <outlet property="buttonGPS" destination="BYm-sd-Oo9" id="rSc-qL-lo5"/>
-                        <outlet property="buttonGarage" destination="NYn-jO-jln" id="3Sh-Jr-ywY"/>
+                        <outlet property="buttonGarage" destination="yu9-6M-re0" id="A5E-fq-Aci"/>
                         <outlet property="buttonLock" destination="ZhH-As-nfU" id="a5q-s1-p2I"/>
+                        <outlet property="buttonMore" destination="NYn-jO-jln" id="wLP-Qy-LV6"/>
+                        <outlet property="buttonTrunk" destination="tTH-9d-SAt" id="Umz-IB-MqY"/>
                         <outlet property="buttonUnlock" destination="LNg-Aw-bQU" id="TnT-bS-0PF"/>
+                        <outlet property="buttonValet" destination="S7n-zd-nQS" id="jPd-kJ-doU"/>
                         <outlet property="capContainerView" destination="CjL-45-dSX" id="8jE-BS-UmT"/>
-                        <outlet property="capContainerViewBack" destination="DBD-Vz-uBo" id="GUN-OT-iNB"/>
+                        <outlet property="coverView" destination="vsZ-dw-lBN" id="XQS-0G-Gvi"/>
                         <outlet property="imageCap" destination="6KQ-X9-QcO" id="zTd-f2-iak"/>
                         <outlet property="imageStart" destination="A28-Pf-ShH" id="5SA-yu-TlM"/>
                         <outlet property="imageViewCar" destination="2x0-wL-wXG" id="FSq-e0-0Ow"/>
@@ -779,6 +843,7 @@
                         <outlet property="needleFuel" destination="ded-q4-eMJ" id="Uva-yl-scs"/>
                         <outlet property="needleRPM" destination="gJd-GY-DmF" id="OS8-Mo-qby"/>
                         <outlet property="needleTemp" destination="YI3-7Q-Zqu" id="YV2-w3-8RI"/>
+                        <outlet property="slideUpView" destination="DBD-Vz-uBo" id="4aN-WB-gp3"/>
                         <outlet property="swipeDown" destination="bdw-0U-ezA" id="ZlK-ql-vdZ"/>
                         <outlet property="swipeUp" destination="Rov-D6-Iia" id="Cfr-oc-Vso"/>
                         <segue destination="F1x-P8-EMz" kind="push" identifier="control2garage" id="G09-4w-YYc"/>
@@ -1000,7 +1065,9 @@
         </scene>
     </scenes>
     <resources>
+        <image name="Add Car" width="100" height="100"/>
         <image name="Cap" width="635" height="731"/>
+        <image name="Empty Garage" width="100" height="100"/>
         <image name="FuelMeter" width="472" height="472"/>
         <image name="GPS" width="240" height="240"/>
         <image name="Garage" width="300" height="300"/>

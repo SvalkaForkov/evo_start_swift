@@ -41,8 +41,8 @@ extension Int {
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
     
-    let ACK_door_unlocked = "00000002"
-    let ACK_door_locked = "00008001"
+    let ACK_door_unlocked = "000fc001"
+    let ACK_door_locked = "000f`8001"
     let ACK_trunk_unlocked = ""
     let ACK_trunk_locked = ""
     let ACK_engine_started = "00000201"
@@ -69,14 +69,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var longPressCountDown = 0
     var isPressing = false
     var indicator = 0 // 0: Whole car;  1: Engine; 2: Trunk
-    @IBOutlet var buttonGarage: UIButton!
+    
     @IBOutlet var buttonLock: UIButton!
     @IBOutlet var buttonUnlock: UIButton!
+    @IBOutlet var buttonMore: UIButton!
     
+    @IBOutlet var buttonGarage: UIButton!
+    @IBOutlet var buttonTrunk: UIButton!
+    @IBOutlet var buttonValet: UIButton!
+    @IBOutlet var coverView: UIView!
     @IBOutlet var buttonGPS: UIButton!
     @IBOutlet var imageCap: UIImageView!
     @IBOutlet var imageStart: UIImageView!
-    @IBOutlet var buttonClearLog: UIButton!
     @IBOutlet var buttonCover: UIButton!
     @IBOutlet var swipeDown: UISwipeGestureRecognizer!
     @IBOutlet var swipeUp: UISwipeGestureRecognizer!
@@ -87,8 +91,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var imageViewCar: UIImageView!
     @IBOutlet var labelMessage: UILabel!
     @IBOutlet var capContainerView: UIView!
-    @IBOutlet var capContainerViewBack: UIView!
+   
+    @IBOutlet var slideUpView: UIView!
     
+    @IBOutlet var buttonAddFromEmpty: UIButton!
     @IBOutlet var imageViewTempretureBackground: UIImageView!
     @IBOutlet var imageViewFuelBackground: UIImageView!
     @IBOutlet var needleFuel: UIImageView!
@@ -108,44 +114,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         logEvent("ViewController : viewDidLoad")
         super.viewDidLoad()
         setUpNavigationBar()
-        setUpViews()
+        setUpStaticViews()
     }
     
     override func viewWillAppear(animated: Bool) {
         logEvent("ViewController : viewWillAppear")
-        getDefaultModuleName()
+        module = getDefaultModuleName()
         if module != "" {
+            coverView.hidden = true
             centralManager = CBCentralManager(delegate: self, queue:nil)
-            buttonGarage.setImage(UIImage(named: "Garage"), forState: .Normal)
+            buttonMore.setImage(UIImage(named: "More Control"), forState: .Normal)
         }else{
-            buttonGarage.setImage(UIImage(named: "Add Car"), forState: .Normal)
+            coverView.hidden = false
         }
-    }
-    
-    func setUpViews(){
-        logEvent("setupViews")
-        longPressStart.enabled = false
-        buttonCover.backgroundColor = UIColor.clearColor()
-        buttonCover.clipsToBounds = true
-        
-        imageCap.backgroundColor = UIColor.clearColor()
-        
-        imageCap.layoutIfNeeded()
-        imageCap.clipsToBounds = true
-        
-        imageStart.backgroundColor = UIColor.clearColor()
-        imageStart.layoutIfNeeded()
-        imageStart.clipsToBounds = true
-        
-        buttonUnlock.layer.cornerRadius = 25.0
-        buttonUnlock.clipsToBounds = true
-        
-        buttonLock.layer.cornerRadius = 25.0
-        buttonLock.clipsToBounds = true
-        
-        buttonGarage.clipsToBounds = true
-        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
-        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -153,6 +134,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         setLastScene()
         needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
         needleRPM.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getRPMAngle(0) / 180)
+        needleFuel.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getFuelAngle(0) / 180)
+        needleTemp.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getTempAngle(0) / 180)
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -160,12 +143,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         logEvent("viewWillDisappear")
         if centralManager != nil && peripheral != nil{
             centralManager.cancelPeripheralConnection(peripheral)
+            centralManager = nil
         }
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     func centralManagerDidUpdateState(central: CBCentralManager) {
@@ -180,7 +163,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     if !self.matchFound {
                         self.logEvent("No match module found")
                     }else{
-                        self.logEvent("Match module found")                    }
+                        self.logEvent("Match module found")
+                    }
                 })
             })
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
@@ -638,36 +622,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         longPressStart.enabled = true
     }
     
-    func checkDatabase(){
-        logEvent("Check database for registered vehicle")
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let dataController = appDelegate.dataController
-        let vehicles : [Vehicle] = dataController.getAllVehicles()
-        if vehicles.count > 0 {
-            module = vehicles[0].module!
-            logEvent("use first vehicle in the database")
-        }else {
-            module = ""
-            logEvent("no vehicle registerd")
-        }
-    }
     
-    @IBAction func onGarageButton(sender: UIButton) {
+    @IBAction func onButtonMore(sender: UIButton) {
         flipControl()
-//        if module != "" {
-//            logEvent("on Garage button clicked")
-//            centralManager.stopScan()
-//            if peripheral != nil {
-//                centralManager.cancelPeripheralConnection(peripheral)
-//                centralManager = nil
-//                logEvent("disconnect")
-//            }
-//            performSegueWithIdentifier("control2garage", sender: sender)
-//        }else{
-//            performSegueWithIdentifier("control2scan", sender: sender)
-//        }
+        //        if module != "" {
+        //            logEvent("on Garage button clicked")
+        //            centralManager.stopScan()
+        //            if peripheral != nil {
+        //                centralManager.cancelPeripheralConnection(peripheral)
+        //                centralManager = nil
+        //                logEvent("disconnect")
+        //            }
+        //            performSegueWithIdentifier("control2garage", sender: sender)
+        //        }else{
+        //            performSegueWithIdentifier("control2scan", sender: sender)
+        //        }
     }
-    
     
     @IBAction func onGPSButton(sender: UIButton) {
         performSegueWithIdentifier("control2map", sender: sender)
@@ -708,23 +678,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func displayMessage(line: String){
         labelMessage.text = line
-        UIView.animateWithDuration(200, animations: {
-            self.labelMessage.layer.position = CGPoint(x: 1.0,y: 1.0)
-            self.labelMessage.alpha = 0.5
-        })
+        //        UIView.animateWithDuration(200, animations: {
+        //            self.labelMessage.layer.position = CGPoint(x: 1.0,y: 1.0)
+        //            self.labelMessage.alpha = 0.5
+        //        })
     }
     
-    func getDefaultModuleName(){
+    func getDefaultModuleName() -> String{
         logEvent("Get Default Module Name")
         let defaultModule = NSUserDefaults.standardUserDefaults().objectForKey(tag_default_module)
             as? String
         if defaultModule != nil {
-            module = defaultModule!
             logEvent("default is not nil : \(module)")
+            return defaultModule!
         }else{
             logEvent("default is nil")
-            module = ""
-            checkDatabase()
+            return checkDatabase()
         }
     }
     
@@ -799,8 +768,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func animateFlip(){
-            UIView.transitionFromView(capContainerView, toView: capContainerViewBack, duration: 1, options: UIViewAnimationOptions.TransitionFlipFromRight, completion: nil)
-            
+        UIView.transitionFromView(capContainerView, toView: slideUpView, duration: 1, options: UIViewAnimationOptions.TransitionFlipFromRight, completion: nil)
+        
     }
     
     func flipControl(){
@@ -810,30 +779,84 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.capContainerView.alpha = 1
                 self.buttonLock.alpha = 1
                 self.buttonUnlock.alpha = 1
-                self.capContainerViewBack.alpha = 0
-                self.capContainerViewBack.center.y = self.capContainerViewBack.center.y + self.capContainerViewBack.bounds.height
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
                 let transform = CGAffineTransformIdentity
-                self.buttonGarage.transform = transform
+                self.buttonMore.transform = transform
                 }, completion: { finished in
-                  self.capContainerViewBack.hidden = true
+                    self.slideUpView.hidden = true
             })
         }else{
             showingBack = true
-            self.capContainerViewBack.alpha = 0
-            self.capContainerViewBack.hidden = false
+            self.slideUpView.alpha = 0
+            self.slideUpView.hidden = false
             UIView.animateWithDuration(0.5, delay: 0, options: UIViewAnimationOptions.CurveEaseInOut, animations: {
-                self.capContainerViewBack.alpha = 1
-                self.capContainerViewBack.center.y = self.capContainerViewBack.center.y - self.capContainerViewBack.bounds.height
-                self.capContainerViewBack.hidden = false
+                self.slideUpView.alpha = 1
+                self.slideUpView.center.y = self.slideUpView.center.y - self.slideUpView.bounds.height
+                self.slideUpView.hidden = false
                 self.capContainerView.alpha = 0
                 self.buttonLock.alpha = 0
                 self.buttonUnlock.alpha = 0
                 var transform = CGAffineTransformIdentity
                 transform = CGAffineTransformRotate(transform, CGFloat(M_PI / 2))
-                self.buttonGarage.transform = transform
+                self.buttonMore.transform = transform
                 }, completion: { finished in
             })
         }
+    }
+    
+    func setUpStaticViews(){
+        logEvent("setupViews")
+        longPressStart.enabled = false
+        buttonCover.backgroundColor = UIColor.clearColor()
+        buttonCover.clipsToBounds = true
+        
+        imageCap.backgroundColor = UIColor.clearColor()
+        imageCap.layoutIfNeeded()
+        imageCap.clipsToBounds = true
+        
+        imageStart.backgroundColor = UIColor.clearColor()
+        imageStart.layoutIfNeeded()
+        imageStart.clipsToBounds = true
+        
+        buttonUnlock.layer.cornerRadius = 25.0
+        buttonUnlock.clipsToBounds = true
+        
+        buttonLock.layer.cornerRadius = 25.0
+        buttonLock.clipsToBounds = true
+        
+        buttonMore.clipsToBounds = true
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
+    }
+    
+    func checkDatabase() -> String {
+        logEvent("Check database for registered vehicle")
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let dataController = appDelegate.dataController
+        let vehicles : [Vehicle] = dataController.getAllVehicles()
+        if vehicles.count > 0 {
+            logEvent("use first vehicle in the database")
+            return vehicles[0].module!
+        }else {
+            logEvent("no vehicle registerd")
+            return ""
+        }
+    }
+    
+    @IBAction func onAddFromEmpty(sender: UIButton) {
+        performSegueWithIdentifier("control2scan", sender: sender)
+        
+    }
+    
+    @IBAction func onGarage(sender: UIButton) {
+        performSegueWithIdentifier("control2garage", sender: sender)
+    }
+    @IBAction func onTrunk(sender: UIButton) {
+        print("trunk")
+    }
+    @IBAction func onValet(sender: UIButton) {
+        print("valet")
     }
 }
 
