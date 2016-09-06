@@ -40,7 +40,12 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         }else{
             camera = GMSCameraPosition.cameraWithLatitude(48.857165, longitude: 2.354613, zoom: 8.0)
         }
-        
+        buttonSetLocation.layer.cornerRadius = 28.0
+        buttonSetLocation.layer.shadowRadius = 2.0
+        buttonSetLocation.layer.backgroundColor = UIColor.whiteColor().CGColor
+        buttonSetLocation.layer.shadowOffset = CGSize(width: 2.0, height: 2.0)
+        buttonSetLocation.layer.shadowColor = UIColor.grayColor().CGColor
+        buttonSetLocation.layer.shadowOpacity = 0.5
         viewMap.camera = camera
         
         locationManager.delegate = self
@@ -50,8 +55,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         locationManager.startUpdatingLocation()
         
         viewMap.settings.myLocationButton = true
-        buttonSetLocation.layer.borderColor = UIColor.blueColor().CGColor
-        buttonSetLocation.layer.cornerRadius = 15.0
     }
     
     override func didReceiveMemoryWarning() {
@@ -59,7 +62,10 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
     }
     
     @IBAction func onSetLocation(sender: UIButton) {
-        marker.map = nil
+        if marker != nil {
+            marker.map = nil
+            
+        }
         setLastLocation(currentLat, lon: currentLon)
         let position = CLLocationCoordinate2DMake(currentLat, currentLon)
         marker = GMSMarker(position: position)
@@ -79,13 +85,13 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
     
     func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let locValue:CLLocationCoordinate2D = manager.location!.coordinate
-        print("locations = \(locValue.latitude) \(locValue.longitude)")
+        print("Update locations : \(locValue.latitude) \(locValue.longitude)")
         currentLat = locValue.latitude
         currentLon = locValue.longitude
     }
     
     func setLastLocation(lat: NSNumber, lon: NSNumber){
-        logEvent("Set Last location")
+        logEvent("Set Last location to app default")
         NSUserDefaults.standardUserDefaults().setObject(lon, forKey: tagLon)
         NSUserDefaults.standardUserDefaults().setObject(lat, forKey: tagLat)
     }

@@ -367,31 +367,45 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dRm-n9-rj3">
-                                <rect key="frame" x="-1" y="577" width="376" height="90"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DJ2-K4-yu9" customClass="GMSMapView">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="iJD-L6-Qwb">
+                                <rect key="frame" x="93" y="601" width="188" height="56"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dRm-n9-rj3">
+                                        <rect key="frame" x="0.0" y="0.0" width="188" height="56"/>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        <fontDescription key="fontDescription" name="Avenir-Medium" family="Avenir" pointSize="17"/>
+                                        <state key="normal" title="Set Location">
+                                            <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="onSetLocation:" destination="BJr-Qg-ezb" eventType="touchUpInside" id="F7F-qd-pra"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="90" id="tB9-bo-zQH"/>
+                                    <constraint firstAttribute="height" constant="56" id="6Ak-S4-G16"/>
+                                    <constraint firstItem="dRm-n9-rj3" firstAttribute="centerX" secondItem="iJD-L6-Qwb" secondAttribute="centerX" id="LNk-4E-v0q"/>
+                                    <constraint firstItem="dRm-n9-rj3" firstAttribute="height" secondItem="iJD-L6-Qwb" secondAttribute="height" id="iIb-8R-XJ0"/>
+                                    <constraint firstItem="dRm-n9-rj3" firstAttribute="centerY" secondItem="iJD-L6-Qwb" secondAttribute="centerY" id="iNz-Hj-9Uv"/>
+                                    <constraint firstItem="dRm-n9-rj3" firstAttribute="width" secondItem="iJD-L6-Qwb" secondAttribute="width" id="k2L-Yl-cz3"/>
                                 </constraints>
-                                <state key="normal" title="Set Vehicle Location"/>
-                                <connections>
-                                    <action selector="onSetLocation:" destination="BJr-Qg-ezb" eventType="touchUpInside" id="F7F-qd-pra"/>
-                                </connections>
-                            </button>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DJ2-K4-yu9" customClass="GMSMapView">
-                                <rect key="frame" x="0.0" y="64" width="375" height="513"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="DJ2-K4-yu9" firstAttribute="top" secondItem="v6V-Xf-ZoS" secondAttribute="bottom" id="4oc-NH-iOy"/>
-                            <constraint firstItem="w1o-Hm-Uzr" firstAttribute="top" secondItem="dRm-n9-rj3" secondAttribute="bottom" id="A1O-MM-BPK"/>
-                            <constraint firstItem="DJ2-K4-yu9" firstAttribute="centerX" secondItem="HIu-9L-ZiO" secondAttribute="centerX" id="JX3-1A-2OP"/>
-                            <constraint firstItem="DJ2-K4-yu9" firstAttribute="width" secondItem="HIu-9L-ZiO" secondAttribute="width" id="bly-fi-FgK"/>
-                            <constraint firstItem="dRm-n9-rj3" firstAttribute="top" secondItem="DJ2-K4-yu9" secondAttribute="bottom" id="dAE-H0-Yyj"/>
-                            <constraint firstItem="dRm-n9-rj3" firstAttribute="width" secondItem="HIu-9L-ZiO" secondAttribute="width" id="jun-2g-DyM"/>
-                            <constraint firstItem="dRm-n9-rj3" firstAttribute="centerX" secondItem="HIu-9L-ZiO" secondAttribute="centerX" id="wwg-zf-RmY"/>
+                            <constraint firstItem="DJ2-K4-yu9" firstAttribute="height" secondItem="HIu-9L-ZiO" secondAttribute="height" id="1Oc-0X-VJ4"/>
+                            <constraint firstItem="DJ2-K4-yu9" firstAttribute="centerY" secondItem="HIu-9L-ZiO" secondAttribute="centerY" id="PGU-Vw-arf"/>
+                            <constraint firstItem="iJD-L6-Qwb" firstAttribute="centerX" secondItem="HIu-9L-ZiO" secondAttribute="centerX" id="SfD-Hc-zZ5"/>
+                            <constraint firstItem="DJ2-K4-yu9" firstAttribute="width" secondItem="HIu-9L-ZiO" secondAttribute="width" id="TME-Tg-cY9"/>
+                            <constraint firstItem="DJ2-K4-yu9" firstAttribute="centerX" secondItem="HIu-9L-ZiO" secondAttribute="centerX" id="b9x-Pz-Jjg"/>
+                            <constraint firstItem="w1o-Hm-Uzr" firstAttribute="top" secondItem="iJD-L6-Qwb" secondAttribute="bottom" constant="10" id="krd-Lv-ZpR"/>
+                            <constraint firstItem="iJD-L6-Qwb" firstAttribute="width" secondItem="HIu-9L-ZiO" secondAttribute="width" multiplier="0.5" id="qhy-Xx-khf"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="ilh-R5-nn9"/>
@@ -695,30 +709,72 @@
                             <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DBD-Vz-uBo">
                                 <rect key="frame" x="-1" y="675" width="376" height="233"/>
                                 <subviews>
-                                    <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="eRp-km-MKL">
+                                    <stackView opaque="NO" contentMode="scaleAspectFit" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="eRp-km-MKL">
                                         <rect key="frame" x="0.0" y="0.0" width="376" height="233"/>
                                         <subviews>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S7n-zd-nQS">
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fY3-Xj-2Ah">
                                                 <rect key="frame" x="0.0" y="0.0" width="126" height="233"/>
-                                                <state key="normal" image="Valet"/>
-                                                <connections>
-                                                    <action selector="onValet:" destination="qfS-tC-vNs" eventType="touchUpInside" id="3qk-0a-Bbd"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tTH-9d-SAt">
+                                                <subviews>
+                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S7n-zd-nQS">
+                                                        <rect key="frame" x="26" y="79" width="75" height="75"/>
+                                                        <constraints>
+                                                            <constraint firstAttribute="width" secondItem="S7n-zd-nQS" secondAttribute="height" multiplier="1:1" id="ZnI-br-CpW"/>
+                                                            <constraint firstAttribute="height" constant="75" id="eas-Ov-HeG"/>
+                                                        </constraints>
+                                                        <state key="normal" image="Valet"/>
+                                                        <connections>
+                                                            <action selector="onValet:" destination="qfS-tC-vNs" eventType="touchUpInside" id="3qk-0a-Bbd"/>
+                                                        </connections>
+                                                    </button>
+                                                </subviews>
+                                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                <constraints>
+                                                    <constraint firstItem="S7n-zd-nQS" firstAttribute="centerY" secondItem="fY3-Xj-2Ah" secondAttribute="centerY" id="PBL-bw-yXy"/>
+                                                    <constraint firstItem="S7n-zd-nQS" firstAttribute="centerX" secondItem="fY3-Xj-2Ah" secondAttribute="centerX" id="k2l-sY-QXQ"/>
+                                                </constraints>
+                                            </view>
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="TiW-1R-W4O">
                                                 <rect key="frame" x="126" y="0.0" width="125" height="233"/>
-                                                <state key="normal" image="Trunk"/>
-                                                <connections>
-                                                    <action selector="onTrunk:" destination="qfS-tC-vNs" eventType="touchUpInside" id="mk5-tJ-8dg"/>
-                                                </connections>
-                                            </button>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yu9-6M-re0">
+                                                <subviews>
+                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tTH-9d-SAt">
+                                                        <rect key="frame" x="25" y="79" width="75" height="75"/>
+                                                        <constraints>
+                                                            <constraint firstAttribute="width" secondItem="tTH-9d-SAt" secondAttribute="height" multiplier="1:1" id="h67-cl-h7I"/>
+                                                            <constraint firstAttribute="height" constant="75" id="wDn-GX-LgL"/>
+                                                        </constraints>
+                                                        <state key="normal" image="Trunk"/>
+                                                        <connections>
+                                                            <action selector="onTrunk:" destination="qfS-tC-vNs" eventType="touchUpInside" id="mk5-tJ-8dg"/>
+                                                        </connections>
+                                                    </button>
+                                                </subviews>
+                                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                <constraints>
+                                                    <constraint firstItem="tTH-9d-SAt" firstAttribute="centerY" secondItem="TiW-1R-W4O" secondAttribute="centerY" id="5d4-ua-HEw"/>
+                                                    <constraint firstItem="tTH-9d-SAt" firstAttribute="centerX" secondItem="TiW-1R-W4O" secondAttribute="centerX" id="fym-Hz-TDJ"/>
+                                                </constraints>
+                                            </view>
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Frv-9k-u5R">
                                                 <rect key="frame" x="251" y="0.0" width="125" height="233"/>
-                                                <state key="normal" image="Garage"/>
-                                                <connections>
-                                                    <action selector="onGarage:" destination="qfS-tC-vNs" eventType="touchUpInside" id="Z43-bC-9Rh"/>
-                                                </connections>
-                                            </button>
+                                                <subviews>
+                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yu9-6M-re0">
+                                                        <rect key="frame" x="25" y="79" width="75" height="75"/>
+                                                        <constraints>
+                                                            <constraint firstAttribute="height" constant="75" id="ALF-JT-Fna"/>
+                                                            <constraint firstAttribute="width" secondItem="yu9-6M-re0" secondAttribute="height" multiplier="1:1" id="zEX-J0-CtP"/>
+                                                        </constraints>
+                                                        <state key="normal" image="Garage"/>
+                                                        <connections>
+                                                            <action selector="onGarage:" destination="qfS-tC-vNs" eventType="touchUpInside" id="Z43-bC-9Rh"/>
+                                                        </connections>
+                                                    </button>
+                                                </subviews>
+                                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                <constraints>
+                                                    <constraint firstItem="yu9-6M-re0" firstAttribute="centerX" secondItem="Frv-9k-u5R" secondAttribute="centerX" id="jNg-mK-MB6"/>
+                                                    <constraint firstItem="yu9-6M-re0" firstAttribute="centerY" secondItem="Frv-9k-u5R" secondAttribute="centerY" id="ltR-ia-EOV"/>
+                                                </constraints>
+                                            </view>
                                         </subviews>
                                     </stackView>
                                 </subviews>

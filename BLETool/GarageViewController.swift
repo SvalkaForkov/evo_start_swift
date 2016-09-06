@@ -14,7 +14,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     @IBOutlet var buttonAdd: UIButton!
     @IBOutlet var tableView: UITableView!
-    
+    let tag_default_module = "defaultModule"
     var centralManager:CBCentralManager!
     var vehicles : [Vehicle] = []
     var selectedModule = ""
@@ -22,7 +22,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     override func viewDidLoad() {
         super.viewDidLoad()
         print("GarageViewController : garage viewDidLoad")
-//        addLayer()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -84,8 +83,13 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             vehicles.removeAtIndex(indexPath.row)
             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
             dataController!.deleteVehicleByName(vehicleToDelete.name!)
-            if vehicles.count == 0 {
-                setDefault("")
+            let currentDefault = getDefaultModuleName()
+            if vehicleToDelete.module == currentDefault {
+                if vehicles.count == 0 {
+                    setDefault("")
+                }else{
+                    setDefault(vehicles[0].module!)
+                }
             }
         }
     }
@@ -145,13 +149,25 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func setDefault(value: String){
         print("Set default : \(value)")
-        NSUserDefaults.standardUserDefaults().setObject(value, forKey: "defaultModule")
+        NSUserDefaults.standardUserDefaults().setObject(value, forKey: tag_default_module)
         let defaultModule =
-            NSUserDefaults.standardUserDefaults().objectForKey("defaultModule")
+            NSUserDefaults.standardUserDefaults().objectForKey(tag_default_module)
                 as? String
         print("Default now is : \(defaultModule)")
     }
     
+    func getDefaultModuleName() -> String{
+        print("Get Default Module Name")
+        let defaultModule = NSUserDefaults.standardUserDefaults().objectForKey(tag_default_module)
+            as? String
+        if defaultModule != nil {
+            print("default is not nil : \(defaultModule)")
+            return defaultModule!
+        }else{
+            print("default is nil")
+            return ""
+        }
+    }
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "garage2control" {
             print("prepareForSegue -> control scene")

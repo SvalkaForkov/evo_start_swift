@@ -41,8 +41,8 @@ extension Int {
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
     
-    let ACK_door_unlocked = "000fc001"
-    let ACK_door_locked = "000f`8001"
+    let ACK_door_unlocked = "00000002" //000fc001 //00000002
+    let ACK_door_locked = "00008001" //000f8001 //00008001
     let ACK_trunk_unlocked = ""
     let ACK_trunk_locked = ""
     let ACK_engine_started = "00000201"
@@ -68,7 +68,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var startTime = 0.0
     var longPressCountDown = 0
     var isPressing = false
-    var indicator = 0 // 0: Whole car;  1: Engine; 2: Trunk
     
     @IBOutlet var buttonLock: UIButton!
     @IBOutlet var buttonUnlock: UIButton!
@@ -91,7 +90,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var imageViewCar: UIImageView!
     @IBOutlet var labelMessage: UILabel!
     @IBOutlet var capContainerView: UIView!
-   
+    
     @IBOutlet var slideUpView: UIView!
     
     @IBOutlet var buttonAddFromEmpty: UIButton!
@@ -522,6 +521,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showLocked(){
+        print("SHOW LOCKED")
         UIView.animateWithDuration(200, animations: {
             self.buttonLock.setImage(UIImage(named: "Lock_Glow"), forState: .Normal)
             self.buttonUnlock.setImage(UIImage(named: "Unlock"), forState: .Normal)
@@ -625,22 +625,26 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onButtonMore(sender: UIButton) {
         flipControl()
-        //        if module != "" {
-        //            logEvent("on Garage button clicked")
-        //            centralManager.stopScan()
-        //            if peripheral != nil {
-        //                centralManager.cancelPeripheralConnection(peripheral)
-        //                centralManager = nil
-        //                logEvent("disconnect")
-        //            }
-        //            performSegueWithIdentifier("control2garage", sender: sender)
-        //        }else{
-        //            performSegueWithIdentifier("control2scan", sender: sender)
-        //        }
     }
     
     @IBAction func onGPSButton(sender: UIButton) {
-        performSegueWithIdentifier("control2map", sender: sender)
+        if showingBack {
+            showingBack = false
+            UIView.animateWithDuration(0.5, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.slideUpView.hidden = true
+                    self.performSegueWithIdentifier("control2map", sender: sender)
+            })
+        }else{
+            performSegueWithIdentifier("control2map", sender: sender)
+        }
     }
     
     func removeTopbarShadow() {
@@ -663,7 +667,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         navigationController?.navigationBar.barStyle = UIBarStyle.BlackTranslucent
         navigationController?.navigationBar.tintColor = UIColor.darkGrayColor()  //set navigation item title color
         navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.blueColor()]    //set Title color
-        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 20)!]
+        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Zapfino", size: 20)!]
         removeTopbarShadow()
     }
     
@@ -676,20 +680,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         )
     }
     
-    func displayMessage(line: String){
-        labelMessage.text = line
-        //        UIView.animateWithDuration(200, animations: {
-        //            self.labelMessage.layer.position = CGPoint(x: 1.0,y: 1.0)
-        //            self.labelMessage.alpha = 0.5
-        //        })
-    }
+   
     
     func getDefaultModuleName() -> String{
         logEvent("Get Default Module Name")
         let defaultModule = NSUserDefaults.standardUserDefaults().objectForKey(tag_default_module)
             as? String
         if defaultModule != nil {
-            logEvent("default is not nil : \(module)")
+            logEvent("default is not nil : \(defaultModule)")
             return defaultModule!
         }else{
             logEvent("default is nil")
@@ -850,13 +848,75 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onGarage(sender: UIButton) {
-        performSegueWithIdentifier("control2garage", sender: sender)
+        if showingBack {
+            showingBack = false
+            UIView.animateWithDuration(0.5, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.slideUpView.hidden = true
+                    self.performSegueWithIdentifier("control2garage", sender: sender)
+            })
+        }else{
+            performSegueWithIdentifier("control2garage", sender: sender)
+        }
     }
     @IBAction func onTrunk(sender: UIButton) {
         print("trunk")
     }
     @IBAction func onValet(sender: UIButton) {
         print("valet")
+    }
+    
+    func displayMessage(line: String){
+        UIView.animateWithDuration(0.5, animations: {
+            self.labelMessage.alpha = 0
+            self.labelMessage.center.y = self.labelMessage.center.y - self.labelMessage.bounds.height
+            }, completion: { finished in
+                UIView.animateWithDuration(0.1, animations: {
+                    self.labelMessage.text = line
+                    self.labelMessage.center.y = self.labelMessage.center.y + 1.5 * self.labelMessage.bounds.height
+                    }, completion: { fininshed in
+                        UIView.animateWithDuration(0.5, animations: {
+                            self.labelMessage.alpha = 1
+                            self.labelMessage.center.y = self.labelMessage.center.y - 0.5 * self.labelMessage.bounds.height
+                            }, completion: { finished in
+                                self.labelMessage.layoutIfNeeded()
+                            })
+                })
+                
+        })
+//
+//        UIView.animateKeyframesWithDuration(1.1, delay: 0, options: UIViewKeyframeAnimationOptions.CalculationModeLinear, animations: {
+//            
+//            UIView.addKeyframeWithRelativeStartTime(0.0, relativeDuration: 0.5) {
+//                self.labelMessage.alpha = 0
+//                self.labelMessage.center.y = self.labelMessage.center.y - self.labelMessage.bounds.height
+//            }
+//            
+//            UIView.addKeyframeWithRelativeStartTime(0.5, relativeDuration: 0.1) {
+//                self.labelMessage.alpha = 0
+//                self.labelMessage.center.y = self.labelMessage.center.y + 1.5 * self.labelMessage.bounds.height
+//            }
+//            
+//            UIView.animateWithDuration(0.1, delay: 0.5, options: UIViewAnimationOptions.CurveEaseIn, animations: {
+//                }, completion: {
+//                    finished in
+//                    self.labelMessage.text = line
+//            })
+//            
+//            UIView.addKeyframeWithRelativeStartTime(0.6, relativeDuration: 0.5) {
+//                self.labelMessage.alpha = 1
+//                self.labelMessage.center.y = self.labelMessage.center.y - 0.5 * self.labelMessage.bounds.height
+//            }
+//            }, completion: {
+//                finished in
+//        })
     }
 }
 
