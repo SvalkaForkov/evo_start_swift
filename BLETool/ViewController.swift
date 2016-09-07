@@ -659,15 +659,24 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func setUpNavigationBar(){
         logEvent("SetUpNavigationBar")
-        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
-        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.yellowColor()], forState: UIControlState.Normal)
+//        let backItem = UIBarButtonItem()
+//        backItem.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "NeuropolXRg-Regular", size: 20)!], forState: .Normal)
         navigationController?.navigationBar.setBackgroundImage(UIImage(), forBarMetrics: .Default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        navigationController?.navigationBar.translucent = true
-        navigationController?.navigationBar.barStyle = UIBarStyle.BlackTranslucent
-        navigationController?.navigationBar.tintColor = UIColor.darkGrayColor()  //set navigation item title color
-        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.blueColor()]    //set Title color
-        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Zapfino", size: 20)!]
+//        navigationController?.navigationBar.shadowImage = UIImage()
+//        navigationController?.navigationBar.translucent = true
+//        navigationController?.navigationBar.barStyle = UIBarStyle.BlackTranslucent
+//        navigationController?.navigationBar.tintColor = UIColor.lightGrayColor()  //set navigation back item title color
+//         navigationController?.navigationBar.barTintColor = UIColor.redColor()
+//        
+//        for name in UIFont.familyNames() {
+//            print("\(name)\n")
+//            if let nameString = name as? String {
+//                print(UIFont.fontNamesForFamilyName(nameString))
+//            }
+//        }
+        navigationController?.navigationBar.topItem?.backBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "NeuropolXRg-Regular", size: 20)!], forState: .Normal)
+        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.greenColor()]    //set Title color
+        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "NeuropolXRg-Regular", size: 20)!]
         removeTopbarShadow()
     }
     

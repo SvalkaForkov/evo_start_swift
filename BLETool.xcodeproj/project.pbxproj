@@ -41,6 +41,7 @@
 		CFFD92811D6F442D0090F633 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CFFD92801D6F442D0090F633 /* QuartzCore.framework */; };
 		CFFD92831D6F44340090F633 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CFFD92821D6F44340090F633 /* SystemConfiguration.framework */; };
 		CFFD92851D6F443C0090F633 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CFFD92841D6F443C0090F633 /* UIKit.framework */; };
+		CFFF4D8F1D80AB8E00A3E303 /* neuropol x rg.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CFFF4D8E1D80AB8E00A3E303 /* neuropol x rg.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +93,7 @@
 		CFFD92801D6F442D0090F633 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		CFFD92821D6F44340090F633 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		CFFD92841D6F443C0090F633 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		CFFF4D8E1D80AB8E00A3E303 /* neuropol x rg.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "neuropol x rg.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,6 +133,7 @@
 		CF1C2AAA1C766F6B009F2892 = {
 			isa = PBXGroup;
 			children = (
+				CFFF4D8E1D80AB8E00A3E303 /* neuropol x rg.ttf */,
 				CFFD92841D6F443C0090F633 /* UIKit.framework */,
 				CFFD92821D6F44340090F633 /* SystemConfiguration.framework */,
 				CFFD92801D6F442D0090F633 /* QuartzCore.framework */,
@@ -249,6 +252,9 @@
 		CF1C2AAB1C766F6B009F2892 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				KnownAssetTags = (
+					neuropo,
+				);
 				LastSwiftUpdateCheck = 0720;
 				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = fortin;
@@ -291,6 +297,7 @@
 				CF1C2AC11C766F6B009F2892 /* LaunchScreen.storyboard in Resources */,
 				CF1C2ABE1C766F6B009F2892 /* Assets.xcassets in Resources */,
 				CF1C2ABC1C766F6B009F2892 /* Main.storyboard in Resources */,
+				CFFF4D8F1D80AB8E00A3E303 /* neuropol x rg.ttf in Resources */,
 				CFFD926B1D6F43130090F633 /* GoogleMaps.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
