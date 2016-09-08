@@ -50,9 +50,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     override func viewDidAppear(animated: Bool) {
         print("viewDidAppear")
         setLastScene()
-        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.longPress))
-        longPressRecognizer.minimumPressDuration = 1.5
-        tableView.addGestureRecognizer(longPressRecognizer)
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -222,22 +219,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func setLastScene(){
         print("getLsetLastScene : Garage")
         NSUserDefaults.standardUserDefaults().setObject("Garage", forKey: "lastScene")
-    }
-    
-    func longPress(longPressGestureRecognizer: UILongPressGestureRecognizer) {
-        print("longpress on cell")
-        if longPressGestureRecognizer.state == UIGestureRecognizerState.Began {
-            print("UIGestureRecognizerState.Began")
-            let touchPoint = longPressGestureRecognizer.locationInView(tableView)
-            print(touchPoint)
-            if let indexPath = tableView.indexPathForRowAtPoint(touchPoint) {
-                print("indexPath.\(indexPath)")
-                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade);
-                            tableView.reloadData()
-            }
-        }else if longPressGestureRecognizer.state == UIGestureRecognizerState.Ended {
-            print("UIGestureRecognizerState.Ended")
-        }
     }
     
     func setUpNavigationBar(){

@@ -41,8 +41,10 @@ extension Int {
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
     
-    let ACK_door_unlocked = "00000002" //000fc001 //00000002
-    let ACK_door_locked = "00008001" //000f8001 //00008001
+    let ACK_door_unlocked = "000fc001" //000fc001 //00000002
+    let ACK_door_unlocked_old = "000f0002"
+    let ACK_door_locked = "000f8001"
+    let ACK_door_locked_old = "00008001"//000f8001 //00008001
     let ACK_trunk_unlocked = ""
     let ACK_trunk_locked = ""
     let ACK_engine_started = "00000201"
@@ -58,12 +60,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var showingBack = false
     var module = ""
     var countSendTime = 0
-    var matchFound = false
-    var receivedLock = false
-    var receivedUnlock = false
-    var receivedStart = false
-    var receivedStop = false
-    var started = false
+    
     var isManuallyDisconnected = false
     var startTime = 0.0
     var longPressCountDown = 0
@@ -77,6 +74,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var buttonTrunk: UIButton!
     @IBOutlet var buttonValet: UIButton!
     @IBOutlet var coverView: UIView!
+    
+    @IBOutlet var coverView2: UIView!
     @IBOutlet var buttonGPS: UIButton!
     @IBOutlet var imageCap: UIImageView!
     @IBOutlet var imageStart: UIImageView!
@@ -108,6 +107,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var stateTemperature = 0
     var stateRPM = 0
     var stateFuel = 0
+    
+    var matchFound = false
+    var receivedLock = false
+    var receivedUnlock = false
+    var receivedStart = false
+    var receivedStop = false
+    var connected = false
     
     override func viewDidLoad() {
         logEvent("ViewController : viewDidLoad")
@@ -143,6 +149,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if centralManager != nil && peripheral != nil{
             centralManager.cancelPeripheralConnection(peripheral)
             centralManager = nil
+            connected = false
         }
     }
     
@@ -157,10 +164,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             matchFound = false
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 self.logEvent("dispatch_async : find matched module")
-                sleep(1)
+                sleep(2)
                 dispatch_async(dispatch_get_main_queue(),{
                     if !self.matchFound {
                         self.logEvent("No match module found")
+                        self.coverView2.hidden = false
                     }else{
                         self.logEvent("Match module found")
                     }
@@ -207,6 +215,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
         logEvent("didConnectPeripheral")
+        connected = true
+        self.coverView2.hidden = true
         setDefaultModule(peripheral.name!)
         peripheral.discoverServices([CBUUID(string: "1234")])
         logEvent("DiscoverService: 1234")
@@ -221,6 +231,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             logEvent("Found service: \(service.UUID)")
             peripheral.discoverCharacteristics([CBUUID(string: "1235"),CBUUID(string: "1236")], forService: service)
         }
+    }
+    
+    func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
+        print("failed to connect")
     }
     
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
@@ -240,55 +254,84 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         showControl(true)
     }
     
+    func nsdataToInt(data: NSData) -> UInt32 {
+        var result : UInt32 = 0
+        data.getBytes(&result, length: sizeof(UInt32))
+//        let hex = data.hexString
+        return result
+    }
+    
+    func hexStringToInt(hex: String) -> UInt32 {
+        return UInt32(strtoul(hex, nil, 16))
+    }
+    
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        let val = characteristic.value!.hexString
-        if(val == ACK_door_locked){
-            //ack for locked
-            logEvent("\(val) : \(countSendTime)")
-            countSendTime += 1
-            if !receivedLock{
-                receivedLock = true
-                showLocked()            }
-        }else if(val == ACK_door_unlocked){
-            //ack for unlocked
-            logEvent("\(val) : \(countSendTime)")
-            countSendTime += 1
-            if !receivedUnlock{
-                receivedUnlock = true
-                showUnlocked()
-            }
-        }else if(val == ACK_engine_started){
-            //ack for started
-            started = true
-            logEvent("\(val) : \(countSendTime)")
-            countSendTime += 1
-            if !receivedStart{
-                receivedStart = true
-                showStarted()
-            }
-        }else if(val == ACK_engine_stopped){
-            started = false
-            //ack for stopped
-            logEvent("\(val) : \(countSendTime)")
-            countSendTime += 1
-            if !receivedStop{
-                receivedStop = true
-                showStopped()
-            }
-        }else if(val == "0240000f"){
-            //ack for locked
-            logEvent("\(val) : \(countSendTime)")
-            displayMessage("0240000f")
-        }else{
-            logEvent("\(val) : \(countSendTime)")
-            logEvent("\(val) : \(countSendTime)")
-            countSendTime += 1
-            receivedLock = true
-            receivedStop = true
-            receivedStart = true
-            receivedUnlock = true
+        let str = characteristic.value!.hexString
+        let intValue = hexStringToInt(characteristic.value!.hexString)
+        print(intValue)
+        let mask : UInt32 = 0x00004000
+        let v = intValue & mask
+        
+        if v != 0
+        {
+            print("Door Open");
         }
-        logEvent("Charateristic's value has updated : \(val!)")
+        
+        
+//        let val = characteristic.value!.hexString
+//        if val == ACK_door_locked || val == ACK_door_locked_old{
+//            //ack for locked
+//            logEvent("\(val) : \(countSendTime)")
+//            countSendTime += 1
+//            if !receivedLock{
+//                receivedLock = true
+//                showLocked()            }
+//        }else if val == ACK_door_unlocked || val == ACK_door_unlocked_old{
+//            //ack for unlocked
+//            logEvent("\(val) : \(countSendTime)")
+//            countSendTime += 1
+//            if !receivedUnlock{
+//                receivedUnlock = true
+//                showUnlocked()
+//            }
+//        }else if(val == ACK_engine_started){
+//            //ack for started
+//            stateEngine = true
+//            logEvent("\(val) : \(countSendTime)")
+//            countSendTime += 1
+//            if !receivedStart{
+//                receivedStart = true
+//                showStarted()
+//            }
+//        }else if(val == ACK_engine_stopped){
+//            stateEngine = false
+//            //ack for stopped
+//            logEvent("\(val) : \(countSendTime)")
+//            countSendTime += 1
+//            if !receivedStop{
+//                receivedStop = true
+//                showStopped()
+//            }
+//        }else if(val == "0240000f"){
+//            //ack for locked
+//            logEvent("\(val) : \(countSendTime)")
+//            displayMessage("0240000f")
+//        }else if (characteristic.value!. & 0x00004000){
+//            //ack for locked
+//            logEvent("\(val) : \(countSendTime)")
+//            displayMessage("door open")
+//        }else{
+//            logEvent("\(val) : \(countSendTime)")
+//            if DBG {
+//                printMessage(val)
+//            }
+//            countSendTime += 1
+//            receivedLock = true
+//            receivedStop = true
+//            receivedStart = true
+//            receivedUnlock = true
+//        }
+//        logEvent("Charateristic's value has updated : \(val!)")
     }
     
     func showControl(val: Bool){
@@ -319,8 +362,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     
     @IBAction func onStart(sender: UIButton) {
-        logEvent("on start: started = \(started)")
-        if started {
+        logEvent("on start: started = \(stateEngine)")
+        if stateEngine {
             logEvent("go stop engine")
             stopEngine()
         } else {
@@ -333,7 +376,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         logEvent("startEngine")
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
         sendCommend(data, action: 2)
-        started = true
+        stateEngine = true
     }
     
     func stopEngine() {
@@ -341,11 +384,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
         receivedStop = false
         sendCommend(data, action: 3)
-        started = false
+        stateEngine = false
     }
     
     func sendCommend(data : NSData, action : Int){
-        logEvent("ViewController : sendCommend")
+        logEvent("SendCommend")
         if peripheral != nil && writeCharacteristic != nil {
             countSendTime = 0
             var flag : Bool
@@ -555,6 +598,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
         logEvent("Disconnected")
+        connected = false
+        coverView2.hidden = false
         if !isManuallyDisconnected {
             central.scanForPeripheralsWithServices(nil, options: nil)
             showControl(false)
@@ -578,7 +623,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     usleep(150000)
                 }
                 if self.longPressCountDown>5{
-                    if self.started {
+                    if self.stateEngine {
                         self.stopEngine()
                     }else {
                         self.startEngine()
@@ -659,21 +704,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func setUpNavigationBar(){
         logEvent("SetUpNavigationBar")
-//        let backItem = UIBarButtonItem()
-//        backItem.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "NeuropolXRg-Regular", size: 20)!], forState: .Normal)
         navigationController?.navigationBar.setBackgroundImage(UIImage(), forBarMetrics: .Default)
-//        navigationController?.navigationBar.shadowImage = UIImage()
-//        navigationController?.navigationBar.translucent = true
-//        navigationController?.navigationBar.barStyle = UIBarStyle.BlackTranslucent
-//        navigationController?.navigationBar.tintColor = UIColor.lightGrayColor()  //set navigation back item title color
-//         navigationController?.navigationBar.barTintColor = UIColor.redColor()
-//        
-//        for name in UIFont.familyNames() {
-//            print("\(name)\n")
-//            if let nameString = name as? String {
-//                print(UIFont.fontNamesForFamilyName(nameString))
-//            }
-//        }
         navigationController?.navigationBar.topItem?.backBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "NeuropolXRg-Regular", size: 20)!], forState: .Normal)
         navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.greenColor()]    //set Title color
         navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "NeuropolXRg-Regular", size: 20)!]
@@ -689,7 +720,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         )
     }
     
-   
+    func printFontFamily(){
+        for name in UIFont.familyNames() {
+            print("\(name)\n")
+            if let nameString = name
+                as? String {
+                print(UIFont.fontNamesForFamilyName(nameString))
+            }
+        }
+    }
     
     func getDefaultModuleName() -> String{
         logEvent("Get Default Module Name")
@@ -882,6 +921,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         print("valet")
     }
     
+    @IBAction func onGoToGarage(sender: UIButton) {
+        performSegueWithIdentifier("control2garage", sender: sender)
+    }
+    
+    @IBAction func onRetry(sender: UIButton) {
+        
+    }
+    
     func displayMessage(line: String){
         UIView.animateWithDuration(0.5, animations: {
             self.labelMessage.alpha = 0
@@ -900,32 +947,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 })
                 
         })
-//
-//        UIView.animateKeyframesWithDuration(1.1, delay: 0, options: UIViewKeyframeAnimationOptions.CalculationModeLinear, animations: {
-//            
-//            UIView.addKeyframeWithRelativeStartTime(0.0, relativeDuration: 0.5) {
-//                self.labelMessage.alpha = 0
-//                self.labelMessage.center.y = self.labelMessage.center.y - self.labelMessage.bounds.height
-//            }
-//            
-//            UIView.addKeyframeWithRelativeStartTime(0.5, relativeDuration: 0.1) {
-//                self.labelMessage.alpha = 0
-//                self.labelMessage.center.y = self.labelMessage.center.y + 1.5 * self.labelMessage.bounds.height
-//            }
-//            
-//            UIView.animateWithDuration(0.1, delay: 0.5, options: UIViewAnimationOptions.CurveEaseIn, animations: {
-//                }, completion: {
-//                    finished in
-//                    self.labelMessage.text = line
-//            })
-//            
-//            UIView.addKeyframeWithRelativeStartTime(0.6, relativeDuration: 0.5) {
-//                self.labelMessage.alpha = 1
-//                self.labelMessage.center.y = self.labelMessage.center.y - 0.5 * self.labelMessage.bounds.height
-//            }
-//            }, completion: {
-//                finished in
-//        })
+    }
+    
+    func printMessage(line: String){
+        labelMessage.text = line
     }
 }
 
