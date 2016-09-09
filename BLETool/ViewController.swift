@@ -41,15 +41,6 @@ extension Int {
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
     
-    let ACK_door_unlocked = "000fc001" //000fc001 //00000002
-    let ACK_door_unlocked_old = "000f0002"
-    let ACK_door_locked = "000f8001"
-    let ACK_door_locked_old = "00008001"//000f8001 //00008001
-    let ACK_trunk_unlocked = ""
-    let ACK_trunk_locked = ""
-    let ACK_engine_started = "00000201"
-    let ACK_engine_stopped = "00000001"
-    
     let mask9lock : UInt32 = 0x00008000
     let mask9doors : UInt32 = 0x00004000
     let mask9trunk : UInt32 = 0x00002000
@@ -59,20 +50,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     let mask9remote : UInt32 = 0x00000200
     let mask9valet : UInt32 = 0x00000100
     
-    
     let tag_default_module = "defaultModule"
     let tag_last_scene = "lastScene"
+    let fontName = "NeuropolXRg-Regular"
+    
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
     var service : CBService!
     var writeCharacteristic : CBCharacteristic!
     var notificationCharacteristic : CBCharacteristic!
-    var showingBack = false
-    var module = ""
-    var countSendTime = 0
     
-    var isManuallyDisconnected = false
-    var startTime = 0.0
+    var paneSlidedUp = false
+    var module = ""
+    
     var longPressCountDown = 0
     var isPressing = false
     
@@ -80,12 +70,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var buttonUnlock: UIButton!
     @IBOutlet var buttonMore: UIButton!
     
+    @IBOutlet var coverEmptyGarage: UIView!
     @IBOutlet var buttonGarage: UIButton!
     @IBOutlet var buttonTrunk: UIButton!
     @IBOutlet var buttonValet: UIButton!
-    @IBOutlet var coverView: UIView!
     
-    @IBOutlet var coverView2: UIView!
+    @IBOutlet var coverLostConnection: UIView!
+    @IBOutlet var stateView: UIView!
     @IBOutlet var buttonGPS: UIButton!
     @IBOutlet var imageCap: UIImageView!
     @IBOutlet var imageStart: UIImageView!
@@ -124,21 +115,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var stateRPM = 0
     var stateFuel = 0
     
-    var matchFound = false
-//    var receivedLock = false
-//    var receivedUnlock = false
-//    var receivedOpen = false
-//    var receivedClose = false
-//    var receivedTrunkOpen = false
-//    var receivedTrunkClose = false
-//    var receivedHoodOpen = false
-//    var receivedHoodClose = false
-//    var receivedIdgnitionOn = false
-//    var receivedIgnitionOff = false
-//    var receivedStart = false
-//    var receivedStop = false
-//    var received
-    var connected = false
+    var isMatchFound = false
+    var isConnected = false
     
     override func viewDidLoad() {
         logEvent("ViewController : viewDidLoad")
@@ -151,11 +129,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         logEvent("ViewController : viewWillAppear")
         module = getDefaultModuleName()
         if module != "" {
-            coverView.hidden = true
+            coverEmptyGarage.hidden = true
             centralManager = CBCentralManager(delegate: self, queue:nil)
             buttonMore.setImage(UIImage(named: "More Control"), forState: .Normal)
         }else{
-            coverView.hidden = false
+            coverEmptyGarage.hidden = false
         }
     }
     
@@ -165,7 +143,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
         needleRPM.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getRPMAngle(0) / 180)
         needleFuel.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getFuelAngle(0) / 180)
-        needleTemp.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getTempAngle(0) / 180)
+        needleTemp.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getTempAngle(-40) / 180)
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -174,7 +152,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if centralManager != nil && peripheral != nil{
             centralManager.cancelPeripheralConnection(peripheral)
             centralManager = nil
-            connected = false
+            isConnected = false
         }
     }
     
@@ -186,14 +164,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         switch(central.state){
         case CBCentralManagerState.PoweredOn:
             logEvent("CBCentralManagerState.PoweredOn")
-            matchFound = false
+            isMatchFound = false
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 self.logEvent("dispatch_async : find matched module")
                 sleep(2)
                 dispatch_async(dispatch_get_main_queue(),{
-                    if !self.matchFound {
+                    if !self.isMatchFound {
                         self.logEvent("No match module found")
-                        self.coverView2.hidden = false
+                        self.coverLostConnection.hidden = false
                     }else{
                         self.logEvent("Match module found")
                     }
@@ -228,7 +206,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             logEvent("Default module is : \(module)")
             if nameOfDeviceFound == module{
                 logEvent("Match and stop scan")
-                matchFound = true
+                isMatchFound = true
                 centralManager.stopScan()
                 self.peripheral = peripheral
                 self.peripheral.delegate = self
@@ -240,8 +218,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
         logEvent("didConnectPeripheral")
-        connected = true
-        self.coverView2.hidden = true
+        isConnected = true
+        self.coverLostConnection.hidden = true
         setDefaultModule(peripheral.name!)
         peripheral.discoverServices([CBUUID(string: "1234")])
         logEvent("DiscoverService: 1234")
@@ -296,23 +274,23 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         //        let masks9 : [UInt32] = [mask9lock, mask9doors, mask9trunk, mask9hood, mask9ignition, mask9engine, mask9remote, mask9valet]
         
         if intValue & mask9lock != 0 {
-            showLocked()
             if waitingList.contains(0x71){
                 let index = waitingList.indexOf(0x71)
                 waitingList.removeAtIndex(index!)
+                showLocked()
             }
             stateLock = true
         }else{
-            showUnlocked()
             if waitingList.contains(0x70){
                 let index = waitingList.indexOf(0x70)
                 waitingList.removeAtIndex(index!)
+                showUnlocked()
             }
             stateLock = false
         }
         if intValue & mask9doors != 0 {
             if !stateDoor {
-//                showOpened()
+                showDoorOpened()
             }
             if waitingList.contains(0x61){
                 let index = waitingList.indexOf(0x61)
@@ -321,7 +299,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             stateDoor = true
         }else{
             if stateDoor {
-//                showClosed()
+                showDoorClosed()
             }
             if waitingList.contains(0x60){
                 let index = waitingList.indexOf(0x60)
@@ -331,7 +309,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         if intValue & mask9trunk != 0 {
             if !stateTrunk {
-//                showLocked()
+showTrunkOpened()
             }
             if waitingList.contains(0x51){
                 let index = waitingList.indexOf(0x51)
@@ -340,7 +318,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             stateTrunk = true
         }else{
             if stateTrunk {
-//                showUnlocked()
+showTrunkClosed()
             }
             if waitingList.contains(0x50){
                 let index = waitingList.indexOf(0x50)
@@ -350,7 +328,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         if intValue & mask9hood != 0 {
             if !stateHood {
-//                showLocked()
+showHoodOpened()
             }
             if waitingList.contains(0x41){
                 let index = waitingList.indexOf(0x41)
@@ -359,7 +337,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             stateHood = true
         }else{
             if stateHood {
-//                showUnlocked()
+                showHoodClosed()
             }
             if waitingList.contains(0x40){
                 let index = waitingList.indexOf(0x40)
@@ -368,12 +346,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             stateHood = false
         }
         if intValue & mask9ignition != 0 {
-            if !stateIgnition {
-//                showLocked()
-            }
             if waitingList.contains(0x31){
                 let index = waitingList.indexOf(0x31)
                 waitingList.removeAtIndex(index!)
+                showIgnitionOn()
+                print("ignition on")
             }
             stateIgnition = true
         }else{
@@ -688,24 +665,61 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
+    func showIgnitionOn(){
+        updateRPM(8000)
+        updateBatt(100)
+        updateFuel(100)
+        updateTemperature(60)
+        sleep(1)
+        updateRPM(0)
+        updateBatt(0)
+        updateFuel(0)
+        updateTemperature(-40)
+    }
+    
+    func showIgnitionOff(){
+        updateRPM(0)
+        updateBatt(0)
+        updateFuel(0)
+        updateTemperature(-40)
+    }
+    
+    func showTrunkOpened(){
+        displayMessage("Trunk Opened")
+        UIView.animateWithDuration(200, animations: {
+            self.imageViewEngine.image = UIImage(named: "Trunk Opened")
+        })
+        
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+    }
+    
+    func showTrunkClosed(){
+        displayMessage("Trunk closed")
+        UIView.animateWithDuration(200, animations: {
+            self.imageViewEngine.image = nil
+        })
+        
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+    }
+    
     func showStopped(){
         displayMessage("Engine shut off")
-        UIView.animateWithDuration(200, animations: {
-            self.imageViewEngine.image = UIImage(named: "engineoff")
-        })
+//        UIView.animateWithDuration(200, animations: {
+//            self.imageViewEngine.image = nil
+//        })
         
         updateRPM(0)
         updateBatt(0)
         updateFuel(0)
-        updateTemperature(0)
+        updateTemperature(-40)
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
     }
     
     func showStarted(){
         displayMessage("Engine started")
-        UIView.animateWithDuration(200, animations: {
-            self.imageViewEngine.image = UIImage(named: "engineon")
-        })
+//        UIView.animateWithDuration(200, animations: {
+//            self.imageViewEngine.image = UIImage(named: "Engine On")
+//        })
         updateRPM(2500)
         updateBatt(50)
         updateFuel(50)
@@ -713,11 +727,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
     }
     
+    
+    
     func showUnlocked(){
         UIView.animateWithDuration(200, animations: {
-            self.buttonLock.setImage(UIImage(named: "Lock"), forState: .Normal)
-            self.buttonUnlock.setImage(UIImage(named: "Unlock_Glow"), forState: .Normal)
-            self.imageViewDoors.image = UIImage(named: "doorunlocked")
+            self.buttonLock.setImage(UIImage(named: "Button Lock Off"), forState: .Normal)
+            self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
+//            self.imageViewDoors.image = UIImage(named: "Door Unlocked")
         })
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         displayMessage("Door unlocked")
@@ -726,9 +742,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func showLocked(){
         print("SHOW LOCKED")
         UIView.animateWithDuration(200, animations: {
-            self.buttonLock.setImage(UIImage(named: "Lock_Glow"), forState: .Normal)
-            self.buttonUnlock.setImage(UIImage(named: "Unlock"), forState: .Normal)
-            self.imageViewDoors.image = UIImage(named: "doorlocked")
+            self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
+            self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
+//            self.imageViewDoors.image = UIImage(named: "Door Locked")
         })
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         displayMessage("Door locked")
@@ -737,24 +753,35 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func showDoorOpened(){
         print("SHOW LOCKED")
         UIView.animateWithDuration(200, animations: {
-            self.buttonLock.setImage(UIImage(named: "Lock_Glow"), forState: .Normal)
-            self.buttonUnlock.setImage(UIImage(named: "Unlock"), forState: .Normal)
-            self.imageViewDoors.image = UIImage(named: "doorlocked")
+            self.imageViewDoors.image = UIImage(named: "Door Opened")
         })
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        displayMessage("Door locked")
+        displayMessage("Door opened")
     }
     
     func showDoorClosed(){
         UIView.animateWithDuration(200, animations: {
-            self.buttonLock.setImage(UIImage(named: "Lock"), forState: .Normal)
-            self.buttonUnlock.setImage(UIImage(named: "Unlock_Glow"), forState: .Normal)
-            self.imageViewDoors.image = UIImage(named: "doorunlocked")
+            self.imageViewDoors.image = nil
         })
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        displayMessage("Door unlocked")
+        displayMessage("Door closed")
     }
     
+    func showHoodOpened(){
+        UIView.animateWithDuration(200, animations: {
+            self.imageViewEngine.image = UIImage(named: "Engine On")
+        })
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        displayMessage("Hood opened")
+    }
+    
+    func showHoodClosed(){
+        UIView.animateWithDuration(200, animations: {
+            self.imageViewEngine.image = nil
+        })
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        displayMessage("Hood closed")
+    }
     
     func setAnchorPoint(anchorPoint: CGPoint, forView view: UIView) {
         logEvent("Set anchor")
@@ -779,13 +806,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
         logEvent("Disconnected")
-        connected = false
-        coverView2.hidden = false
-        if !isManuallyDisconnected {
-            central.scanForPeripheralsWithServices(nil, options: nil)
-            showControl(false)
-        }
-    }
+        isConnected = false
+        coverLostConnection.hidden = false
+        central.scanForPeripheralsWithServices(nil, options: nil)
+        showControl(false)    }
     
     @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
         switch sender.state {
@@ -793,7 +817,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             logEvent("UIGestureRecognizerState.Began")
             isPressing = true
             longPressCountDown = 0
-            imageStart.image = UIImage(named: "Start Small")
+            imageStart.image = UIImage(named: "Button Start")
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 self.logEvent("now \(self.longPressCountDown)")
                 while self.isPressing && self.longPressCountDown <= 5{
@@ -815,7 +839,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         case UIGestureRecognizerState.Ended:
             logEvent("UIGestureRecognizerState.Ended")
             isPressing = false
-            imageStart.image = UIImage(named: "Start")
+            imageStart.image = UIImage(named: "Button Start Frame")
             break
         default:
             break
@@ -854,8 +878,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onGPSButton(sender: UIButton) {
-        if showingBack {
-            showingBack = false
+        if paneSlidedUp {
+            paneSlidedUp = false
             UIView.animateWithDuration(0.5, animations: {
                 self.capContainerView.alpha = 1
                 self.buttonLock.alpha = 1
@@ -886,9 +910,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func setUpNavigationBar(){
         logEvent("SetUpNavigationBar")
         navigationController?.navigationBar.setBackgroundImage(UIImage(), forBarMetrics: .Default)
-        navigationController?.navigationBar.topItem?.backBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "NeuropolXRg-Regular", size: 20)!], forState: .Normal)
+        navigationController?.navigationBar.topItem?.backBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: fontName, size: 20)!], forState: .Normal)
         navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.greenColor()]    //set Title color
-        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "NeuropolXRg-Regular", size: 20)!]
+        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: fontName, size: 20)!]
         removeTopbarShadow()
     }
     
@@ -901,15 +925,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         )
     }
     
-    func printFontFamily(){
-        for name in UIFont.familyNames() {
-            print("\(name)\n")
-            if let nameString = name
-                as? String {
-                print(UIFont.fontNamesForFamilyName(nameString))
-            }
-        }
-    }
+//    func printFontFamily(){
+//        for name in UIFont.familyNames() {
+//            print("\(name)\n")
+//            if let nameString = name
+//                as? String {
+//                print(UIFont.fontNamesForFamilyName(nameString))
+//            }
+//        }
+//    }
     
     func getDefaultModuleName() -> String{
         logEvent("Get Default Module Name")
@@ -958,16 +982,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }, completion: nil)
     }
     
+    
     func getBattAngle(percentage: CGFloat) -> CGFloat{
         return 313 - percentage/10*12.5
     }
     
     func getFuelAngle(percentage: CGFloat) -> CGFloat{
-        return 60 + 240 * percentage/100
+        return 50 + 260 * percentage/100
     }
     
     func getTempAngle(temp: CGFloat) -> CGFloat{
-        return 360 * temp / 100
+        return 50 + 260 * (temp+40) / 100
     }
     
     func getRPMAngle(rpm: CGFloat) -> CGFloat{
@@ -990,8 +1015,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         rotateViewToAngle(needleFuel, angle: getFuelAngle(percentage))
     }
     
+    var currentAngleTemp : CGFloat = 0
+    
     func updateTemperature(temp: CGFloat){
+        rotateViewToAngle(needleTemp, angle: getTempAngle(temp)/2-currentAngleTemp)
         rotateViewToAngle(needleTemp, angle: getTempAngle(temp))
+        currentAngleTemp = getTempAngle(temp)
     }
     
     func animateFlip(){
@@ -1000,8 +1029,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func flipControl(){
-        if showingBack {
-            showingBack = false
+        if paneSlidedUp {
+            paneSlidedUp = false
             UIView.animateWithDuration(0.5, animations: {
                 self.capContainerView.alpha = 1
                 self.buttonLock.alpha = 1
@@ -1014,7 +1043,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.slideUpView.hidden = true
             })
         }else{
-            showingBack = true
+            paneSlidedUp = true
             self.slideUpView.alpha = 0
             self.slideUpView.hidden = false
             UIView.animateWithDuration(0.5, delay: 0, options: UIViewAnimationOptions.CurveEaseInOut, animations: {
@@ -1063,7 +1092,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let dataController = appDelegate.dataController
         let vehicles : [Vehicle] = dataController.getAllVehicles()
         if vehicles.count > 0 {
-            logEvent("use first vehicle in the database")
+            logEvent("Use first vehicle in the database")
             return vehicles[0].module!
         }else {
             logEvent("no vehicle registerd")
@@ -1073,12 +1102,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onAddFromEmpty(sender: UIButton) {
         performSegueWithIdentifier("control2scan", sender: sender)
-        
     }
     
     @IBAction func onGarage(sender: UIButton) {
-        if showingBack {
-            showingBack = false
+        if paneSlidedUp {
+            paneSlidedUp = false
             UIView.animateWithDuration(0.5, animations: {
                 self.capContainerView.alpha = 1
                 self.buttonLock.alpha = 1
@@ -1096,10 +1124,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     @IBAction func onTrunk(sender: UIButton) {
-        print("trunk")
+        if !stateTrunk {
+            print("open trunk")
+        }else{
+            print("close trunk")
+        }
     }
     @IBAction func onValet(sender: UIButton) {
-        print("valet")
+        if !stateValet {
+            print("activate valet")
+        }else{
+            print("disactivate valet")
+        }
     }
     
     @IBAction func onGoToGarage(sender: UIButton) {
@@ -1126,7 +1162,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                                 self.labelMessage.layoutIfNeeded()
                         })
                 })
-                
         })
     }
     

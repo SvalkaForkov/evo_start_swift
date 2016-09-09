@@ -447,7 +447,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Panel Texture" translatesAutoresizingMaskIntoConstraints="NO" id="Crt-36-j5b">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Texture Gradient" translatesAutoresizingMaskIntoConstraints="NO" id="Crt-36-j5b">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </imageView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dIm-tV-bx7">
@@ -462,16 +462,16 @@
                                         <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="carbackground" translatesAutoresizingMaskIntoConstraints="NO" id="2x0-wL-wXG">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Car Base" translatesAutoresizingMaskIntoConstraints="NO" id="2x0-wL-wXG">
                                         <rect key="frame" x="0.0" y="0.0" width="179" height="186"/>
                                     </imageView>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="trunklock" translatesAutoresizingMaskIntoConstraints="NO" id="jAR-tg-eSn">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="eHa-fn-tIv">
                                         <rect key="frame" x="0.0" y="0.0" width="179" height="186"/>
                                     </imageView>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="engineoff" translatesAutoresizingMaskIntoConstraints="NO" id="C93-lG-WHH">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="jAR-tg-eSn">
                                         <rect key="frame" x="0.0" y="0.0" width="179" height="186"/>
                                     </imageView>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="doorlocked" translatesAutoresizingMaskIntoConstraints="NO" id="eHa-fn-tIv">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="C93-lG-WHH">
                                         <rect key="frame" x="0.0" y="0.0" width="179" height="186"/>
                                     </imageView>
                                 </subviews>
@@ -506,7 +506,7 @@
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="LNg-Aw-bQU" secondAttribute="height" multiplier="10:17" id="mR1-qj-Uy1"/>
                                         </constraints>
-                                        <state key="normal" image="Unlock"/>
+                                        <state key="normal" image="Button Unlock Off"/>
                                         <connections>
                                             <action selector="onUnlock:" destination="qfS-tC-vNs" eventType="touchUpInside" id="gcx-p8-D9H"/>
                                         </connections>
@@ -516,7 +516,7 @@
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="ZhH-As-nfU" secondAttribute="height" multiplier="129:221" id="Laa-iI-8a3"/>
                                         </constraints>
-                                        <state key="normal" image="Lock">
+                                        <state key="normal" image="Button Lock Off">
                                             <color key="titleShadowColor" red="0.49803921579999999" green="0.49803921579999999" blue="0.49803921579999999" alpha="1" colorSpace="calibratedRGB"/>
                                         </state>
                                         <connections>
@@ -544,7 +544,7 @@
                                             <constraint firstAttribute="height" constant="75" id="S6m-mm-U6T"/>
                                             <constraint firstAttribute="width" constant="75" id="VbO-4g-cJP"/>
                                         </constraints>
-                                        <state key="normal" image="GPS"/>
+                                        <state key="normal" image="Button Location"/>
                                         <connections>
                                             <action selector="onGPSButton:" destination="qfS-tC-vNs" eventType="touchUpInside" id="kS3-mH-vRi"/>
                                         </connections>
@@ -555,7 +555,7 @@
                                             <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="CjL-45-dSX">
                                                 <rect key="frame" x="0.0" y="0.0" width="168" height="333"/>
                                                 <subviews>
-                                                    <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Start" translatesAutoresizingMaskIntoConstraints="NO" id="A28-Pf-ShH">
+                                                    <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Button Start Frame" translatesAutoresizingMaskIntoConstraints="NO" id="A28-Pf-ShH">
                                                         <rect key="frame" x="0.0" y="20" width="168" height="189"/>
                                                         <constraints>
                                                             <constraint firstAttribute="width" secondItem="A28-Pf-ShH" secondAttribute="height" multiplier="651:731" id="Ogv-GT-esJ"/>
@@ -623,10 +623,10 @@
                             <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sI7-1T-UjK">
                                 <rect key="frame" x="-4" y="64" width="94" height="270"/>
                                 <subviews>
-                                    <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Left" translatesAutoresizingMaskIntoConstraints="NO" id="g4c-HT-EBb">
+                                    <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Meter Left" translatesAutoresizingMaskIntoConstraints="NO" id="g4c-HT-EBb">
                                         <rect key="frame" x="0.0" y="0.0" width="94" height="270"/>
                                     </imageView>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="needle_0" translatesAutoresizingMaskIntoConstraints="NO" id="FDO-vN-8PU">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Needle" translatesAutoresizingMaskIntoConstraints="NO" id="FDO-vN-8PU">
                                         <rect key="frame" x="-94" y="41" width="188" height="188"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="FDO-vN-8PU" secondAttribute="height" multiplier="1:1" id="Bfe-o3-EIg"/>
@@ -647,10 +647,10 @@
                             <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4lF-0q-5ND">
                                 <rect key="frame" x="285" y="64" width="94" height="270"/>
                                 <subviews>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Right" translatesAutoresizingMaskIntoConstraints="NO" id="sxh-OE-cFv">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Meter Right" translatesAutoresizingMaskIntoConstraints="NO" id="sxh-OE-cFv">
                                         <rect key="frame" x="0.0" y="0.0" width="94" height="270"/>
                                     </imageView>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="needle_0" translatesAutoresizingMaskIntoConstraints="NO" id="gJd-GY-DmF">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Needle" translatesAutoresizingMaskIntoConstraints="NO" id="gJd-GY-DmF">
                                         <rect key="frame" x="0.0" y="41" width="188" height="188"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="gJd-GY-DmF" secondAttribute="height" multiplier="1:1" id="CVk-w9-Elf"/>
@@ -674,10 +674,10 @@
                                     <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vG4-Tw-OwP">
                                         <rect key="frame" x="0.0" y="0.0" width="98" height="133"/>
                                         <subviews>
-                                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="FuelMeter" translatesAutoresizingMaskIntoConstraints="NO" id="YJa-k1-CXc">
+                                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Meter Gas Level" translatesAutoresizingMaskIntoConstraints="NO" id="YJa-k1-CXc">
                                                 <rect key="frame" x="0.0" y="0.0" width="98" height="133"/>
                                             </imageView>
-                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="needle_0" translatesAutoresizingMaskIntoConstraints="NO" id="ded-q4-eMJ">
+                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Needle" translatesAutoresizingMaskIntoConstraints="NO" id="ded-q4-eMJ">
                                                 <rect key="frame" x="0.0" y="18" width="98" height="98"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" secondItem="ded-q4-eMJ" secondAttribute="height" multiplier="1:1" id="Tpe-sd-RvP"/>
@@ -698,10 +698,10 @@
                                     <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="LaX-Yh-0jh">
                                         <rect key="frame" x="108" y="0.0" width="98" height="133"/>
                                         <subviews>
-                                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Top meter" translatesAutoresizingMaskIntoConstraints="NO" id="m0l-Py-9IL">
+                                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Meter Temperature" translatesAutoresizingMaskIntoConstraints="NO" id="m0l-Py-9IL">
                                                 <rect key="frame" x="0.0" y="0.0" width="98" height="133"/>
                                             </imageView>
-                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="needle_0" translatesAutoresizingMaskIntoConstraints="NO" id="YI3-7Q-Zqu">
+                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Needle" translatesAutoresizingMaskIntoConstraints="NO" id="YI3-7Q-Zqu">
                                                 <rect key="frame" x="0.0" y="18" width="98" height="98"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" secondItem="YI3-7Q-Zqu" secondAttribute="height" multiplier="1:1" id="sPx-JU-6ud"/>
@@ -737,7 +737,7 @@
                                                             <constraint firstAttribute="width" secondItem="S7n-zd-nQS" secondAttribute="height" multiplier="1:1" id="ZnI-br-CpW"/>
                                                             <constraint firstAttribute="height" constant="75" id="eas-Ov-HeG"/>
                                                         </constraints>
-                                                        <state key="normal" image="Valet"/>
+                                                        <state key="normal" image="Button Valet"/>
                                                         <connections>
                                                             <action selector="onValet:" destination="qfS-tC-vNs" eventType="touchUpInside" id="3qk-0a-Bbd"/>
                                                         </connections>
@@ -758,7 +758,7 @@
                                                             <constraint firstAttribute="width" secondItem="tTH-9d-SAt" secondAttribute="height" multiplier="1:1" id="h67-cl-h7I"/>
                                                             <constraint firstAttribute="height" constant="75" id="wDn-GX-LgL"/>
                                                         </constraints>
-                                                        <state key="normal" image="Trunk"/>
+                                                        <state key="normal" image="Button Trunk"/>
                                                         <connections>
                                                             <action selector="onTrunk:" destination="qfS-tC-vNs" eventType="touchUpInside" id="mk5-tJ-8dg"/>
                                                         </connections>
@@ -779,7 +779,7 @@
                                                             <constraint firstAttribute="height" constant="75" id="ALF-JT-Fna"/>
                                                             <constraint firstAttribute="width" secondItem="yu9-6M-re0" secondAttribute="height" multiplier="1:1" id="zEX-J0-CtP"/>
                                                         </constraints>
-                                                        <state key="normal" image="Garage"/>
+                                                        <state key="normal" image="Button Garage"/>
                                                         <connections>
                                                             <action selector="onGarage:" destination="qfS-tC-vNs" eventType="touchUpInside" id="Z43-bC-9Rh"/>
                                                         </connections>
@@ -806,7 +806,7 @@
                             <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vsZ-dw-lBN">
                                 <rect key="frame" x="-1" y="0.0" width="376" height="667"/>
                                 <subviews>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Panel Texture" translatesAutoresizingMaskIntoConstraints="NO" id="0Nc-oE-yEs">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Texture Gray" translatesAutoresizingMaskIntoConstraints="NO" id="0Nc-oE-yEs">
                                         <rect key="frame" x="0.0" y="0.0" width="376" height="667"/>
                                     </imageView>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Empty Garage" translatesAutoresizingMaskIntoConstraints="NO" id="Z4r-w6-LDF">
@@ -853,7 +853,7 @@
                             <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kq3-jQ-oYV">
                                 <rect key="frame" x="-1" y="0.0" width="376" height="667"/>
                                 <subviews>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Panel Texture" translatesAutoresizingMaskIntoConstraints="NO" id="vRz-L2-1ZM">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Texture Gradient" translatesAutoresizingMaskIntoConstraints="NO" id="vRz-L2-1ZM">
                                         <rect key="frame" x="0.0" y="0.0" width="376" height="667"/>
                                     </imageView>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="s9e-It-4Cj">
@@ -989,8 +989,8 @@
                         <outlet property="buttonUnlock" destination="LNg-Aw-bQU" id="TnT-bS-0PF"/>
                         <outlet property="buttonValet" destination="S7n-zd-nQS" id="jPd-kJ-doU"/>
                         <outlet property="capContainerView" destination="CjL-45-dSX" id="8jE-BS-UmT"/>
-                        <outlet property="coverView" destination="vsZ-dw-lBN" id="XQS-0G-Gvi"/>
-                        <outlet property="coverView2" destination="kq3-jQ-oYV" id="ADA-gh-irZ"/>
+                        <outlet property="coverEmptyGarage" destination="vsZ-dw-lBN" id="faA-BZ-kWZ"/>
+                        <outlet property="coverLostConnection" destination="kq3-jQ-oYV" id="AlK-jp-vkD"/>
                         <outlet property="imageCap" destination="6KQ-X9-QcO" id="zTd-f2-iak"/>
                         <outlet property="imageStart" destination="A28-Pf-ShH" id="5SA-yu-TlM"/>
                         <outlet property="imageViewCar" destination="2x0-wL-wXG" id="FSq-e0-0Ow"/>
@@ -1006,6 +1006,7 @@
                         <outlet property="needleRPM" destination="gJd-GY-DmF" id="OS8-Mo-qby"/>
                         <outlet property="needleTemp" destination="YI3-7Q-Zqu" id="YV2-w3-8RI"/>
                         <outlet property="slideUpView" destination="DBD-Vz-uBo" id="4aN-WB-gp3"/>
+                        <outlet property="stateView" destination="dIm-tV-bx7" id="3Xp-Yh-Fjz"/>
                         <outlet property="swipeDown" destination="bdw-0U-ezA" id="ZlK-ql-vdZ"/>
                         <outlet property="swipeUp" destination="Rov-D6-Iia" id="Cfr-oc-Vso"/>
                         <segue destination="F1x-P8-EMz" kind="push" identifier="control2garage" id="G09-4w-YYc"/>
@@ -1233,28 +1234,27 @@
     </scenes>
     <resources>
         <image name="Add Car" width="100" height="100"/>
+        <image name="Button Garage" width="300" height="300"/>
+        <image name="Button Location" width="240" height="240"/>
+        <image name="Button Lock Off" width="150" height="265"/>
+        <image name="Button Start Frame" width="635" height="731"/>
+        <image name="Button Trunk" width="300" height="300"/>
+        <image name="Button Unlock Off" width="150" height="265"/>
+        <image name="Button Valet" width="300" height="300"/>
         <image name="Cap" width="635" height="731"/>
+        <image name="Car Base" width="635" height="1356"/>
         <image name="Empty Garage" width="100" height="100"/>
-        <image name="FuelMeter" width="472" height="472"/>
-        <image name="GPS" width="240" height="240"/>
-        <image name="Garage" width="300" height="300"/>
         <image name="High Connection" width="25" height="25"/>
-        <image name="Left" width="209" height="503"/>
-        <image name="Lock" width="150" height="265"/>
+        <image name="Meter Gas Level" width="402" height="402"/>
+        <image name="Meter Left" width="209" height="503"/>
+        <image name="Meter Right" width="209" height="503"/>
+        <image name="Meter Temperature" width="402" height="402"/>
         <image name="More Control" width="240" height="240"/>
+        <image name="Needle" width="500" height="500"/>
         <image name="Panel Texture" width="640" height="960"/>
         <image name="Panel Texture Gradient" width="640" height="960"/>
-        <image name="Right" width="209" height="503"/>
-        <image name="Start" width="635" height="731"/>
-        <image name="Top meter" width="472" height="472"/>
-        <image name="Trunk" width="300" height="300"/>
-        <image name="Unlock" width="150" height="265"/>
-        <image name="Valet" width="300" height="300"/>
-        <image name="carbackground" width="600" height="800"/>
-        <image name="doorlocked" width="600" height="800"/>
-        <image name="engineoff" width="600" height="800"/>
-        <image name="needle_0" width="720" height="720"/>
-        <image name="trunklock" width="600" height="800"/>
+        <image name="Texture Gradient" width="640" height="960"/>
+        <image name="Texture Gray" width="640" height="960"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="FgY-LN-dHX"/>
