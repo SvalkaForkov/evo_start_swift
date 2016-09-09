@@ -50,6 +50,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     let ACK_engine_started = "00000201"
     let ACK_engine_stopped = "00000001"
     
+    let mask9lock : UInt32 = 0x00008000
+    let mask9doors : UInt32 = 0x00004000
+    let mask9trunk : UInt32 = 0x00002000
+    let mask9hood : UInt32 = 0x00001000
+    let mask9ignition : UInt32 = 0x00000800
+    let mask9engine : UInt32 = 0x00000400
+    let mask9remote : UInt32 = 0x00000200
+    let mask9valet : UInt32 = 0x00000100
+    
+    
     let tag_default_module = "defaultModule"
     let tag_last_scene = "lastScene"
     var centralManager:CBCentralManager!
@@ -100,19 +110,34 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var needleBatt: UIImageView!
     @IBOutlet var needleRPM: UIImageView!
     
+    var stateLock = false
     var stateDoor = false
-    var stateEngine = false
     var stateTrunk = false
+    var stateHood = false
+    var stateEngine = false
+    var stateIgnition = false
+    var stateRemote = false
+    var stateValet = false
+    
     var stateBattery = 0
     var stateTemperature = 0
     var stateRPM = 0
     var stateFuel = 0
     
     var matchFound = false
-    var receivedLock = false
-    var receivedUnlock = false
-    var receivedStart = false
-    var receivedStop = false
+//    var receivedLock = false
+//    var receivedUnlock = false
+//    var receivedOpen = false
+//    var receivedClose = false
+//    var receivedTrunkOpen = false
+//    var receivedTrunkClose = false
+//    var receivedHoodOpen = false
+//    var receivedHoodClose = false
+//    var receivedIdgnitionOn = false
+//    var receivedIgnitionOff = false
+//    var receivedStart = false
+//    var receivedStop = false
+//    var received
     var connected = false
     
     override func viewDidLoad() {
@@ -257,7 +282,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func nsdataToInt(data: NSData) -> UInt32 {
         var result : UInt32 = 0
         data.getBytes(&result, length: sizeof(UInt32))
-//        let hex = data.hexString
+        //        let hex = data.hexString
         return result
     }
     
@@ -266,72 +291,159 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        let str = characteristic.value!.hexString
+        
         let intValue = hexStringToInt(characteristic.value!.hexString)
-        print(intValue)
-        let mask : UInt32 = 0x00004000
-        let v = intValue & mask
+        //        let masks9 : [UInt32] = [mask9lock, mask9doors, mask9trunk, mask9hood, mask9ignition, mask9engine, mask9remote, mask9valet]
         
-        if v != 0
-        {
-            print("Door Open");
+        if intValue & mask9lock != 0 {
+            showLocked()
+            if waitingList.contains(0x71){
+                let index = waitingList.indexOf(0x71)
+                waitingList.removeAtIndex(index!)
+            }
+            stateLock = true
+        }else{
+            showUnlocked()
+            if waitingList.contains(0x70){
+                let index = waitingList.indexOf(0x70)
+                waitingList.removeAtIndex(index!)
+            }
+            stateLock = false
         }
-        
-        
-//        let val = characteristic.value!.hexString
-//        if val == ACK_door_locked || val == ACK_door_locked_old{
-//            //ack for locked
-//            logEvent("\(val) : \(countSendTime)")
-//            countSendTime += 1
-//            if !receivedLock{
-//                receivedLock = true
-//                showLocked()            }
-//        }else if val == ACK_door_unlocked || val == ACK_door_unlocked_old{
-//            //ack for unlocked
-//            logEvent("\(val) : \(countSendTime)")
-//            countSendTime += 1
-//            if !receivedUnlock{
-//                receivedUnlock = true
+        if intValue & mask9doors != 0 {
+            if !stateDoor {
+//                showOpened()
+            }
+            if waitingList.contains(0x61){
+                let index = waitingList.indexOf(0x61)
+                waitingList.removeAtIndex(index!)
+            }
+            stateDoor = true
+        }else{
+            if stateDoor {
+//                showClosed()
+            }
+            if waitingList.contains(0x60){
+                let index = waitingList.indexOf(0x60)
+                waitingList.removeAtIndex(index!)
+            }
+            stateDoor = false
+        }
+        if intValue & mask9trunk != 0 {
+            if !stateTrunk {
+//                showLocked()
+            }
+            if waitingList.contains(0x51){
+                let index = waitingList.indexOf(0x51)
+                waitingList.removeAtIndex(index!)
+            }
+            stateTrunk = true
+        }else{
+            if stateTrunk {
 //                showUnlocked()
-//            }
-//        }else if(val == ACK_engine_started){
-//            //ack for started
-//            stateEngine = true
-//            logEvent("\(val) : \(countSendTime)")
-//            countSendTime += 1
-//            if !receivedStart{
-//                receivedStart = true
-//                showStarted()
-//            }
-//        }else if(val == ACK_engine_stopped){
-//            stateEngine = false
-//            //ack for stopped
-//            logEvent("\(val) : \(countSendTime)")
-//            countSendTime += 1
-//            if !receivedStop{
-//                receivedStop = true
-//                showStopped()
-//            }
-//        }else if(val == "0240000f"){
-//            //ack for locked
-//            logEvent("\(val) : \(countSendTime)")
-//            displayMessage("0240000f")
-//        }else if (characteristic.value!. & 0x00004000){
-//            //ack for locked
-//            logEvent("\(val) : \(countSendTime)")
-//            displayMessage("door open")
-//        }else{
-//            logEvent("\(val) : \(countSendTime)")
-//            if DBG {
-//                printMessage(val)
-//            }
-//            countSendTime += 1
-//            receivedLock = true
-//            receivedStop = true
-//            receivedStart = true
-//            receivedUnlock = true
-//        }
-//        logEvent("Charateristic's value has updated : \(val!)")
+            }
+            if waitingList.contains(0x50){
+                let index = waitingList.indexOf(0x50)
+                waitingList.removeAtIndex(index!)
+            }
+            stateTrunk = false
+        }
+        if intValue & mask9hood != 0 {
+            if !stateHood {
+//                showLocked()
+            }
+            if waitingList.contains(0x41){
+                let index = waitingList.indexOf(0x41)
+                waitingList.removeAtIndex(index!)
+            }
+            stateHood = true
+        }else{
+            if stateHood {
+//                showUnlocked()
+            }
+            if waitingList.contains(0x40){
+                let index = waitingList.indexOf(0x40)
+                waitingList.removeAtIndex(index!)
+            }
+            stateHood = false
+        }
+        if intValue & mask9ignition != 0 {
+            if !stateIgnition {
+//                showLocked()
+            }
+            if waitingList.contains(0x31){
+                let index = waitingList.indexOf(0x31)
+                waitingList.removeAtIndex(index!)
+            }
+            stateIgnition = true
+        }else{
+            if stateIgnition {
+//                showUnlocked()
+            }
+            if waitingList.contains(0x30){
+                let index = waitingList.indexOf(0x30)
+                waitingList.removeAtIndex(index!)
+            }
+            stateIgnition = false
+        }
+        if intValue & mask9engine != 0 {
+            if !stateEngine {
+                showStarted()
+            }
+            if waitingList.contains(0x21){
+                let index = waitingList.indexOf(0x21)
+                waitingList.removeAtIndex(index!)
+            }
+            stateEngine = true
+        }else{
+            if stateEngine {
+                showStopped()
+            }
+            if waitingList.contains(0x20){
+                let index = waitingList.indexOf(0x20)
+                waitingList.removeAtIndex(index!)
+            }
+            stateEngine = false
+        }
+        if intValue & mask9remote != 0 {
+            if !stateRemote {
+//                showLocked()
+            }
+            if waitingList.contains(0x11){
+                let index = waitingList.indexOf(0x11)
+                waitingList.removeAtIndex(index!)
+            }
+            stateRemote = true
+        }else{
+            if stateRemote {
+//                showUnlocked()
+            }
+            if waitingList.contains(0x10){
+                let index = waitingList.indexOf(0x10)
+                waitingList.removeAtIndex(index!)
+            }
+            stateRemote = false
+        }
+        if intValue & mask9valet != 0 {
+            if !stateValet {
+//                showLocked()
+            }
+            if waitingList.contains(0x01){
+                let index = waitingList.indexOf(0x01)
+                waitingList.removeAtIndex(index!)
+            }
+            stateValet = true
+        }else{
+            if stateValet {
+//                showUnlocked()
+            }
+            if waitingList.contains(0x00){
+                let index = waitingList.indexOf(0x00)
+                waitingList.removeAtIndex(index!)
+            }
+            stateValet = false
+        }
+        print(characteristic.value!.hexString)
     }
     
     func showControl(val: Bool){
@@ -347,16 +459,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onLock(sender: UIButton) {
-        
         logEvent("onlock")
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
-        sendCommend(data, action: 0)
+        sendCommand(data, actionId: 0x71)
     }
     
     
-    @IBAction func onUnlock(sender: UIButton) {        logEvent("onUnlock")
+    @IBAction func onUnlock(sender: UIButton) {
+        logEvent("onUnlock")
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
-        sendCommend(data, action: 1)
+        sendCommand(data, actionId: 0x70)
     }
     
     
@@ -375,19 +487,68 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func startEngine() {
         logEvent("startEngine")
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
-        sendCommend(data, action: 2)
-        stateEngine = true
+        sendCommand(data, actionId: 0x21)
     }
     
     func stopEngine() {
         logEvent("stopEngine")
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
-        receivedStop = false
-        sendCommend(data, action: 3)
-        stateEngine = false
+        sendCommand(data, actionId: 0x20)
     }
     
-    func sendCommend(data : NSData, action : Int){
+    var waitingList : [UInt8] = []
+    
+    func sendCommand(data : NSData, actionId: UInt8){
+        if peripheral != nil && writeCharacteristic != nil {
+            if !waitingList.contains(actionId){
+                waitingList.append(actionId)
+            }
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                if self.DBG {
+                    print("1st time")
+                }
+                sleep(1)
+                if !self.waitingList.contains(actionId) {
+                    return
+                }
+                
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                if self.DBG {
+                    print("2nd time")
+                }
+                sleep(1)
+                if !self.waitingList.contains(actionId) {
+                    return
+                }
+                
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                if self.DBG {
+                    print("3rd time")
+                }
+                sleep(1)
+                if !self.waitingList.contains(actionId) {
+                    return
+                }
+                
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                if self.DBG {
+                    print("4th time")
+                }
+                sleep(1)
+                if !self.waitingList.contains(actionId) {
+                    return
+                }
+                
+                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                if self.DBG {
+                    print("5th time")
+                }
+            })
+        }
+    }
+    
+    /*func sendCommend(data : NSData, action : Int){
         logEvent("SendCommend")
         if peripheral != nil && writeCharacteristic != nil {
             countSendTime = 0
@@ -519,7 +680,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             logEvent("peripheral or writeCharateristic is nil")
         }
     }
-    
+    */
     func setNotification(enabled: Bool){
         logEvent("setNotification = true")
         if peripheral != nil && notificationCharacteristic != nil {
@@ -560,7 +721,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         })
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         displayMessage("Door unlocked")
-        
     }
     
     func showLocked(){
@@ -572,6 +732,27 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         })
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         displayMessage("Door locked")
+    }
+    
+    func showDoorOpened(){
+        print("SHOW LOCKED")
+        UIView.animateWithDuration(200, animations: {
+            self.buttonLock.setImage(UIImage(named: "Lock_Glow"), forState: .Normal)
+            self.buttonUnlock.setImage(UIImage(named: "Unlock"), forState: .Normal)
+            self.imageViewDoors.image = UIImage(named: "doorlocked")
+        })
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        displayMessage("Door locked")
+    }
+    
+    func showDoorClosed(){
+        UIView.animateWithDuration(200, animations: {
+            self.buttonLock.setImage(UIImage(named: "Lock"), forState: .Normal)
+            self.buttonUnlock.setImage(UIImage(named: "Unlock_Glow"), forState: .Normal)
+            self.imageViewDoors.image = UIImage(named: "doorunlocked")
+        })
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        displayMessage("Door unlocked")
     }
     
     
@@ -943,7 +1124,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                             self.labelMessage.center.y = self.labelMessage.center.y - 0.5 * self.labelMessage.bounds.height
                             }, completion: { finished in
                                 self.labelMessage.layoutIfNeeded()
-                            })
+                        })
                 })
                 
         })
