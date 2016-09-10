@@ -720,10 +720,10 @@ showHoodOpened()
 //        UIView.animateWithDuration(200, animations: {
 //            self.imageViewEngine.image = UIImage(named: "Engine On")
 //        })
-        updateRPM(2500)
-        updateBatt(50)
+        updateRPM(1100)
+        updateBatt(95)
         updateFuel(50)
-        updateTemperature(30)
+        updateTemperature(20)
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
     }
     
