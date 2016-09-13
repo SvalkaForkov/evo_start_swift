@@ -688,6 +688,7 @@ showHoodOpened()
         displayMessage("Trunk Opened")
         UIView.animateWithDuration(200, animations: {
             self.imageViewEngine.image = UIImage(named: "Trunk Opened")
+            self.buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
         })
         
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
@@ -697,6 +698,7 @@ showHoodOpened()
         displayMessage("Trunk closed")
         UIView.animateWithDuration(200, animations: {
             self.imageViewEngine.image = nil
+            self.buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
         })
         
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
@@ -723,7 +725,7 @@ showHoodOpened()
         updateRPM(1100)
         updateBatt(95)
         updateFuel(50)
-        updateTemperature(20)
+        updateTemperature(0)
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
     }
     
@@ -1123,6 +1125,7 @@ showHoodOpened()
             performSegueWithIdentifier("control2garage", sender: sender)
         }
     }
+    
     @IBAction func onTrunk(sender: UIButton) {
         if !stateTrunk {
             print("open trunk")
@@ -1147,7 +1150,7 @@ showHoodOpened()
     }
     
     func displayMessage(line: String){
-        UIView.animateWithDuration(0.5, animations: {
+        UIView.animateWithDuration(0.2, animations: {
             self.labelMessage.alpha = 0
             self.labelMessage.center.y = self.labelMessage.center.y - self.labelMessage.bounds.height
             }, completion: { finished in
@@ -1155,7 +1158,7 @@ showHoodOpened()
                     self.labelMessage.text = line
                     self.labelMessage.center.y = self.labelMessage.center.y + 1.5 * self.labelMessage.bounds.height
                     }, completion: { fininshed in
-                        UIView.animateWithDuration(0.5, animations: {
+                        UIView.animateWithDuration(0.2, animations: {
                             self.labelMessage.alpha = 1
                             self.labelMessage.center.y = self.labelMessage.center.y - 0.5 * self.labelMessage.bounds.height
                             }, completion: { finished in
