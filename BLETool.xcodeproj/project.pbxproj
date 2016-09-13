@@ -13,9 +13,16 @@
 		CF1C2ABE1C766F6B009F2892 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CF1C2ABD1C766F6B009F2892 /* Assets.xcassets */; };
 		CF1C2AC11C766F6B009F2892 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CF1C2ABF1C766F6B009F2892 /* LaunchScreen.storyboard */; };
 		CF1C2ACC1C766F6B009F2892 /* BLEToolTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1C2ACB1C766F6B009F2892 /* BLEToolTests.swift */; };
+		CF236BD41D8879A3004C8340 /* MakeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF236BD31D8879A3004C8340 /* MakeViewController.swift */; };
+		CF236BD61D887A4D004C8340 /* ModelViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF236BD51D887A4D004C8340 /* ModelViewController.swift */; };
+		CF236BDD1D888812004C8340 /* Vehicle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF236BD71D888812004C8340 /* Vehicle+CoreDataProperties.swift */; };
+		CF236BDE1D888812004C8340 /* Vehicle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF236BD81D888812004C8340 /* Vehicle.swift */; };
+		CF236BDF1D888812004C8340 /* Model+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF236BD91D888812004C8340 /* Model+CoreDataProperties.swift */; };
+		CF236BE01D888812004C8340 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF236BDA1D888812004C8340 /* Model.swift */; };
+		CF236BE11D888812004C8340 /* Make+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF236BDB1D888812004C8340 /* Make+CoreDataProperties.swift */; };
+		CF236BE21D888812004C8340 /* Make.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF236BDC1D888812004C8340 /* Make.swift */; };
+		CF236BE41D888B7A004C8340 /* YearViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF236BE31D888B7A004C8340 /* YearViewController.swift */; };
 		CF3E512D1D131C3A00301C7C /* Vehicle.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = CF3E512B1D131C3A00301C7C /* Vehicle.xcdatamodeld */; };
-		CF69D9761D133A7F006FD908 /* Vehicle+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9741D133A7F006FD908 /* Vehicle+CoreDataProperties.swift */; };
-		CF69D9771D133A7F006FD908 /* Vehicle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9751D133A7F006FD908 /* Vehicle.swift */; };
 		CF69D97A1D133B59006FD908 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D9791D133B59006FD908 /* DataController.swift */; };
 		CF69D97C1D182D41006FD908 /* CustomGarageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97B1D182D41006FD908 /* CustomGarageCell.swift */; };
 		CF69D97E1D1871F6006FD908 /* RegisterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */; };
@@ -65,9 +72,16 @@
 		CF1C2AC71C766F6B009F2892 /* BLEToolTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BLEToolTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF1C2ACB1C766F6B009F2892 /* BLEToolTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEToolTests.swift; sourceTree = "<group>"; };
 		CF1C2ACD1C766F6B009F2892 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CF236BD31D8879A3004C8340 /* MakeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MakeViewController.swift; sourceTree = "<group>"; };
+		CF236BD51D887A4D004C8340 /* ModelViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelViewController.swift; sourceTree = "<group>"; };
+		CF236BD71D888812004C8340 /* Vehicle+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Vehicle+CoreDataProperties.swift"; path = "../Vehicle+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		CF236BD81D888812004C8340 /* Vehicle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Vehicle.swift; path = ../Vehicle.swift; sourceTree = "<group>"; };
+		CF236BD91D888812004C8340 /* Model+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Model+CoreDataProperties.swift"; path = "../Model+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		CF236BDA1D888812004C8340 /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Model.swift; path = ../Model.swift; sourceTree = "<group>"; };
+		CF236BDB1D888812004C8340 /* Make+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Make+CoreDataProperties.swift"; path = "../Make+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		CF236BDC1D888812004C8340 /* Make.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Make.swift; path = ../Make.swift; sourceTree = "<group>"; };
+		CF236BE31D888B7A004C8340 /* YearViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = YearViewController.swift; sourceTree = "<group>"; };
 		CF3E512C1D131C3A00301C7C /* Vehicle.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Vehicle.xcdatamodel; sourceTree = "<group>"; };
-		CF69D9741D133A7F006FD908 /* Vehicle+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Vehicle+CoreDataProperties.swift"; path = "../Vehicle+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		CF69D9751D133A7F006FD908 /* Vehicle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Vehicle.swift; path = ../Vehicle.swift; sourceTree = "<group>"; };
 		CF69D9791D133B59006FD908 /* DataController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
 		CF69D97B1D182D41006FD908 /* CustomGarageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomGarageCell.swift; sourceTree = "<group>"; };
 		CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegisterViewController.swift; sourceTree = "<group>"; };
@@ -176,6 +190,9 @@
 				CF69D97F1D187333006FD908 /* CustomScanCell.swift */,
 				CFE1928B1D6CF3AF00F20C21 /* CustomMessageCell.swift */,
 				CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */,
+				CF236BE31D888B7A004C8340 /* YearViewController.swift */,
+				CF236BD51D887A4D004C8340 /* ModelViewController.swift */,
+				CF236BD31D8879A3004C8340 /* MakeViewController.swift */,
 				CF1C2ABA1C766F6B009F2892 /* Main.storyboard */,
 				CF1C2ABD1C766F6B009F2892 /* Assets.xcassets */,
 				CF1C2ABF1C766F6B009F2892 /* LaunchScreen.storyboard */,
@@ -200,9 +217,13 @@
 		CF69D9781D133B31006FD908 /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
+				CF236BD71D888812004C8340 /* Vehicle+CoreDataProperties.swift */,
+				CF236BD81D888812004C8340 /* Vehicle.swift */,
+				CF236BD91D888812004C8340 /* Model+CoreDataProperties.swift */,
+				CF236BDA1D888812004C8340 /* Model.swift */,
+				CF236BDB1D888812004C8340 /* Make+CoreDataProperties.swift */,
+				CF236BDC1D888812004C8340 /* Make.swift */,
 				CF3E512B1D131C3A00301C7C /* Vehicle.xcdatamodeld */,
-				CF69D9741D133A7F006FD908 /* Vehicle+CoreDataProperties.swift */,
-				CF69D9751D133A7F006FD908 /* Vehicle.swift */,
 				CF69D9791D133B59006FD908 /* DataController.swift */,
 			);
 			name = CoreData;
@@ -317,15 +338,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				CF1C2AB91C766F6B009F2892 /* ViewController.swift in Sources */,
+				CF236BE11D888812004C8340 /* Make+CoreDataProperties.swift in Sources */,
 				CF69D97E1D1871F6006FD908 /* RegisterViewController.swift in Sources */,
+				CF236BE41D888B7A004C8340 /* YearViewController.swift in Sources */,
+				CF236BD61D887A4D004C8340 /* ModelViewController.swift in Sources */,
+				CF236BDE1D888812004C8340 /* Vehicle.swift in Sources */,
 				CFC8D37B1D10529500D61D73 /* GarageViewController.swift in Sources */,
-				CF69D9761D133A7F006FD908 /* Vehicle+CoreDataProperties.swift in Sources */,
+				CF236BDF1D888812004C8340 /* Model+CoreDataProperties.swift in Sources */,
 				CF1C2AB71C766F6B009F2892 /* AppDelegate.swift in Sources */,
 				CF69D97C1D182D41006FD908 /* CustomGarageCell.swift in Sources */,
+				CF236BDD1D888812004C8340 /* Vehicle+CoreDataProperties.swift in Sources */,
 				CFFD92631D6F3F940090F633 /* MapViewController.swift in Sources */,
+				CF236BE01D888812004C8340 /* Model.swift in Sources */,
+				CF236BE21D888812004C8340 /* Make.swift in Sources */,
 				CFE1928C1D6CF3AF00F20C21 /* CustomMessageCell.swift in Sources */,
-				CF69D9771D133A7F006FD908 /* Vehicle.swift in Sources */,
 				CF69D97A1D133B59006FD908 /* DataController.swift in Sources */,
+				CF236BD41D8879A3004C8340 /* MakeViewController.swift in Sources */,
 				CF69D9801D187333006FD908 /* CustomScanCell.swift in Sources */,
 				CF3E512D1D131C3A00301C7C /* Vehicle.xcdatamodeld in Sources */,
 				CFC8D37D1D10A8EE00D61D73 /* ScanViewController.swift in Sources */,

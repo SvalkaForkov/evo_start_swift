@@ -16,9 +16,11 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     var module: String?
     
     @IBOutlet var nameField: UITextField!
-    @IBOutlet var makeField: UITextField!
-    @IBOutlet var modelField: UITextField!
-    @IBOutlet var yearField: UITextField!
+    
+    
+    @IBOutlet var buttonSelectMake: UIButton!
+    @IBOutlet var buttonSelectModel: UIButton!
+    @IBOutlet var buttonSelectYear: UIButton!
     @IBOutlet var buttonRegister: UIButton!
     
     override func viewDidLoad() {
@@ -27,9 +29,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
         dataController = appDelegeate.dataController
         vehicles = dataController.getAllVehicles()
         nameField.delegate = self
-        makeField.delegate = self
-        modelField.delegate = self
-        yearField.delegate = self
+        
 //        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("keyboardWillShow:"), name: UIKeyboardWillShowNotification, object: nil)
 //        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("keyboardWillHide:"), name: UIKeyboardWillHideNotification, object: nil)
 
@@ -45,6 +45,12 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
         print("viewWillAppear: selected \(module)")
         buttonRegister.layer.cornerRadius = 25.0
         buttonRegister.clipsToBounds = true
+        
+        if buttonSelectMake.titleLabel?.text == "Select Make" {
+            buttonSelectModel.enabled = false
+        }else{
+            buttonSelectModel.enabled = true
+        }
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -90,7 +96,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     @IBAction func onSave(sender: UIButton) {
         if checkInfo() {
             print("save vehicle")
-            dataController.saveVehicle(nameField.text!, make: makeField.text!, model: modelField.text!, year: yearField.text!, module: self.module!)
+//            dataController.saveVehicle(nameField.text!, make: makeField.text!, model: modelField.text!, year: yearField.text!, module: self.module!)
             setDefault(self.module!)
             print("prepare to go back to control")
             self.navigationController?.popToRootViewControllerAnimated(true)
@@ -102,12 +108,6 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     @IBAction func onTap(sender: UITapGestureRecognizer) {
         if nameField.isFirstResponder() {
             nameField.endEditing(true)
-        }else if makeField.isFirstResponder() {
-            makeField.endEditing(true)
-        }else if modelField.isFirstResponder() {
-            modelField.endEditing(true)
-        }else if yearField.isFirstResponder() {
-            yearField.endEditing(true)
         }
     }
     
@@ -117,26 +117,17 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
             print("no name")
             return false
         }
-        if makeField.text!.isEmpty {
-            print("no name")
+        if buttonSelectMake.titleLabel!.text == "Select Make" {
+            print("No make selected")
             return false
         }
-        if modelField.text!.isEmpty {
-            print("no name")
+        if buttonSelectModel.titleLabel!.text == "Select Model" {
+            print("No model selected")
             return false
         }
-        if yearField.text!.isEmpty {
-            print("no name")
+        if buttonSelectYear.titleLabel!.text == "Select Year" {
+            print("No year selected")
             return false
-        }else{
-            let year = Int(yearField.text!)
-            if year != nil {
-                if(year < 1999 || year > 2017){
-                    return false
-                }
-            }else{
-                return false
-            }
         }
         return true
     }
@@ -156,5 +147,22 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     func setLastScene(){
         print("getLsetLastScene : Register")
         NSUserDefaults.standardUserDefaults().setObject("Register", forKey: "lastScene")
+    }
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if segue.identifier == "selectYear"{
+            let destController = segue.destinationViewController as! YearViewController
+            destController.registerViewController = self
+        }else if segue.identifier == "selectMake"{
+            let destController = segue.destinationViewController as! MakeViewController
+            destController.registerViewController = self
+        }else if segue.identifier == "selectModel"{
+            let destController = segue.destinationViewController as! ModelViewController
+            destController.registerViewController = self
+            let make = buttonSelectMake?.titleLabel?.text
+            destController.make = dataController.fetchMakeByTitle(make!)
+        }else{
+            
+        }
     }
 }

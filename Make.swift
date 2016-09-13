@@ -1,5 +1,5 @@
 //
-//  Vehicle.swift
+//  Make.swift
 //  BLETool
 //
 //  Created by Xiaotu Zhang on 2016-09-13.
@@ -10,7 +10,7 @@ import Foundation
 import CoreData
 
 
-class Vehicle: NSManagedObject {
+class Make: NSManagedObject {
 
 // Insert code here to add functionality to your managed object subclass
 

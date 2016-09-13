@@ -60,8 +60,8 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
         cell.mainView.layer.cornerRadius = 2.0
         cell.labelName!.text = vehicles[indexPath.row].name!.capitalizedString
-        cell.labelMake!.text = vehicles[indexPath.row].make!.capitalizedString
-        cell.labelModel!.text = vehicles[indexPath.row].model!.capitalizedString
+//        cell.labelMake!.text = vehicles[indexPath.row].make!.capitalizedString
+//        cell.labelModel!.text = vehicles[indexPath.row].model!.capitalizedString
         
         return cell
     }

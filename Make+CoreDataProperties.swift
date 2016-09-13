@@ -1,5 +1,5 @@
 //
-//  Vehicle+CoreDataProperties.swift
+//  Make+CoreDataProperties.swift
 //  BLETool
 //
 //  Created by Xiaotu Zhang on 2016-09-13.
@@ -12,11 +12,9 @@
 import Foundation
 import CoreData
 
-extension Vehicle {
+extension Make {
 
-    @NSManaged var module: String?
-    @NSManaged var name: String?
-    @NSManaged var year: NSDecimalNumber?
-    @NSManaged var v2model: Model?
+    @NSManaged var title: String?
+    @NSManaged var make2model: NSSet?
 
 }

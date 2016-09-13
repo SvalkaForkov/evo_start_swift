@@ -33,7 +33,7 @@ class DataController {
         moc.persistentStoreCoordinator = psc
         
         let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        let persistantStoreFileURL = urls[0].URLByAppendingPathComponent("Bookmarks.sqlite")
+        let persistantStoreFileURL = urls[0].URLByAppendingPathComponent("Vehicles.sqlite")
         
         do {
             try psc.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: persistantStoreFileURL, options: nil)
@@ -61,8 +61,6 @@ class DataController {
     
     func saveVehicle(name: String, module: String){
         print("saveVehicle(\(name))")
-        //        var existVehicle = fetchVehicle(name)
-        //        if existVehicle != nil {
         let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
         newVehicle.name = name
         newVehicle.module = module
@@ -70,17 +68,15 @@ class DataController {
             try self.managedObjectContext.save()
         } catch {
             fatalError("couldn't save context")
-            //            }
         }
     }
     
-    func saveVehicle(name: String, make: String, model: String, year: String, module: String){
+    func saveVehicle(name: String, model: Model, year: NSDecimalNumber, module: String){
         print("DataController : Save vehicle \(name)")
         let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
         newVehicle.name = name
         newVehicle.module = module
-        newVehicle.make = make
-        newVehicle.model = model
+        newVehicle.v2model = model
         newVehicle.year = year
         do {
             try self.managedObjectContext.save()
@@ -88,6 +84,54 @@ class DataController {
             fatalError("couldn't save context")
             
         }
+    }
+    
+    func fetchMakeByModel(model: Model) -> Make{
+        let fetchRequest = NSFetchRequest(entityName: "Make")
+        fetchRequest.predicate = NSPredicate(format: "make2model == %@", model)
+        
+        var fetchedMakes: [Make]!
+        do {
+            fetchedMakes = try self.managedObjectContext.executeFetchRequest(fetchRequest) as! [Make]
+        } catch {
+            fatalError("fetch make failed")
+        }
+        if fetchedMakes.count == 0 {
+            fatalError("no make matched")
+        }
+        return fetchedMakes[0]
+    }
+
+    func fetchModelsForMake(make: Make) -> [Model]{
+        let fetchRequest = NSFetchRequest(entityName: "Model")
+        fetchRequest.predicate = NSPredicate(format: "model2make == %@", make)
+        
+        var fetchedModels: [Model]!
+        do {
+            fetchedModels = try self.managedObjectContext.executeFetchRequest(fetchRequest) as! [Model]
+        } catch {
+            fatalError("fetch model failed")
+        }
+        if fetchedModels.count == 0 {
+            fatalError("no model matched")
+        }
+        return fetchedModels
+    }
+    
+    func fetchMakeByTitle(title: String) -> Make?{
+        let fetchRequest = NSFetchRequest(entityName: "Make")
+        fetchRequest.predicate = NSPredicate(format: "title == %@", title)
+        
+        var fetchedMakes: [Make]!
+        do {
+            fetchedMakes = try self.managedObjectContext.executeFetchRequest(fetchRequest) as! [Make]
+        } catch {
+            fatalError("fetch make failed")
+        }
+        if fetchedMakes.count == 0 {
+            fatalError("no make matched")
+        }
+        return fetchedMakes[0]
     }
     
     func fetchVehicleByName(name: String)-> [Vehicle]{
@@ -117,8 +161,7 @@ class DataController {
         let newVehicle = result[0] as Vehicle
         newVehicle.name = vehicle.name
         newVehicle.module = vehicle.module
-        newVehicle.make = vehicle.make
-        newVehicle.model = vehicle.model
+        newVehicle.v2model = vehicle.v2model
         newVehicle.year = vehicle.year
         do {
             try newVehicle.managedObjectContext!.save()

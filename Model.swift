@@ -1,5 +1,5 @@
 //
-//  Vehicle.swift
+//  Model.swift
 //  BLETool
 //
 //  Created by Xiaotu Zhang on 2016-09-13.
@@ -10,7 +10,7 @@ import Foundation
 import CoreData
 
 
-class Vehicle: NSManagedObject {
+class Model: NSManagedObject {
 
 // Insert code here to add functionality to your managed object subclass
 

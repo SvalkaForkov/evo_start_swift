@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="10174" systemVersion="15G31" minimumToolsVersion="Xcode 7.0">
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="10174" systemVersion="15G1004" minimumToolsVersion="Xcode 7.0">
+    <entity name="Make" representedClassName=".Make" syncable="YES">
+        <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="make2model" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Model" inverseName="model2make" inverseEntity="Model" syncable="YES"/>
+    </entity>
+    <entity name="Model" representedClassName=".Model" syncable="YES">
+        <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="model2make" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Make" inverseName="make2model" inverseEntity="Make" syncable="YES"/>
+        <relationship name="model2vehicle" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Vehicle" inverseName="v2model" inverseEntity="Vehicle" syncable="YES"/>
+    </entity>
     <entity name="Vehicle" representedClassName=".Vehicle" syncable="YES">
-        <attribute name="make" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="model" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="module" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="year" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="year" optional="YES" attributeType="Decimal" defaultValueString="0.0" syncable="YES"/>
+        <relationship name="v2model" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Model" inverseName="model2vehicle" inverseEntity="Model" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Vehicle" positionX="-63" positionY="-18" width="128" height="120"/>
+        <element name="Vehicle" positionX="-171" positionY="-180" width="128" height="103"/>
+        <element name="Make" positionX="99" positionY="-297" width="128" height="73"/>
+        <element name="Model" positionX="106" positionY="-135" width="128" height="88"/>
     </elements>
 </model>
