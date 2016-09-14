@@ -13,13 +13,25 @@ class YearViewController: UIViewController , UIPickerViewDelegate, UIPickerViewD
     @IBOutlet var buttonDone: UIButton!
     @IBOutlet var yearPicker: UIPickerView!
     weak var registerViewController : RegisterViewController?
-    let data : [NSDecimalNumber] = [1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016]
+    let data : [NSDecimalNumber] = [2017,2016,2015,2014,2013,2012,2011,2010,2009,2008,2007,2006,2005,2004,2003,2002,2001,2000,1999,1998,1997,1996,1995]
     var selectedYear : NSDecimalNumber?
+    var lastChoice : Int! = 0
     override func viewDidLoad() {
         super.viewDidLoad()
         yearPicker.dataSource = self
         yearPicker.delegate = self
         // Do any additional setup after loading the view.
+    }
+    override func viewDidAppear(animated: Bool) {
+        if lastChoice != 0 {
+            yearPicker.selectRow(lastChoice!, inComponent: 0, animated: false)
+            selectedYear = data[lastChoice]
+            buttonDone.hidden = false
+        }else{
+            yearPicker.selectRow(0, inComponent: 0, animated: false)
+            selectedYear = data[0]
+            buttonDone.hidden = false
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -41,11 +53,13 @@ class YearViewController: UIViewController , UIPickerViewDelegate, UIPickerViewD
     
     func pickerView(pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         selectedYear = data[row]
+        lastChoice = row
         buttonDone.hidden = false
     }
     
     @IBAction func onDone(sender: UIButton) {
         registerViewController?.buttonSelectYear.setTitle(selectedYear!.stringValue, forState: .Normal)
+        registerViewController?.indexForYear = lastChoice
         self.navigationController?.popViewControllerAnimated(true)
     }
     

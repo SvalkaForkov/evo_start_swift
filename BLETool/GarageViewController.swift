@@ -60,8 +60,11 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
         cell.mainView.layer.cornerRadius = 2.0
         cell.labelName!.text = vehicles[indexPath.row].name!.capitalizedString
-//        cell.labelMake!.text = vehicles[indexPath.row].make!.capitalizedString
-//        cell.labelModel!.text = vehicles[indexPath.row].model!.capitalizedString
+        let model = vehicles[indexPath.row].v2model!
+        let make : Make! =  model.model2make
+        cell.logo.image = UIImage(named: make.title!)
+        cell.labelMake!.text = make!.title!.capitalizedString
+        cell.labelModel!.text = vehicles[indexPath.row].v2model!.title!.capitalizedString
         
         return cell
     }
@@ -76,17 +79,23 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
      func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == UITableViewCellEditingStyle.Delete {
-            let vehicleToDelete = vehicles[indexPath.row]
-            vehicles.removeAtIndex(indexPath.row)
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-            dataController!.deleteVehicleByName(vehicleToDelete.name!)
+            let vehicleToDelete : String! = vehicles[indexPath.row].module
+            print("Vehicle to Delete : \(vehicleToDelete)")
             let currentDefault = getDefaultModuleName()
-            if vehicleToDelete.module == currentDefault {
+            print("Current default : \(currentDefault)")
+            if vehicleToDelete == currentDefault {
+                vehicles.removeAtIndex(indexPath.row)
+                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+                dataController!.deleteVehicleByName(vehicleToDelete)
                 if vehicles.count == 0 {
                     setDefault("")
                 }else{
                     setDefault(vehicles[0].module!)
                 }
+            }else{
+                vehicles.removeAtIndex(indexPath.row)
+                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+                dataController!.deleteVehicleByName(vehicleToDelete)
             }
         }
     }
@@ -197,7 +206,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         }
         for cell in cells {
             //old expression           let cell : UITableViewCell = j as UITableViewCell
-            UIView.animateWithDuration(1.5, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
+            UIView.animateWithDuration(1, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
                 cell.transform = CGAffineTransformMakeTranslation(0, 0)
                 }, completion: nil)
             index += 1
@@ -222,14 +231,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func setUpNavigationBar(){
-        print("setUpNavigationBar")
-//        navigationController?.navigationBar.barTintColor = UIColor.yellowColor() // Set top bar color
-//        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Avenir Next", size: 17)!], forState: UIControlState.Normal)
-//        navigationController?.navigationItem.leftBarButtonItem?.setTitleTextAttributes([NSForegroundColorAttributeName:UIColor.blackColor()], forState: UIControlState.Normal)
-//        navigationController?.navigationBar.tintColor = UIColor.blueColor()//navigation item text color
-//        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.blackColor()]    //set navigation item text color
-//        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Avenir Next", size: 20)!]
-    }
+        print("setUpNavigationBar")    }
     
     func addLayer(){
         let gradientLayer = CAGradientLayer()

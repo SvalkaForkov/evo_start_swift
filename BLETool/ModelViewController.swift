@@ -13,18 +13,28 @@ class ModelViewController: UIViewController ,UITableViewDataSource, UITableViewD
     var make : Make?
     var dataController : DataController?
     var models : [Model]?
+    var lastChoice : Int! = 0
     weak var registerViewController : RegisterViewController?
     
     @IBOutlet var tableView: UITableView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
     }
     override func viewWillAppear(animated: Bool) {
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegate.dataController
+        print("current make : \(make?.title)")
         tableView.dataSource = self
         tableView.delegate = self
         models = dataController?.fetchModelsForMake(make!)
+        print("fecth models count \(models?.count)")
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        let index = lastChoice as Int
+        tableView.scrollToRowAtIndexPath(NSIndexPath(forRow: index, inSection: 0), atScrollPosition: .Top, animated: true)
     }
     
     override func didReceiveMemoryWarning() {
@@ -44,6 +54,7 @@ class ModelViewController: UIViewController ,UITableViewDataSource, UITableViewD
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         registerViewController?.buttonSelectModel.setTitle(models![indexPath.row].title, forState: .Normal)
+        registerViewController?.indexForModel = indexPath.row
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
         self.navigationController?.popViewControllerAnimated(true)
     }

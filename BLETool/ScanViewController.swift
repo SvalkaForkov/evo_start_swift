@@ -216,7 +216,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         }
         for cell in cells {
             //old expression           let cell : UITableViewCell = j as UITableViewCell
-            UIView.animateWithDuration(1.5, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
+            UIView.animateWithDuration(1, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
                 cell.transform = CGAffineTransformMakeTranslation(0, 0)
                 }, completion: nil)
             index += 1

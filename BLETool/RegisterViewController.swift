@@ -16,8 +16,9 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     var module: String?
     
     @IBOutlet var nameField: UITextField!
-    
-    
+    var indexForModel : Int! = 0
+    var indexForYear : Int! = 0
+    var indexForMake : Int! = 0
     @IBOutlet var buttonSelectMake: UIButton!
     @IBOutlet var buttonSelectModel: UIButton!
     @IBOutlet var buttonSelectYear: UIButton!
@@ -28,6 +29,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
         appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegeate.dataController
         vehicles = dataController.getAllVehicles()
+        dataController.initialDatabase()
         nameField.delegate = self
         
 //        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("keyboardWillShow:"), name: UIKeyboardWillShowNotification, object: nil)
@@ -45,30 +47,13 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
         print("viewWillAppear: selected \(module)")
         buttonRegister.layer.cornerRadius = 25.0
         buttonRegister.clipsToBounds = true
-        
-        if buttonSelectMake.titleLabel?.text == "Select Make" {
-            buttonSelectModel.enabled = false
-        }else{
-            buttonSelectModel.enabled = true
-        }
     }
     
     override func viewDidAppear(animated: Bool) {
         print(viewDidAppear)
+        nameField.endEditing(true)
         setLastScene()
     }
-    
-//    func keyboardWillShow(notification: NSNotification) {
-//        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
-//            self.view.frame.origin.y -= keyboardSize.height
-//        }
-//    }
-//    
-//    func keyboardWillHide(notification: NSNotification) {
-//        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
-//            self.view.frame.origin.y += keyboardSize.height
-//        }
-//    }
     
     func textFieldShouldReturn(textField: UITextField) -> Bool {
         self.view.endEditing(true)
@@ -96,7 +81,9 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     @IBAction func onSave(sender: UIButton) {
         if checkInfo() {
             print("save vehicle")
-//            dataController.saveVehicle(nameField.text!, make: makeField.text!, model: modelField.text!, year: yearField.text!, module: self.module!)
+            let yearValue = NSDecimalNumber(string: buttonSelectYear.titleLabel!.text!)
+            let model = dataController.fetchModelByTitle((buttonSelectModel?.titleLabel!.text)!)!
+            dataController.saveVehicle(nameField.text!, model: model, year: yearValue, module: self.module!)
             setDefault(self.module!)
             print("prepare to go back to control")
             self.navigationController?.popToRootViewControllerAnimated(true)
@@ -106,9 +93,9 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     }
     
     @IBAction func onTap(sender: UITapGestureRecognizer) {
-        if nameField.isFirstResponder() {
+//        if nameField.isFirstResponder() {
             nameField.endEditing(true)
-        }
+//        }
     }
     
     func checkInfo() -> Bool {
@@ -144,6 +131,28 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
         }
     }
     
+    @IBAction func onSelectModel(sender: UIButton) {
+        if buttonSelectMake.titleLabel?.text != "Select Make" {
+            performSegueWithIdentifier("selectModel", sender: sender)
+        }else{
+            showAlert()
+        }
+    }
+    
+    func showAlert() {
+        if NSClassFromString("UIAlertController") != nil {
+            let alertController = UIAlertController(title: "Tip", message: "Please select a make first", preferredStyle: UIAlertControllerStyle.Alert)
+            presentViewController(alertController, animated: true, completion:{
+                alertController.view.superview?.userInteractionEnabled = true
+                alertController.view.superview?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.alertControllerBackgroundTapped)))
+            })
+        }
+    }
+    
+    func alertControllerBackgroundTapped()    {
+        self.dismissViewControllerAnimated(true, completion: nil)
+    }
+
     func setLastScene(){
         print("getLsetLastScene : Register")
         NSUserDefaults.standardUserDefaults().setObject("Register", forKey: "lastScene")
@@ -152,13 +161,16 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "selectYear"{
             let destController = segue.destinationViewController as! YearViewController
+            destController.lastChoice = indexForYear
             destController.registerViewController = self
         }else if segue.identifier == "selectMake"{
             let destController = segue.destinationViewController as! MakeViewController
+                destController.lastChoice = indexForMake
             destController.registerViewController = self
         }else if segue.identifier == "selectModel"{
             let destController = segue.destinationViewController as! ModelViewController
             destController.registerViewController = self
+            destController.lastChoice = indexForModel
             let make = buttonSelectMake?.titleLabel?.text
             destController.make = dataController.fetchMakeByTitle(make!)
         }else{

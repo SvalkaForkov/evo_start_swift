@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import UIKit
 
 class DataController {
     let managedObjectContext: NSManagedObjectContext
@@ -17,6 +18,95 @@ class DataController {
         print("DataController : init moc")
     }
     
+    func initialDatabase(){
+        let data = [
+            ["3 Series","BMW"],["5 Series","BMW"],["7 Series","BMW"],["X6","BMW"],["X5","BMW"],["X4","BMW"],["X3","BMW"],["X1","BMW"],
+            ["A1","Audi"],["A3","Audi"],["A4","Audi"],["A5","Audi"],["A6","Audi"],
+            ["C-Class","Mercedes-Benz"],["B-Class","Mercedes-Benz"],["E-Class","Mercedes-Benz"]
+        ]
+        for array in data {
+            insertModelAndMake(array[0], makeTitle: array[1])
+        }
+    }
+    
+    func insertMake(title : String){
+        let makeFetch = NSFetchRequest(entityName: "Make")
+        makeFetch.predicate = NSPredicate(format: "title == %@", title)
+        var fetchedMakes: [Make]!
+        do {
+            fetchedMakes = try self.managedObjectContext.executeFetchRequest(makeFetch) as! [Make]
+        } catch {
+            fatalError("Fetch makes failed")
+        }
+        if fetchedMakes.count == 0{
+            let newMake = NSEntityDescription.insertNewObjectForEntityForName("Make", inManagedObjectContext: self.managedObjectContext) as! Make
+            newMake.title = title
+            do {
+                try self.managedObjectContext.save()
+            } catch {
+                fatalError("Save context failed")
+            }
+        }
+    }
+    
+    func insertModel(title : String, make: Make){
+        let modelFetch = NSFetchRequest(entityName: "Model")
+        modelFetch.predicate = NSPredicate(format: "title == %@", title)
+        var fetchedModels: [Model]!
+        do {
+            fetchedModels = try self.managedObjectContext.executeFetchRequest(modelFetch) as! [Model]
+        } catch {
+            fatalError("Fetch models failed")
+        }
+        if fetchedModels.count == 0{
+            let newModel = NSEntityDescription.insertNewObjectForEntityForName("Model", inManagedObjectContext: self.managedObjectContext) as! Model
+            newModel.model2make = make
+            newModel.title = title
+            do {
+                try self.managedObjectContext.save()
+            } catch {
+                fatalError("Save context failed")
+            }
+        }
+    }
+    
+    func insertModelAndMake(title: String, makeTitle :String){
+        insertMake(makeTitle)
+        let make = fetchMakeByTitle(makeTitle)
+        if make != nil {
+            let modelFetch = NSFetchRequest(entityName: "Model")
+            modelFetch.predicate = NSPredicate(format: "title == %@", title)
+            var fetchedModels: [Model]!
+            do {
+                fetchedModels = try self.managedObjectContext.executeFetchRequest(modelFetch) as! [Model]
+            } catch {
+                fatalError("Fetch models failed")
+            }
+            if fetchedModels.count == 0{
+                let newModel = NSEntityDescription.insertNewObjectForEntityForName("Model", inManagedObjectContext: self.managedObjectContext) as! Model
+                newModel.model2make = fetchMakeByTitle(makeTitle)
+                newModel.title = title
+                do {
+                    try self.managedObjectContext.save()
+                } catch {
+                    fatalError("Save context failed")
+                }
+            }
+        }
+    }
+    
+    func fetchAllMakes() -> [Make]{
+        let makeFetch = NSFetchRequest(entityName: "Make")
+        
+        var fetchedMakes: [Make]?
+        do {
+            fetchedMakes = try self.managedObjectContext.executeFetchRequest(makeFetch) as? [Make]
+        } catch {
+            fatalError("fetch failed")
+        }
+        print("DataController : fetched \(fetchedMakes!.count)")
+        return fetchedMakes!
+    }
     
     convenience init?() {
         print("DataController : convenience init")
@@ -42,7 +132,6 @@ class DataController {
         }
         
         self.init(moc: moc)
-        
     }
     
     func getAllVehicles() -> [Vehicle]{
@@ -101,7 +190,7 @@ class DataController {
         }
         return fetchedMakes[0]
     }
-
+    
     func fetchModelsForMake(make: Make) -> [Model]{
         let fetchRequest = NSFetchRequest(entityName: "Model")
         fetchRequest.predicate = NSPredicate(format: "model2make == %@", make)
@@ -132,6 +221,22 @@ class DataController {
             fatalError("no make matched")
         }
         return fetchedMakes[0]
+    }
+    
+    func fetchModelByTitle(title: String) -> Model?{
+        let fetchRequest = NSFetchRequest(entityName: "Model")
+        fetchRequest.predicate = NSPredicate(format: "title == %@", title)
+        
+        var fetchedModels: [Model]!
+        do {
+            fetchedModels = try self.managedObjectContext.executeFetchRequest(fetchRequest) as! [Model]
+        } catch {
+            fatalError("fetch Model failed")
+        }
+        if fetchedModels.count == 0 {
+            fatalError("no Model matched")
+        }
+        return fetchedModels[0]
     }
     
     func fetchVehicleByName(name: String)-> [Vehicle]{

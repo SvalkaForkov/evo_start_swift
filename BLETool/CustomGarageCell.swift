@@ -14,6 +14,7 @@ class CustomGarageCell: UITableViewCell {
     @IBOutlet var labelMake: UILabel!
     @IBOutlet var labelName: UILabel!
     
+    @IBOutlet var logo: UIImageView!
     @IBOutlet var mainView: UIView!
     var dataController : DataController!
     override func awakeFromNib() {
