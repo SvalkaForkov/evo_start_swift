@@ -63,6 +63,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var paneSlidedUp = false
     var module = ""
     
+    @IBOutlet var labelCountDown: UILabel!
     var longPressCountDown = 0
     var isPressing = false
     
@@ -75,11 +76,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var buttonTrunk: UIButton!
     @IBOutlet var buttonValet: UIButton!
     
+    @IBOutlet var imageHourGlass: UIImageView!
     @IBOutlet var coverLostConnection: UIView!
     @IBOutlet var stateView: UIView!
     @IBOutlet var buttonGPS: UIButton!
     @IBOutlet var imageCap: UIImageView!
-    @IBOutlet var imageStart: UIImageView!
+    
     @IBOutlet var buttonCover: UIButton!
     @IBOutlet var swipeDown: UISwipeGestureRecognizer!
     @IBOutlet var swipeUp: UISwipeGestureRecognizer!
@@ -90,9 +92,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var imageViewCar: UIImageView!
     @IBOutlet var labelMessage: UILabel!
     @IBOutlet var capContainerView: UIView!
+    @IBOutlet var imageStartFrame: UIImageView!
     
+    @IBOutlet var imageButtonStart: UIImageView!
+    @IBOutlet var imageGlowing: UIImageView!
+    @IBOutlet var topView: UIStackView!
+    @IBOutlet var rightView: UIView!
+    @IBOutlet var leftView: UIView!
     @IBOutlet var slideUpView: UIView!
     
+    @IBOutlet var controlPanel: UIView!
     @IBOutlet var buttonAddFromEmpty: UIButton!
     @IBOutlet var imageViewTempretureBackground: UIImageView!
     @IBOutlet var imageViewFuelBackground: UIImageView!
@@ -117,12 +126,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     var isMatchFound = false
     var isConnected = false
-    
+    let defaultCountdown = 900
+    var countdown = 900
+    var timer : NSTimer?
     override func viewDidLoad() {
         logEvent("ViewController : viewDidLoad")
         super.viewDidLoad()
         setUpNavigationBar()
         setUpStaticViews()
+        
+        needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
+        needleRPM.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getRPMAngle(0) / 180)
+        needleFuel.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getFuelAngle(0) / 180)
+        needleTemp.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getTempAngle(-40) / 180)
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -140,10 +156,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidAppear(animated: Bool) {
         logEvent("viewDidAppear")
         setLastScene()
-        needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
-        needleRPM.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getRPMAngle(0) / 180)
-        needleFuel.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getFuelAngle(0) / 180)
-        needleTemp.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getTempAngle(-40) / 180)
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -215,6 +227,27 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 logEvent("Connecting : \(self.peripheral.name)")
             }
         }
+    }
+    
+    func secondsToHoursMinutesSeconds (seconds : Int) -> (Int, Int, Int) {
+        return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
+    }
+    
+    func stringValueOfHoursMinutesSeconds (seconds:Int) -> String {
+        let (h, m, s) = secondsToHoursMinutesSeconds (seconds)
+        var hours = "\(h) : "
+        if h == 0 {
+            hours = ""
+        }
+        var minutes = "\(m) : "
+        if m < 10 {
+            minutes = "0\(m) : "
+        }
+        var seconds = "\(s)"
+        if s < 10 {
+            seconds = "0\(s)"
+        }
+        return (hours+minutes+seconds)
     }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
@@ -365,6 +398,7 @@ showHoodOpened()
             stateIgnition = false
         }
         if intValue & mask9engine != 0 {
+            
             if !stateEngine {
                 showStarted()
             }
@@ -716,6 +750,7 @@ showHoodOpened()
         updateFuel(0)
         updateTemperature(-40)
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        stopTimer()
     }
     
     func showStarted(){
@@ -728,9 +763,48 @@ showHoodOpened()
         updateFuel(50)
         updateTemperature(0)
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        startTimerFrom(defaultCountdown)
     }
     
+    func startTimerFrom(value: Int){
+        countdown = value
+        timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: #selector(ViewController.updateCountDown), userInfo: nil, repeats: true)
+        labelCountDown.textColor = UIColor.whiteColor()
+        imageHourGlass.image = UIImage(named: "Hourglass-100")
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            sleep(1)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.imageHourGlass.hidden = false
+            })
+        })
+    }
     
+    func stopTimer(){
+        timer?.invalidate()
+        labelCountDown.text = ""
+        imageHourGlass.hidden = true
+    }
+    
+    func updateCountDown() {
+        print("update:")
+        if countdown > 0 {
+            countdown = countdown - 1
+            labelCountDown.text = stringValueOfHoursMinutesSeconds(countdown)
+            print("\(countdown)")
+            if countdown < 9 / 10 * defaultCountdown {
+                imageHourGlass.image = UIImage(named: "Hourglass-80")
+            }else if countdown < 7 / 10 * defaultCountdown{
+                imageHourGlass.image = UIImage(named: "Hourglass-60")
+            }else if countdown < 5 / 10 * defaultCountdown{
+                imageHourGlass.image = UIImage(named: "Hourglass-40")
+            }else if countdown < 3 / 10 * defaultCountdown{
+                imageHourGlass.image = UIImage(named: "Hourglass-20")
+            }
+        }else if countdown == 0 {
+            labelCountDown.textColor = UIColor.redColor()
+            imageHourGlass.image = UIImage(named: "Hourglass-0")
+        }
+    }
     
     func showUnlocked(){
         UIView.animateWithDuration(200, animations: {
@@ -821,7 +895,15 @@ showHoodOpened()
             logEvent("UIGestureRecognizerState.Began")
             isPressing = true
             longPressCountDown = 0
-            imageStart.image = UIImage(named: "Button Start")
+//            imageStartFrame.image = UIImage(named: "Button Start")
+            var glowtransform = CGAffineTransformIdentity
+            var scaletransform = CGAffineTransformIdentity
+            UIView.animateWithDuration(0.3, animations: {
+                glowtransform = CGAffineTransformScale(glowtransform,1.3, 1)
+                scaletransform = CGAffineTransformScale(scaletransform,0.8, 1)
+                self.imageGlowing.transform = glowtransform
+                self.imageButtonStart.transform = scaletransform
+            })
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 self.logEvent("now \(self.longPressCountDown)")
                 while self.isPressing && self.longPressCountDown <= 5{
@@ -832,6 +914,8 @@ showHoodOpened()
                     usleep(150000)
                 }
                 if self.longPressCountDown>5{
+                    AudioServicesPlaySystemSound(UInt32(kSystemSoundID_Vibrate))
+                    
                     if self.stateEngine {
                         self.stopEngine()
                     }else {
@@ -841,9 +925,15 @@ showHoodOpened()
             })
             break
         case UIGestureRecognizerState.Ended:
+            UIView.animateWithDuration(0.3, animations: {
+                let glowtransform = CGAffineTransformIdentity
+                let scaletransform = CGAffineTransformIdentity
+                self.imageGlowing.transform = glowtransform
+                self.imageButtonStart.transform = scaletransform
+            })
             logEvent("UIGestureRecognizerState.Ended")
             isPressing = false
-            imageStart.image = UIImage(named: "Button Start Frame")
+//            imageStartFrame.image = UIImage(named: "Button Start Frame")
             break
         default:
             break
@@ -1022,6 +1112,7 @@ showHoodOpened()
     var currentAngleTemp : CGFloat = 0
     
     func updateTemperature(temp: CGFloat){
+        print("\(currentAngleTemp)")
         rotateViewToAngle(needleTemp, angle: getTempAngle(temp)/2-currentAngleTemp)
         rotateViewToAngle(needleTemp, angle: getTempAngle(temp))
         currentAngleTemp = getTempAngle(temp)
@@ -1075,9 +1166,9 @@ showHoodOpened()
         imageCap.layoutIfNeeded()
         imageCap.clipsToBounds = true
         
-        imageStart.backgroundColor = UIColor.clearColor()
-        imageStart.layoutIfNeeded()
-        imageStart.clipsToBounds = true
+        imageStartFrame.backgroundColor = UIColor.clearColor()
+        imageStartFrame.layoutIfNeeded()
+        imageStartFrame.clipsToBounds = true
         
         buttonUnlock.layer.cornerRadius = 25.0
         buttonUnlock.clipsToBounds = true
@@ -1086,8 +1177,10 @@ showHoodOpened()
         buttonLock.clipsToBounds = true
         
         buttonMore.clipsToBounds = true
-        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStart)
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStartFrame)
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageButtonStart)
+        setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageGlowing)
     }
     
     func checkDatabase() -> String {
