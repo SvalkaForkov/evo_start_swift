@@ -83,6 +83,9 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                 dispatch_async(dispatch_get_main_queue(),{
                     if !self.isFound {
                         print("No match module found")
+                        if self.centralManager.isScanning {
+                        self.centralManager.stopScan()
+                        }
                         self.showAlert()
                     }
                 })
@@ -135,7 +138,9 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             break
         case CBCentralManagerState.PoweredOff:
             print("CBCentralManagerState.PoweredOff")
-            centralManager.stopScan()
+            if centralManager.isScanning {
+                centralManager.stopScan()
+            }
             break
         case CBCentralManagerState.Unauthorized:
             print("CBCentralManagerState.Unauthorized")
@@ -160,7 +165,9 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             if nameOfDeviceFound == selectedModule{
                 print("Match")
                 isFound = true
-                centralManager.stopScan()
+                if centralManager.isScanning {
+                    centralManager.stopScan()
+                }
                 print("Stop scanning after \(nameOfDeviceFound) device found")
                 setDefault(selectedModule)
                 centralManager = nil

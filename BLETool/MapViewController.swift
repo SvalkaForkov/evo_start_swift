@@ -21,6 +21,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
     var currentLat : Double!
     var currentLon : Double!
     var marker : GMSMarker!
+    var isFirstUpdate = true
     override func viewDidLoad() {
         super.viewDidLoad()
     }
@@ -56,6 +57,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         locationManager.startUpdatingLocation()
         
         viewMap.settings.myLocationButton = true
+        isFirstUpdate = true
     }
     
     override func didReceiveMemoryWarning() {
@@ -65,7 +67,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
     @IBAction func onSetLocation(sender: UIButton) {
         if marker != nil {
             marker.map = nil
-            
         }
         setLastLocation(currentLat, lon: currentLon)
         let position = CLLocationCoordinate2DMake(currentLat, currentLon)
@@ -73,6 +74,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         marker.title = "Last Position"
         marker.icon = UIImage(named: "Parked")
         marker.map = viewMap
+        
     }
     
     func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
@@ -90,6 +92,10 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         print("Update locations : \(locValue.latitude) \(locValue.longitude)")
         currentLat = locValue.latitude
         currentLon = locValue.longitude
+        if isFirstUpdate {
+            camera = GMSCameraPosition.cameraWithLatitude(currentLat, longitude: currentLon, zoom: 15.0)
+        }
+        isFirstUpdate = false
     }
     
     func setLastLocation(lat: NSNumber, lon: NSNumber){
