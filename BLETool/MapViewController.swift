@@ -35,6 +35,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
             let position = CLLocationCoordinate2DMake(lat, lon)
             marker = GMSMarker(position: position)
             marker.title = "Last Position"
+            marker.icon = UIImage(named: "Parked")
             marker.map = viewMap
             camera = GMSCameraPosition.cameraWithLatitude(lat, longitude: lon, zoom: 15.0)
         }else{
@@ -70,6 +71,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         let position = CLLocationCoordinate2DMake(currentLat, currentLon)
         marker = GMSMarker(position: position)
         marker.title = "Last Position"
+        marker.icon = UIImage(named: "Parked")
         marker.map = viewMap
     }
     

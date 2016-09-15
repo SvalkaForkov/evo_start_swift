@@ -19,6 +19,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     var vehicles : [Vehicle] = []
     var selectedModule = ""
     var dataController : DataController?
+    var isFound = false
     override func viewDidLoad() {
         super.viewDidLoad()
         print("GarageViewController : garage viewDidLoad")
@@ -72,12 +73,39 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         selectedModule = vehicles[indexPath.row].module!
         print("click \(selectedModule)")
-        centralManager.scanForPeripheralsWithServices(nil, options: nil)
-        print("scan for selected module")
+        isFound = false
+        if centralManager != nil {
+            centralManager.scanForPeripheralsWithServices(nil, options: nil)
+            print("scan for selected module")
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                print("dispatch_async : start to wait")
+                sleep(2)
+                dispatch_async(dispatch_get_main_queue(),{
+                    if !self.isFound {
+                        print("No match module found")
+                        self.showAlert()
+                    }
+                })
+            })
+        }
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
     }
     
-     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+    func showAlert() {
+        if NSClassFromString("UIAlertController") != nil {
+            let alertController = UIAlertController(title: "Info", message: "Failed to connect", preferredStyle: UIAlertControllerStyle.Alert)
+            presentViewController(alertController, animated: true, completion:{
+                alertController.view.superview?.userInteractionEnabled = true
+                alertController.view.superview?.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.alertControllerBackgroundTapped)))
+            })
+        }
+    }
+    
+    func alertControllerBackgroundTapped()    {
+        self.dismissViewControllerAnimated(true, completion: nil)
+    }
+    
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == UITableViewCellEditingStyle.Delete {
             let vehicleToDelete : String! = vehicles[indexPath.row].module
             print("Vehicle to Delete : \(vehicleToDelete)")
@@ -131,6 +159,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             print("Selected module is \(selectedModule)")
             if nameOfDeviceFound == selectedModule{
                 print("Match")
+                isFound = true
                 centralManager.stopScan()
                 print("Stop scanning after \(nameOfDeviceFound) device found")
                 setDefault(selectedModule)
@@ -241,5 +270,5 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         gradientLayer.colors = [colorTop, colorBottom]
         self.view.layer.addSublayer(gradientLayer)
     }
-
+    
 }

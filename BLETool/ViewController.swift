@@ -151,6 +151,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         logEvent("viewWillDisappear")
         if centralManager != nil && peripheral != nil{
             centralManager.cancelPeripheralConnection(peripheral)
+            print("cancel connection")
             centralManager = nil
             isConnected = false
         }
@@ -811,7 +812,8 @@ showHoodOpened()
         isConnected = false
         coverLostConnection.hidden = false
         central.scanForPeripheralsWithServices(nil, options: nil)
-        showControl(false)    }
+        showControl(false)
+    }
     
     @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
         switch sender.state {
