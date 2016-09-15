@@ -22,6 +22,7 @@
             <string>NeuropolXRg-Regular</string>
             <string>NeuropolXRg-Regular</string>
             <string>NeuropolXRg-Regular</string>
+            <string>NeuropolXRg-Regular</string>
         </mutableArray>
     </customFonts>
     <scenes>
@@ -63,9 +64,15 @@
                                                             <state key="normal" image="High Connection"/>
                                                         </button>
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vEn-OI-iqt">
-                                                            <rect key="frame" x="66" y="37" width="285" height="30"/>
+                                                            <rect key="frame" x="66" y="37" width="227" height="30"/>
                                                             <fontDescription key="fontDescription" name="NeuropolXRg-Regular" family="Neuropol X" pointSize="20"/>
                                                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                            <nil key="highlightedColor"/>
+                                                        </label>
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="value" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kf7-EQ-3Pj">
+                                                            <rect key="frame" x="301" y="44" width="50" height="16"/>
+                                                            <fontDescription key="fontDescription" name="NeuropolXRg-Regular" family="Neuropol X" pointSize="13"/>
+                                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
                                                     </subviews>
@@ -74,10 +81,13 @@
                                                         <constraint firstItem="vEn-OI-iqt" firstAttribute="leading" secondItem="hUK-4X-Zrc" secondAttribute="trailing" constant="8" symbolic="YES" id="0SB-o7-H0v"/>
                                                         <constraint firstItem="hUK-4X-Zrc" firstAttribute="leading" secondItem="I65-us-spI" secondAttribute="leadingMargin" id="FWC-OQ-yCp"/>
                                                         <constraint firstItem="vEn-OI-iqt" firstAttribute="top" secondItem="I65-us-spI" secondAttribute="top" constant="37" id="Hpc-cb-aGG"/>
+                                                        <constraint firstItem="kf7-EQ-3Pj" firstAttribute="leading" secondItem="vEn-OI-iqt" secondAttribute="trailing" constant="8" id="MtX-2k-wH7"/>
                                                         <constraint firstItem="vEn-OI-iqt" firstAttribute="centerY" secondItem="hUK-4X-Zrc" secondAttribute="centerY" id="NDO-aG-vfQ"/>
+                                                        <constraint firstItem="kf7-EQ-3Pj" firstAttribute="centerY" secondItem="I65-us-spI" secondAttribute="centerY" id="Otc-na-8wD"/>
                                                         <constraint firstItem="hUK-4X-Zrc" firstAttribute="centerY" secondItem="I65-us-spI" secondAttribute="centerY" id="QWK-G1-jCx"/>
                                                         <constraint firstItem="hUK-4X-Zrc" firstAttribute="top" secondItem="I65-us-spI" secondAttribute="top" constant="27" id="fVC-r7-4GU"/>
-                                                        <constraint firstItem="vEn-OI-iqt" firstAttribute="trailing" secondItem="I65-us-spI" secondAttribute="trailingMargin" id="ujn-c7-znz"/>
+                                                        <constraint firstAttribute="trailing" secondItem="kf7-EQ-3Pj" secondAttribute="trailing" constant="8" id="jCG-Pt-N4v"/>
+                                                        <constraint firstItem="vEn-OI-iqt" firstAttribute="trailing" secondItem="I65-us-spI" secondAttribute="trailingMargin" constant="-58" id="ujn-c7-znz"/>
                                                     </constraints>
                                                 </view>
                                             </subviews>
@@ -92,6 +102,7 @@
                                         <connections>
                                             <outlet property="imageSignal" destination="hUK-4X-Zrc" id="pOR-Go-PUu"/>
                                             <outlet property="labelName" destination="vEn-OI-iqt" id="gj6-XN-25j"/>
+                                            <outlet property="labelValue" destination="kf7-EQ-3Pj" id="v6p-YA-3xX"/>
                                             <outlet property="mainView" destination="I65-us-spI" id="Zly-mq-68M"/>
                                         </connections>
                                     </tableViewCell>
@@ -238,9 +249,7 @@
                                                             <color key="titleColor" red="0.43529411759999997" green="0.4431372549" blue="0.47450980390000003" alpha="1" colorSpace="calibratedRGB"/>
                                                         </state>
                                                         <connections>
-                                                            <segue destination="TYU-SH-6kl" kind="popover" identifier="selectMake" popoverAnchorView="vay-uW-Eug" id="bvM-ke-Wl4">
-                                                                <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES"/>
-                                                            </segue>
+                                                            <segue destination="TYU-SH-6kl" kind="push" identifier="selectMake" id="bvM-ke-Wl4"/>
                                                         </connections>
                                                     </button>
                                                 </subviews>
@@ -345,9 +354,7 @@
                                                     <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                                 </state>
                                                 <connections>
-                                                    <segue destination="TUG-sB-euJ" kind="popover" identifier="selectYear" popoverAnchorView="LCB-e3-cOp" id="aey-qd-JPm">
-                                                        <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES"/>
-                                                    </segue>
+                                                    <segue destination="TUG-sB-euJ" kind="push" identifier="selectYear" id="aey-qd-JPm"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -516,7 +523,7 @@
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="MakeCell" textLabel="aWS-LZ-XAF" style="IBUITableViewCellStyleDefault" id="I38-w9-U0i">
-                                        <rect key="frame" x="0.0" y="28" width="376" height="44"/>
+                                        <rect key="frame" x="0.0" y="92" width="376" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="I38-w9-U0i" id="LQE-Lg-FRt">
                                             <rect key="frame" x="0.0" y="0.0" width="376" height="43"/>

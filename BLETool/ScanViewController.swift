@@ -65,6 +65,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         
         if rssi != nil {
             print("rssi : \(rssi)")
+            cell.labelValue.text = "\(rssi)"
             if rssi < 0 && rssi > -50 {
                 cell.imageSignal.setImage(UIImage(named: "High Connection"), forState: .Normal)
             }else if rssi <= -50 && rssi > -70 {
