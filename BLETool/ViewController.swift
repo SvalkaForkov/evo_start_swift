@@ -343,7 +343,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         if intValue & mask9trunk != 0 {
             if !stateTrunk {
-showTrunkOpened()
+                showTrunkOpened()
             }
             if waitingList.contains(0x51){
                 let index = waitingList.indexOf(0x51)
@@ -352,7 +352,7 @@ showTrunkOpened()
             stateTrunk = true
         }else{
             if stateTrunk {
-showTrunkClosed()
+                showTrunkClosed()
             }
             if waitingList.contains(0x50){
                 let index = waitingList.indexOf(0x50)
@@ -362,7 +362,7 @@ showTrunkClosed()
         }
         if intValue & mask9hood != 0 {
             if !stateHood {
-showHoodOpened()
+                showHoodOpened()
             }
             if waitingList.contains(0x41){
                 let index = waitingList.indexOf(0x41)
@@ -389,7 +389,7 @@ showHoodOpened()
             stateIgnition = true
         }else{
             if stateIgnition {
-//                showUnlocked()
+                //                showUnlocked()
             }
             if waitingList.contains(0x30){
                 let index = waitingList.indexOf(0x30)
@@ -419,7 +419,7 @@ showHoodOpened()
         }
         if intValue & mask9remote != 0 {
             if !stateRemote {
-//                showLocked()
+                //                showLocked()
             }
             if waitingList.contains(0x11){
                 let index = waitingList.indexOf(0x11)
@@ -428,7 +428,7 @@ showHoodOpened()
             stateRemote = true
         }else{
             if stateRemote {
-//                showUnlocked()
+                //                showUnlocked()
             }
             if waitingList.contains(0x10){
                 let index = waitingList.indexOf(0x10)
@@ -438,7 +438,7 @@ showHoodOpened()
         }
         if intValue & mask9valet != 0 {
             if !stateValet {
-//                showLocked()
+                //                showLocked()
             }
             if waitingList.contains(0x01){
                 let index = waitingList.indexOf(0x01)
@@ -447,7 +447,7 @@ showHoodOpened()
             stateValet = true
         }else{
             if stateValet {
-//                showUnlocked()
+                //                showUnlocked()
             }
             if waitingList.contains(0x00){
                 let index = waitingList.indexOf(0x00)
@@ -560,139 +560,6 @@ showHoodOpened()
         }
     }
     
-    /*func sendCommend(data : NSData, action : Int){
-        logEvent("SendCommend")
-        if peripheral != nil && writeCharacteristic != nil {
-            countSendTime = 0
-            var flag : Bool
-            switch action {
-            case 0:
-                receivedLock = false
-                flag = receivedLock
-                break
-            case 1:
-                receivedUnlock = false
-                flag = receivedUnlock
-                break
-            case 2:
-                receivedStart = false
-                flag = receivedStart
-                break
-            case 3:
-                receivedStop = false
-                flag = receivedStop
-                break
-            default:
-                break
-            }
-            flag = false
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-                dispatch_async(dispatch_get_main_queue(),{
-                    self.logEvent("Send : 1st time")
-                })
-                sleep(1)
-                switch action {
-                case 0:
-                    flag = self.receivedLock
-                    break
-                case 1:
-                    flag = self.receivedUnlock
-                    break
-                case 2:
-                    flag = self.receivedStart
-                    break
-                case 3:
-                    flag = self.receivedStop
-                    break
-                default:
-                    break
-                }
-                if flag {
-                    return
-                }
-                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-                dispatch_async(dispatch_get_main_queue(),{
-                    self.logEvent("Send : 2nd time")
-                })
-                sleep(1)
-                switch action {
-                case 0:
-                    flag = self.receivedLock
-                    break
-                case 1:
-                    flag = self.receivedUnlock
-                    break
-                case 2:
-                    flag = self.receivedStart
-                    break
-                case 3:
-                    flag = self.receivedStop
-                    break
-                default:
-                    break
-                }
-                if flag {
-                    return
-                }
-                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-                dispatch_async(dispatch_get_main_queue(),{
-                    self.logEvent("Send : 3rd time")
-                })
-                sleep(1)
-                switch action {
-                case 0:
-                    flag = self.receivedLock
-                    break
-                case 1:
-                    flag = self.receivedUnlock
-                    break
-                case 2:
-                    flag = self.receivedStart
-                    break
-                case 3:
-                    flag = self.receivedStop
-                    break
-                default:
-                    break
-                }
-                if flag {
-                    return
-                }
-                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-                dispatch_async(dispatch_get_main_queue(),{
-                    self.logEvent("Send : 4th time")
-                })
-                sleep(1)
-                switch action {
-                case 0:
-                    flag = self.receivedLock
-                    break
-                case 1:
-                    flag = self.receivedUnlock
-                    break
-                case 2:
-                    flag = self.receivedStart
-                    break
-                case 3:
-                    flag = self.receivedStop
-                    break
-                default:
-                    break
-                }
-                if flag {
-                    return
-                }
-                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-                dispatch_async(dispatch_get_main_queue(),{
-                    self.logEvent("Send : 5th time")
-                })
-            })
-        } else {
-            logEvent("peripheral or writeCharateristic is nil")
-        }
-    }
-    */
     func setNotification(enabled: Bool){
         logEvent("setNotification = true")
         if peripheral != nil && notificationCharacteristic != nil {
@@ -741,9 +608,9 @@ showHoodOpened()
     
     func showStopped(){
         displayMessage("Engine shut off")
-//        UIView.animateWithDuration(200, animations: {
-//            self.imageViewEngine.image = nil
-//        })
+        //        UIView.animateWithDuration(200, animations: {
+        //            self.imageViewEngine.image = nil
+        //        })
         
         updateRPM(0)
         updateBatt(0)
@@ -755,9 +622,9 @@ showHoodOpened()
     
     func showStarted(){
         displayMessage("Engine started")
-//        UIView.animateWithDuration(200, animations: {
-//            self.imageViewEngine.image = UIImage(named: "Engine On")
-//        })
+        //        UIView.animateWithDuration(200, animations: {
+        //            self.imageViewEngine.image = UIImage(named: "Engine On")
+        //        })
         updateRPM(1100)
         updateBatt(95)
         updateFuel(50)
@@ -810,7 +677,7 @@ showHoodOpened()
         UIView.animateWithDuration(200, animations: {
             self.buttonLock.setImage(UIImage(named: "Button Lock Off"), forState: .Normal)
             self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
-//            self.imageViewDoors.image = UIImage(named: "Door Unlocked")
+            //            self.imageViewDoors.image = UIImage(named: "Door Unlocked")
         })
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         displayMessage("Door unlocked")
@@ -821,7 +688,7 @@ showHoodOpened()
         UIView.animateWithDuration(200, animations: {
             self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
             self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
-//            self.imageViewDoors.image = UIImage(named: "Door Locked")
+            //            self.imageViewDoors.image = UIImage(named: "Door Locked")
         })
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         displayMessage("Door locked")
@@ -895,14 +762,11 @@ showHoodOpened()
             logEvent("UIGestureRecognizerState.Began")
             isPressing = true
             longPressCountDown = 0
-//            imageStartFrame.image = UIImage(named: "Button Start")
             var glowtransform = CGAffineTransformIdentity
-            var scaletransform = CGAffineTransformIdentity
             UIView.animateWithDuration(0.3, animations: {
                 glowtransform = CGAffineTransformScale(glowtransform,1.3, 1)
-                scaletransform = CGAffineTransformScale(scaletransform,0.8, 1)
+                self.imageGlowing.alpha = 1.0
                 self.imageGlowing.transform = glowtransform
-                self.imageButtonStart.transform = scaletransform
             })
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 self.logEvent("now \(self.longPressCountDown)")
@@ -914,8 +778,33 @@ showHoodOpened()
                     usleep(150000)
                 }
                 if self.longPressCountDown>5{
-                    AudioServicesPlaySystemSound(UInt32(kSystemSoundID_Vibrate))
-                    
+                    self.isPressing = false
+                    dispatch_async(dispatch_get_main_queue(),{
+
+                    UIView.animateWithDuration(0.1, animations: {
+                        self.imageGlowing.alpha = 0.0
+                        },completion: {
+                            finished in
+                            UIView.animateWithDuration(0.1, animations: {
+                                self.imageGlowing.alpha = 1.0
+                                },completion: {
+                                    finished in
+                                    UIView.animateWithDuration(0.1, animations: {
+                                        self.imageGlowing.alpha = 0.0
+                                        },completion: {
+                                            finished in
+                                            UIView.animateWithDuration(0.1, animations: {
+                                                self.imageGlowing.alpha = 1.0
+                                                },completion: {
+                                                    finished in
+                                                    UIView.animateWithDuration(0.1, animations: {
+                                                        self.imageGlowing.alpha = 0.0
+                                                    })
+                                            })
+                                    })
+                            })
+                    })
+                    })
                     if self.stateEngine {
                         self.stopEngine()
                     }else {
@@ -925,15 +814,16 @@ showHoodOpened()
             })
             break
         case UIGestureRecognizerState.Ended:
-            UIView.animateWithDuration(0.3, animations: {
-                let glowtransform = CGAffineTransformIdentity
-                let scaletransform = CGAffineTransformIdentity
-                self.imageGlowing.transform = glowtransform
-                self.imageButtonStart.transform = scaletransform
-            })
+            if isPressing {
+                UIView.animateWithDuration(0.3, animations: {
+                    let glowtransform = CGAffineTransformIdentity
+                    self.imageGlowing.transform = glowtransform
+                    self.imageGlowing.alpha = 0.0
+                })
+                
+                isPressing = false
+            }
             logEvent("UIGestureRecognizerState.Ended")
-            isPressing = false
-//            imageStartFrame.image = UIImage(named: "Button Start Frame")
             break
         default:
             break
@@ -1019,15 +909,15 @@ showHoodOpened()
         )
     }
     
-//    func printFontFamily(){
-//        for name in UIFont.familyNames() {
-//            print("\(name)\n")
-//            if let nameString = name
-//                as? String {
-//                print(UIFont.fontNamesForFamilyName(nameString))
-//            }
-//        }
-//    }
+    //    func printFontFamily(){
+    //        for name in UIFont.familyNames() {
+    //            print("\(name)\n")
+    //            if let nameString = name
+    //                as? String {
+    //                print(UIFont.fontNamesForFamilyName(nameString))
+    //            }
+    //        }
+    //    }
     
     func getDefaultModuleName() -> String{
         logEvent("Get Default Module Name")
