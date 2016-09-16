@@ -126,8 +126,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     var isMatchFound = false
     var isConnected = false
-    let defaultCountdown = 900
-    var countdown = 900
+    let defaultCountdown = 90
+    var countdown = 90
     var timer : NSTimer?
     override func viewDidLoad() {
         logEvent("ViewController : viewDidLoad")
@@ -229,26 +229,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func secondsToHoursMinutesSeconds (seconds : Int) -> (Int, Int, Int) {
-        return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
-    }
     
-    func stringValueOfHoursMinutesSeconds (seconds:Int) -> String {
-        let (h, m, s) = secondsToHoursMinutesSeconds (seconds)
-        var hours = "\(h) : "
-        if h == 0 {
-            hours = ""
-        }
-        var minutes = "\(m) : "
-        if m < 10 {
-            minutes = "0\(m) : "
-        }
-        var seconds = "\(s)"
-        if s < 10 {
-            seconds = "0\(s)"
-        }
-        return (hours+minutes+seconds)
-    }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
         logEvent("didConnectPeripheral")
@@ -438,7 +419,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         if intValue & mask9valet != 0 {
             if !stateValet {
-                //                showLocked()
+                                showValetOn()
             }
             if waitingList.contains(0x01){
                 let index = waitingList.indexOf(0x01)
@@ -447,7 +428,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             stateValet = true
         }else{
             if stateValet {
-                //                showUnlocked()
+                showValetOff()
             }
             if waitingList.contains(0x00){
                 let index = waitingList.indexOf(0x00)
@@ -608,42 +589,63 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func showStopped(){
         displayMessage("Engine shut off")
-        //        UIView.animateWithDuration(200, animations: {
-        //            self.imageViewEngine.image = nil
-        //        })
-        
         updateRPM(0)
         updateBatt(0)
         updateFuel(0)
         updateTemperature(-40)
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         stopTimer()
+        if paneSlidedUp {
+            slideUpView.hidden = false
+            buttonValet.hidden = false
+            buttonGarage.hidden = false
+            buttonTrunk.hidden = false
+        }
     }
     
     func showStarted(){
+        print("\(slideUpView.hidden)")
+        print("\(buttonValet.hidden)")
         displayMessage("Engine started")
-        //        UIView.animateWithDuration(200, animations: {
-        //            self.imageViewEngine.image = UIImage(named: "Engine On")
-        //        })
         updateRPM(1100)
         updateBatt(95)
         updateFuel(50)
         updateTemperature(0)
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            usleep(1000 * 500)
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            usleep(1000 * 500)
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        })
+        
         startTimerFrom(defaultCountdown)
+        if paneSlidedUp {
+            slideUpView.hidden = false
+            buttonValet.hidden = false
+            buttonGarage.hidden = false
+            buttonTrunk.hidden = false
+        }
     }
     
     func startTimerFrom(value: Int){
         countdown = value
         timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: #selector(ViewController.updateCountDown), userInfo: nil, repeats: true)
         labelCountDown.textColor = UIColor.whiteColor()
+        labelCountDown.text = stringValueOfHoursMinutesSeconds(countdown)
+        imageHourGlass.hidden = false
         imageHourGlass.image = UIImage(named: "Hourglass-100")
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-            sleep(1)
-            dispatch_async(dispatch_get_main_queue(),{
-                self.imageHourGlass.hidden = false
-            })
-        })
+//        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+//            for coun in self.countdown...0 {
+//                dispatch_async(dispatch_get_main_queue(),{
+//                    if !self.paneSlidedUp {
+//                        self.labelCountDown.text =
+//                            self.stringValueOfHoursMinutesSeconds(coun)
+//                    }
+//                })
+//                sleep(1)
+//            }
+//        })
     }
     
     func stopTimer(){
@@ -652,20 +654,49 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         imageHourGlass.hidden = true
     }
     
+    func secondsToHoursMinutesSeconds (seconds : Int) -> (Int, Int, Int) {
+        return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
+    }
+    
+    func stringValueOfHoursMinutesSeconds (seconds:Int) -> String {
+        let (h, m, s) = secondsToHoursMinutesSeconds (seconds)
+        var hours = "\(h) : "
+        if h == 0 {
+            hours = ""
+        }
+        var minutes = "\(m) : "
+        if m < 10 {
+            minutes = "0\(m) : "
+        }
+        var seconds = "\(s)"
+        if s < 10 {
+            seconds = "0\(s)"
+        }
+        return (hours+minutes+seconds)
+    }
+    
     func updateCountDown() {
-        print("update:")
         if countdown > 0 {
             countdown = countdown - 1
-            labelCountDown.text = stringValueOfHoursMinutesSeconds(countdown)
-            print("\(countdown)")
-            if countdown < 9 / 10 * defaultCountdown {
-                imageHourGlass.image = UIImage(named: "Hourglass-80")
-            }else if countdown < 7 / 10 * defaultCountdown{
-                imageHourGlass.image = UIImage(named: "Hourglass-60")
-            }else if countdown < 5 / 10 * defaultCountdown{
-                imageHourGlass.image = UIImage(named: "Hourglass-40")
-            }else if countdown < 3 / 10 * defaultCountdown{
+            if !paneSlidedUp {
+                labelCountDown.text =
+                    stringValueOfHoursMinutesSeconds(self.countdown)
+            }else{
+//                labelCountDown.text = ""
+////                slideUpView.hidden = false
+////                buttonValet.hidden = false
+////                buttonGarage.hidden = false
+////                buttonTrunk.hidden = false
+            }
+            
+            if countdown < defaultCountdown * 3 / 10 {
                 imageHourGlass.image = UIImage(named: "Hourglass-20")
+            }else if countdown < defaultCountdown * 5 / 10{
+                imageHourGlass.image = UIImage(named: "Hourglass-40")
+            }else if countdown < defaultCountdown * 7 / 10{
+                imageHourGlass.image = UIImage(named: "Hourglass-60")
+            }else if countdown < defaultCountdown * 9 / 10{
+                imageHourGlass.image = UIImage(named: "Hourglass-80")
             }
         }else if countdown == 0 {
             labelCountDown.textColor = UIColor.redColor()
@@ -727,6 +758,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         displayMessage("Hood closed")
     }
     
+    func showValetOn(){
+        displayMessage("Valet activated")
+    }
+    
+    func showValetOff(){
+        displayMessage("Valet disactivated")
+    }
+    
     func setAnchorPoint(anchorPoint: CGPoint, forView view: UIView) {
         logEvent("Set anchor")
         var newPoint = CGPointMake(view.bounds.size.width * anchorPoint.x, view.bounds.size.height * anchorPoint.y)
@@ -777,33 +816,36 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     })
                     usleep(150000)
                 }
+                dispatch_async(dispatch_get_main_queue(),{
+                        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                })
                 if self.longPressCountDown>5{
                     self.isPressing = false
                     dispatch_async(dispatch_get_main_queue(),{
-
-                    UIView.animateWithDuration(0.1, animations: {
-                        self.imageGlowing.alpha = 0.0
-                        },completion: {
-                            finished in
-                            UIView.animateWithDuration(0.1, animations: {
-                                self.imageGlowing.alpha = 1.0
-                                },completion: {
-                                    finished in
-                                    UIView.animateWithDuration(0.1, animations: {
-                                        self.imageGlowing.alpha = 0.0
-                                        },completion: {
-                                            finished in
-                                            UIView.animateWithDuration(0.1, animations: {
-                                                self.imageGlowing.alpha = 1.0
-                                                },completion: {
-                                                    finished in
-                                                    UIView.animateWithDuration(0.1, animations: {
-                                                        self.imageGlowing.alpha = 0.0
-                                                    })
-                                            })
-                                    })
-                            })
-                    })
+                        
+                        UIView.animateWithDuration(0.1, animations: {
+                            self.imageGlowing.alpha = 0.0
+                            },completion: {
+                                finished in
+                                UIView.animateWithDuration(0.1, animations: {
+                                    self.imageGlowing.alpha = 1.0
+                                    },completion: {
+                                        finished in
+                                        UIView.animateWithDuration(0.1, animations: {
+                                            self.imageGlowing.alpha = 0.0
+                                            },completion: {
+                                                finished in
+                                                UIView.animateWithDuration(0.1, animations: {
+                                                    self.imageGlowing.alpha = 1.0
+                                                    },completion: {
+                                                        finished in
+                                                        UIView.animateWithDuration(0.1, animations: {
+                                                            self.imageGlowing.alpha = 0.0
+                                                        })
+                                                })
+                                        })
+                                })
+                        })
                     })
                     if self.stateEngine {
                         self.stopEngine()
@@ -873,7 +915,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.slideUpView.hidden = true
+                    //                    self.slideUpView.hidden = true
                     self.performSegueWithIdentifier("control2map", sender: sender)
             })
         }else{
@@ -1025,12 +1067,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.slideUpView.hidden = true
+                    self.slideUpView.hidden = false
             })
         }else{
             paneSlidedUp = true
             self.slideUpView.alpha = 0
-            self.slideUpView.hidden = false
+            slideUpView.hidden = false
+            buttonValet.hidden = false
+            buttonGarage.hidden = false
+            buttonTrunk.hidden = false
             UIView.animateWithDuration(0.5, delay: 0, options: UIViewAnimationOptions.CurveEaseInOut, animations: {
                 self.slideUpView.alpha = 1
                 self.slideUpView.center.y = self.slideUpView.center.y - self.slideUpView.bounds.height
@@ -1103,7 +1148,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.slideUpView.hidden = true
+                    //                    self.slideUpView.hidden = true
                     self.performSegueWithIdentifier("control2garage", sender: sender)
             })
         }else{
@@ -1112,18 +1157,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onTrunk(sender: UIButton) {
-        if !stateTrunk {
-            print("open trunk")
-        }else{
-            print("close trunk")
-        }
+        logEvent("onTrunk")
+        let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0x21)
     }
     @IBAction func onValet(sender: UIButton) {
-        if !stateValet {
-            print("activate valet")
-        }else{
-            print("disactivate valet")
-        }
+        logEvent("onValet")
+        let data = NSData(bytes: [0x34] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0x01)
     }
     
     @IBAction func onGoToGarage(sender: UIButton) {
