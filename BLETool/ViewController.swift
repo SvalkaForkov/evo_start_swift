@@ -419,7 +419,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         if intValue & mask9valet != 0 {
             if !stateValet {
-                                showValetOn()
+                showValetOn()
             }
             if waitingList.contains(0x01){
                 let index = waitingList.indexOf(0x01)
@@ -568,49 +568,110 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showTrunkOpened(){
-        displayMessage("Trunk Opened")
-        UIView.animateWithDuration(200, animations: {
-            self.imageViewEngine.image = UIImage(named: "Trunk Opened")
-            self.buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
-        })
-        
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-    }
-    
-    func showTrunkClosed(){
-        displayMessage("Trunk closed")
-        UIView.animateWithDuration(200, animations: {
-            self.imageViewEngine.image = nil
-            self.buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
-        })
-        
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-    }
-    
-    func showStopped(){
-        displayMessage("Engine shut off")
-        updateRPM(0)
-        updateBatt(0)
-        updateFuel(0)
-        updateTemperature(-40)
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        stopTimer()
         if paneSlidedUp {
-            slideUpView.hidden = false
-            buttonValet.hidden = false
-            buttonGarage.hidden = false
-            buttonTrunk.hidden = false
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.imageViewEngine.image = UIImage(named: "Trunk Opened")
+                    self.buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Trunk Opened")
+            })
+        }else{
+            imageViewEngine.image = UIImage(named: "Trunk Opened")
+            buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            displayMessage("Trunk Opened")
         }
     }
     
+    func showTrunkClosed(){
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.imageViewEngine.image = nil
+                    self.buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Trunk closed")
+            })
+        }else{
+            imageViewEngine.image = nil
+            buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            displayMessage("Trunk closed")
+        }
+    }
+    
+    func showStopped(){
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.displayMessage("Engine shut off")
+                    self.updateRPM(0)
+                    self.updateBatt(0)
+                    self.updateFuel(0)
+                    self.updateTemperature(-40)
+            })
+        }else{
+            displayMessage("Engine shut off")
+            updateRPM(0)
+            updateBatt(0)
+            updateFuel(0)
+            updateTemperature(-40)
+        }
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        stopTimer()
+    }
+    
     func showStarted(){
-        print("\(slideUpView.hidden)")
-        print("\(buttonValet.hidden)")
-        displayMessage("Engine started")
-        updateRPM(1100)
-        updateBatt(95)
-        updateFuel(50)
-        updateTemperature(0)
+        
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.displayMessage("Engine started")
+                    self.updateRPM(1100)
+                    self.updateBatt(95)
+                    self.updateFuel(50)
+                    self.updateTemperature(0)
+            })
+        }else{
+            displayMessage("Engine started")
+            updateRPM(1100)
+            updateBatt(95)
+            updateFuel(50)
+            updateTemperature(0)
+        }
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             usleep(1000 * 500)
@@ -620,12 +681,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         })
         
         startTimerFrom(defaultCountdown)
-        if paneSlidedUp {
-            slideUpView.hidden = false
-            buttonValet.hidden = false
-            buttonGarage.hidden = false
-            buttonTrunk.hidden = false
-        }
     }
     
     func startTimerFrom(value: Int){
@@ -635,17 +690,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         labelCountDown.text = stringValueOfHoursMinutesSeconds(countdown)
         imageHourGlass.hidden = false
         imageHourGlass.image = UIImage(named: "Hourglass-100")
-//        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-//            for coun in self.countdown...0 {
-//                dispatch_async(dispatch_get_main_queue(),{
-//                    if !self.paneSlidedUp {
-//                        self.labelCountDown.text =
-//                            self.stringValueOfHoursMinutesSeconds(coun)
-//                    }
-//                })
-//                sleep(1)
-//            }
-//        })
+        //        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+        //            for coun in self.countdown...0 {
+        //                dispatch_async(dispatch_get_main_queue(),{
+        //                    if !self.paneSlidedUp {
+        //                        self.labelCountDown.text =
+        //                            self.stringValueOfHoursMinutesSeconds(coun)
+        //                    }
+        //                })
+        //                sleep(1)
+        //            }
+        //        })
     }
     
     func stopTimer(){
@@ -682,11 +737,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 labelCountDown.text =
                     stringValueOfHoursMinutesSeconds(self.countdown)
             }else{
-//                labelCountDown.text = ""
-////                slideUpView.hidden = false
-////                buttonValet.hidden = false
-////                buttonGarage.hidden = false
-////                buttonTrunk.hidden = false
+                //                labelCountDown.text = ""
+                ////                slideUpView.hidden = false
+                ////                buttonValet.hidden = false
+                ////                buttonGarage.hidden = false
+                ////                buttonTrunk.hidden = false
             }
             
             if countdown < defaultCountdown * 3 / 10 {
@@ -705,65 +760,190 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showUnlocked(){
-        UIView.animateWithDuration(200, animations: {
+        print("show locked")
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.buttonLock.setImage(UIImage(named: "Button Lock Off"), forState: .Normal)
+                    self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Door unlocked")
+            })
+        }else{
             self.buttonLock.setImage(UIImage(named: "Button Lock Off"), forState: .Normal)
             self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
-            //            self.imageViewDoors.image = UIImage(named: "Door Unlocked")
-        })
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        displayMessage("Door unlocked")
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            self.displayMessage("Door unlocked")
+        }
     }
     
     func showLocked(){
-        print("SHOW LOCKED")
-        UIView.animateWithDuration(200, animations: {
+        print("show locked")
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
+                    self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Door opened")
+            })
+        }else{
             self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
             self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
-            //            self.imageViewDoors.image = UIImage(named: "Door Locked")
-        })
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        displayMessage("Door locked")
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            self.displayMessage("Door opened")
+        }
     }
     
     func showDoorOpened(){
-        print("SHOW LOCKED")
-        UIView.animateWithDuration(200, animations: {
-            self.imageViewDoors.image = UIImage(named: "Door Opened")
-        })
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        displayMessage("Door opened")
+        print("show door opened")
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.imageViewDoors.image = UIImage(named: "Door Opened")
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Door opened")
+            })
+        }else{
+            imageViewDoors.image = UIImage(named: "Door Opened")
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            displayMessage("Door opened")
+        }
     }
     
     func showDoorClosed(){
-        UIView.animateWithDuration(200, animations: {
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.imageViewDoors.image = nil
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Door closed")
+            })
+        }else{
             self.imageViewDoors.image = nil
-        })
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        displayMessage("Door closed")
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            displayMessage("Door closed")
+        }
     }
     
     func showHoodOpened(){
-        UIView.animateWithDuration(200, animations: {
-            self.imageViewEngine.image = UIImage(named: "Engine On")
-        })
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        displayMessage("Hood opened")
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.imageViewEngine.image = UIImage(named: "Engine On")
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Engine On")
+            })
+        }else{
+            imageViewEngine.image = UIImage(named: "Engine On")
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            displayMessage("Hood opened")
+        }
     }
     
     func showHoodClosed(){
-        UIView.animateWithDuration(200, animations: {
-            self.imageViewEngine.image = nil
-        })
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        displayMessage("Hood closed")
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.imageViewEngine.image = nil
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Engine Off")
+            })
+        }else{
+            imageViewEngine.image = nil
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            displayMessage("Hood closed")
+        }
     }
     
     func showValetOn(){
-        displayMessage("Valet activated")
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Valet activated")
+            })
+        }else{
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            displayMessage("Valet activated")
+        }
     }
     
     func showValetOff(){
-        displayMessage("Valet disactivated")
+        if paneSlidedUp {
+            paneSlidedUp = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.displayMessage("Valet disactivated")
+            })
+        }else{
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            displayMessage("Valet disactivated")
+        }
     }
     
     func setAnchorPoint(anchorPoint: CGPoint, forView view: UIView) {
@@ -817,7 +997,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     usleep(150000)
                 }
                 dispatch_async(dispatch_get_main_queue(),{
-                        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
                 })
                 if self.longPressCountDown>5{
                     self.isPressing = false
@@ -951,15 +1131,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         )
     }
     
-    //    func printFontFamily(){
-    //        for name in UIFont.familyNames() {
-    //            print("\(name)\n")
-    //            if let nameString = name
-    //                as? String {
-    //                print(UIFont.fontNamesForFamilyName(nameString))
-    //            }
-    //        }
-    //    }
+    func printFontFamily(){
+        for name in UIFont.familyNames() {
+            print("\(name)\n")
+            if let nameString = name
+                as? String {
+                print(UIFont.fontNamesForFamilyName(nameString))
+            }
+        }
+    }
     
     func getDefaultModuleName() -> String{
         logEvent("Get Default Module Name")
@@ -1048,11 +1228,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         rotateViewToAngle(needleTemp, angle: getTempAngle(temp)/2-currentAngleTemp)
         rotateViewToAngle(needleTemp, angle: getTempAngle(temp))
         currentAngleTemp = getTempAngle(temp)
-    }
-    
-    func animateFlip(){
-        UIView.transitionFromView(capContainerView, toView: slideUpView, duration: 1, options: UIViewAnimationOptions.TransitionFlipFromRight, completion: nil)
-        
     }
     
     func flipControl(){
@@ -1148,7 +1323,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    //                    self.slideUpView.hidden = true
                     self.performSegueWithIdentifier("control2garage", sender: sender)
             })
         }else{
@@ -1158,12 +1332,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onTrunk(sender: UIButton) {
         logEvent("onTrunk")
-        let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
+        let data = NSData(bytes: [0x34] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x21)
     }
     @IBAction func onValet(sender: UIButton) {
         logEvent("onValet")
-        let data = NSData(bytes: [0x34] as [UInt8], length: 1)
+        let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x01)
     }
     
@@ -1192,6 +1366,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         })
                 })
         })
+    }
+    
+    func displayCountDown(show: Bool, string: String){
+        if show {
+            labelCountDown.hidden = false
+            labelCountDown.text = string
+        }else{
+            labelCountDown.hidden = true
+        }
     }
     
     func printMessage(line: String){
