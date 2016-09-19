@@ -134,7 +134,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         super.viewDidLoad()
         setUpNavigationBar()
         setUpStaticViews()
-        
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            while true {
+                self.requestStatus()
+                sleep(60)
+            }
+        })
         needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
         needleRPM.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getRPMAngle(0) / 180)
         needleFuel.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getFuelAngle(0) / 180)
@@ -475,6 +480,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             logEvent("go start engine")
             startEngine()
         }
+    }
+    
+    func requestStatus(){
+        logEvent("startEngine")
+        let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0xAA)
     }
     
     func startEngine() {
