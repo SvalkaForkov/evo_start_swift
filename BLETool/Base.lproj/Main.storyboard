@@ -73,7 +73,7 @@
                                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="value" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kf7-EQ-3Pj">
                                                             <rect key="frame" x="301" y="44" width="50" height="16"/>
                                                             <fontDescription key="fontDescription" name="NeuropolXRg-Regular" family="Neuropol X" pointSize="13"/>
-                                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                            <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
                                                     </subviews>
@@ -1235,8 +1235,8 @@
                         <outlet property="imageStartFrame" destination="A28-Pf-ShH" id="K9Z-I6-JVv"/>
                         <outlet property="imageViewCar" destination="2x0-wL-wXG" id="FSq-e0-0Ow"/>
                         <outlet property="imageViewDoors" destination="eHa-fn-tIv" id="FBe-3j-9GE"/>
-                        <outlet property="imageViewEngine" destination="C93-lG-WHH" id="Q3a-On-WxR"/>
                         <outlet property="imageViewFuelBackground" destination="ded-q4-eMJ" id="xSW-TD-JP5"/>
+                        <outlet property="imageViewHood" destination="C93-lG-WHH" id="10l-0l-rJ7"/>
                         <outlet property="imageViewTempretureBackground" destination="m0l-Py-9IL" id="nkq-Xf-TLU"/>
                         <outlet property="imageViewTrunk" destination="jAR-tg-eSn" id="T0E-ba-sru"/>
                         <outlet property="labelCountDown" destination="fgA-EK-zkP" id="fF6-ox-GWS"/>

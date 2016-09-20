@@ -78,7 +78,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
             print("scan for selected module")
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                print("dispatch_async : start to wait")
+                print("starting to find selected module")
                 sleep(2)
                 dispatch_async(dispatch_get_main_queue(),{
                     if !self.isFound {
@@ -277,5 +277,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         gradientLayer.colors = [colorTop, colorBottom]
         self.view.layer.addSublayer(gradientLayer)
     }
+    
+    
     
 }
