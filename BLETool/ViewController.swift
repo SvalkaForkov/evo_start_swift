@@ -65,7 +65,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var isPanelDispalyed = false
     var module = ""
     
-    
     var longPressCountDown = 0
     var isPressing = false
     
@@ -167,6 +166,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidAppear(animated: Bool) {
         printLog("viewDidAppear")
         setLastScene()
+        setupNotification()
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -253,6 +253,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("failed to connect")
     }
     
+    func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
+        printLog("Disconnected")
+        isConnected = false
+        coverLostConnection.hidden = false
+        central.scanForPeripheralsWithServices(nil, options: nil)
+        enableControl(false)
+    }
+    
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
         printLog("Service discoverd")
         for service in peripheral.services! {
@@ -260,7 +268,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.service = service
             }
             printLog("Found service: \(service.UUID)")
-            peripheral.discoverCharacteristics([CBUUID(string: "1235"),CBUUID(string: "1236")], forService: service)
+            peripheral.discoverCharacteristics([CBUUID(string: "1235"),CBUUID(string: "1236"),CBUUID(string: "1237"),CBUUID(string: "123C")], forService: service)
         }
     }
     
@@ -293,16 +301,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         enableControl(true)
     }
     
-    func getIntFromNSData(data: NSData) -> UInt32 {
-        var result : UInt32 = 0
-        data.getBytes(&result, length: sizeof(UInt32))
-        return result
-    }
-    
-    func getIntFromHexString(hex: String) -> UInt32 {
-        return UInt32(strtoul(hex, nil, 16))
-    }
-    
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
         switch characteristic {
         case stateCharacteristic:
@@ -320,10 +318,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         default:
             break
         }
-        
+    }
+
+    func getIntFromNSData(data: NSData) -> UInt32 {
+        var result : UInt32 = 0
+        data.getBytes(&result, length: sizeof(UInt32))
+        return result
+    }
+    
+    func getIntFromHexString(hex: String) -> UInt32 {
+        return UInt32(strtoul(hex, nil, 16))
     }
     
     func handleStateACK(intValue : UInt32){
+        printLog("handleStateACK")
         if intValue & mask9lock != 0 {
             if waitingList.contains(0x71){
                 let index = waitingList.indexOf(0x71)
@@ -648,6 +656,32 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         imageHourGlass.hidden = true
     }
     
+    func reSyncTimer(seconds: Int){
+        countdown = seconds
+    }
+    
+    func resetNotification(countdown: Int){
+        let application = UIApplication.sharedApplication()
+        let scheduledNotifications = application.scheduledLocalNotifications!
+        
+//        for notification in scheduledNotifications {
+//            if notification.userInfo!["UUID"] == "testuuid" {
+//                application.cancelLocalNotification(notification)
+//                "cancel notification"
+//                break
+//            }
+//        }
+//
+//        let notification = UILocalNotification()
+//        notification.alertBody = "new Engine start : timeout"
+//        notification.alertAction = "new open"
+//        notification.fireDate = NSDate(timeIntervalSinceNow: countdown)
+//        notification.soundName = UILocalNotificationDefaultSoundName
+//        notification.userInfo = ["UUID": "testuuid"]
+//        print("add notification")
+//        application.scheduleLocalNotification(notification)
+    }
+    
     func secondsToHoursMinutesSeconds (seconds : Int) -> (Int, Int, Int) {
         return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
     }
@@ -899,14 +933,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("postion final \(view.layer.position)")
     }
     
-    func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        printLog("Disconnected")
-        isConnected = false
-        coverLostConnection.hidden = false
-        central.scanForPeripheralsWithServices(nil, options: nil)
-        enableControl(false)
-    }
-    
     @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
         switch sender.state {
         case UIGestureRecognizerState.Began:
@@ -984,35 +1010,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    @IBAction func onDown(sender: UISwipeGestureRecognizer) {
-        printLog("swipe down")
-        UIView.animateWithDuration(1, animations: {
-            var transform = CATransform3DIdentity
-            transform.m34 = 1.0 / -1000
-            transform = CATransform3DTranslate(transform, -self.imageCap.bounds.size.height/4, 0, 0)
-            transform = CATransform3DRotate(transform, CGFloat(-0.0 * M_PI / 180.0), 1,0,0)
-            transform = CATransform3DTranslate(transform, self.imageCap.bounds.size.height/4, 0, 0)
-            self.imageCap.layer.transform = transform
-        })
-        longPressStart.enabled = false
-    }
-    
-    @IBAction func onUp(sender: UISwipeGestureRecognizer) {
-        printLog("swipe up")
-        UIView.animateWithDuration(1, animations: {
-            var transform = CATransform3DIdentity
-            transform.m34 = 1.0 / -1000
-            transform = CATransform3DTranslate(transform, -self.imageCap.bounds.size.height/4, 0, 0)
-            transform = CATransform3DRotate(transform, CGFloat(70.0 * M_PI / 180.0), 1,0,0)
-            transform = CATransform3DTranslate(transform, self.imageCap.bounds.size.height/4, 0, 0)
-            self.imageCap.layer.transform = transform
-        })
-        longPressStart.enabled = true
-    }
-    
-    
-    
-    
     func removeTopbarShadow() {
         for p in navigationController!.navigationBar.subviews {
             for c in p.subviews {
@@ -1083,14 +1080,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     NSUserDefaults.standardUserDefaults().setObject("Control", forKey: tag_last_scene)
     }
     
-    
-    
     func rotateViewToAngle(view:UIView, angle: CGFloat){
         UIView.animateWithDuration(1.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
             view.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * angle / 180)
             }, completion: nil)
     }
-    
     
     func getBattAngle(percentage: CGFloat) -> CGFloat{
         return 313 - percentage/10*12.5
@@ -1123,7 +1117,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func updateFuel(percentage : CGFloat){
         rotateViewToAngle(needleFuel, angle: getFuelAngle(percentage))
     }
-    
     
     func updateTemperature(temp: CGFloat){
         printLog("\(currentAngleTemp)")
@@ -1233,6 +1226,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     @IBAction func onButtonMore(sender: UIButton) {
         displayPanel()
+//        printLog("startEngine")
+//        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
+//        sendCommand(data, actionId: 0x21)
+//        resetNotification()
     }
     
     @IBAction func onGPSButton(sender: UIButton) {
@@ -1256,7 +1253,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onGoToGarage(sender: UIButton) {
-        performSegueWithIdentifier("control2garage", sender: sender)
+//        performSegueWithIdentifier("control2garage", sender: sender)
+        printLog("startEngine")
+        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0x21)
     }
     
     @IBAction func onRetry(sender: UIButton) {
@@ -1277,15 +1277,41 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onLock(sender: UIButton) {
         printLog("onlock 30")
-        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
+        let data = NSData(bytes: [0x30] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x71)
-        setupNotification()
+        
     }
     
     @IBAction func onUnlock(sender: UIButton) {
         printLog("onUnlock 31")
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x70)
+    }
+    
+    @IBAction func onDown(sender: UISwipeGestureRecognizer) {
+        printLog("swipe down")
+        UIView.animateWithDuration(1, animations: {
+            var transform = CATransform3DIdentity
+            transform.m34 = 1.0 / -1000
+            transform = CATransform3DTranslate(transform, -self.imageCap.bounds.size.height/4, 0, 0)
+            transform = CATransform3DRotate(transform, CGFloat(-0.0 * M_PI / 180.0), 1,0,0)
+            transform = CATransform3DTranslate(transform, self.imageCap.bounds.size.height/4, 0, 0)
+            self.imageCap.layer.transform = transform
+        })
+        longPressStart.enabled = false
+    }
+    
+    @IBAction func onUp(sender: UISwipeGestureRecognizer) {
+        printLog("swipe up")
+        UIView.animateWithDuration(1, animations: {
+            var transform = CATransform3DIdentity
+            transform.m34 = 1.0 / -1000
+            transform = CATransform3DTranslate(transform, -self.imageCap.bounds.size.height/4, 0, 0)
+            transform = CATransform3DRotate(transform, CGFloat(70.0 * M_PI / 180.0), 1,0,0)
+            transform = CATransform3DTranslate(transform, self.imageCap.bounds.size.height/4, 0, 0)
+            self.imageCap.layer.transform = transform
+        })
+        longPressStart.enabled = true
     }
     
     func requestStatus(){
@@ -1306,6 +1332,61 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         sendCommand(data, actionId: 0x20)
     }
 
+//    func sendCommand(data : NSData, actionId: UInt8){
+//        if peripheral != nil && writeCharacteristic != nil {
+//            if !waitingList.contains(actionId){
+//                waitingList.append(actionId)
+//            }
+//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+//                if self.DBG {
+//                    print("1st time")
+//                }
+//                sleep(1)
+//                if !self.waitingList.contains(actionId) {
+//                    return
+//                }
+//                
+//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+//                if self.DBG {
+//                    print("2nd time")
+//                }
+//                sleep(1)
+//                if !self.waitingList.contains(actionId) {
+//                    return
+//                }
+//                
+//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+//                if self.DBG {
+//                    print("3rd time")
+//                }
+//                sleep(1)
+//                if !self.waitingList.contains(actionId) {
+//                    return
+//                }
+//                
+//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+//                if self.DBG {
+//                    print("4th time")
+//                }
+//                sleep(1)
+//                if !self.waitingList.contains(actionId) {
+//                    return
+//                }
+//                
+//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+//                if self.DBG {
+//                    print("5th time")
+//                }
+//            })
+//            peripheral.setNotifyValue(true, forCharacteristic: runtimeCharacteristic)
+//            peripheral.setNotifyValue(true, forCharacteristic: temperatureCharacteristic)
+//            
+//            if peripheral != nil && stateCharacteristic != nil {
+//                peripheral.setNotifyValue(true, forCharacteristic: stateCharacteristic)
+//            }
+//        }
+//    }
     func sendCommand(data : NSData, actionId: UInt8){
         if peripheral != nil && writeCharacteristic != nil {
             if !waitingList.contains(actionId){
@@ -1364,13 +1445,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func setupNotification(){
         let notification = UILocalNotification()
-        notification.alertBody = "Todo Item Is Overdue" // text that will be displayed in the notification
-        notification.alertAction = "open" // text that is displayed after "slide to..." on the lock screen - defaults to "slide to view"
-        //        let calendar = NSCalendar.currentCalendar()
-        //        let date = calendar.dateByAddingUnit(.Second, value: 10, toDate: NSDate(), options: [])
-        notification.fireDate = NSDate(timeIntervalSinceNow: 1) // todo item due date (when notification will be fired)
-        notification.soundName = UILocalNotificationDefaultSoundName // play default sound
-        notification.userInfo = ["title": "testTitle", "UUID": "testuuid"] // assign a unique identifier to the notification so that we can retrieve it later
+        notification.alertBody = "Engine start : timeout"
+        notification.alertAction = "open"
+        notification.fireDate = NSDate(timeIntervalSinceNow: 5)
+        notification.soundName = UILocalNotificationDefaultSoundName
+        notification.userInfo = ["UUID": "testuuid"]
         print("add notification")
         UIApplication.sharedApplication().scheduleLocalNotification(notification)
     }

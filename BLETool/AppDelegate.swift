@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.dataController = DataController()
         GMSServices.provideAPIKey("AIzaSyDr_7IWaJcZTOtkm-Sh-AwPIs4EW_NwuDo")
         
-        	
+        application.registerUserNotificationSettings(UIUserNotificationSettings(forTypes: UIUserNotificationType.Alert , categories: nil))
         
         return true
     }
