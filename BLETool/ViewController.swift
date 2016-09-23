@@ -26,18 +26,30 @@ extension NSData {
             p[i*2] = itoh((buf[i] >> 4) & 0xF)
             p[i*2+1] = itoh(buf[i] & 0xF)
         }
-        
-        return NSString(bytesNoCopy: p, length: length*2, encoding: NSUTF8StringEncoding, freeWhenDone: true) as! String
+        let result = NSString(bytesNoCopy: p, length: length*2, encoding: NSUTF8StringEncoding, freeWhenDone: true) as! String
+        print("hexString from NSData: \(result)")
+        return result
     }
 }
 
 extension Int {
     var data: NSData {
         var int = self
-        return NSData(bytes: &int, length: sizeof(Int))
+        let result = NSData(bytes: &int, length: sizeof(Int))
+        print("Int value from NSData: \(result)")
+        return result
+    }
+    
+    var hexString : String! {
+        return String(format:"%2x", self)
     }
 }
 
+extension UInt64 {
+    var hexString : String! {
+        return String(format:"%2x", self)
+    }
+}
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
     
@@ -57,6 +69,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     let mask9engine : UInt32 = 0x00000400
     let mask9remote : UInt32 = 0x00000200
     let mask9valet : UInt32 = 0x00000100
+    let mask4header : UInt64 = 0xFFFF00000000
     
     let tag_default_module = "defaultModule"
     let tag_last_scene = "lastScene"
@@ -133,18 +146,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var timer : NSTimer?
     var currentAngleTemp : CGFloat = 0
     var waitingList : [UInt8] = []
-
+    
     override func viewDidLoad() {
         printLog("ViewController : viewDidLoad")
         super.viewDidLoad()
         setUpNavigationBar()
         setUpStaticViews()
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-            while true {
-                self.requestStatus()
-                sleep(60)
-            }
-        })
         needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
         needleRPM.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getRPMAngle(0) / 180)
         needleFuel.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getFuelAngle(0) / 180)
@@ -277,24 +284,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         for characteristic in service.characteristics! {
             printLog("Discovered characteristic \(characteristic.UUID.UUIDString)")
             if(characteristic.UUID.UUIDString == "1235"){
-                writeCharacteristic = characteristic
+                self.writeCharacteristic = characteristic
                 printLog("set writeCharacteristic")
             }
             if(characteristic.UUID.UUIDString == "1236"){
                 stateCharacteristic = characteristic
-                peripheral.setNotifyValue(true, forCharacteristic: stateCharacteristic)
                 printLog("set stateCharacteristic")
             }
             if(characteristic.UUID.UUIDString == "1237"){
                 runtimeCharacteristic = characteristic
-                peripheral.setNotifyValue(true, forCharacteristic: runtimeCharacteristic)
                 printLog("set runtimeCharacteristic")
             }
             if(characteristic.UUID.UUIDString == "123C"){
                 temperatureCharacteristic = characteristic
-                peripheral.setNotifyValue(true, forCharacteristic: temperatureCharacteristic)
                 printLog("set temperatureCharacteristic")
             }
+            enableNotification(true)
             printLog("Found characteristic: \(characteristic.UUID)")
         }
         printLog("Connection ready")
@@ -304,9 +309,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
         switch characteristic {
         case stateCharacteristic:
-            let intValue = getIntFromHexString(characteristic.value!.hexString)
-            printLog("stateCharacteristic \(characteristic.value!.hexString)")
-            handleStateACK(intValue)
+            let hexstring = characteristic.value!.hexString
+        
+//            printLog("stateCharacteristic \(characteristic.value!.hexString)")
+//            handleStateACK(intValue)
+            handle64value(characteristic.value!)
             printLog(characteristic.value!.hexString)
             break
         case runtimeCharacteristic:
@@ -319,169 +326,28 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             break
         }
     }
-
-    func getIntFromNSData(data: NSData) -> UInt32 {
-        var result : UInt32 = 0
-        data.getBytes(&result, length: sizeof(UInt32))
+    
+    func getIntFromNSData(data: NSData) -> UInt64 {
+        var result : UInt64 = 0
+        data.getBytes(&result, length: sizeof(UInt64))
         return result
     }
     
-    func getIntFromHexString(hex: String) -> UInt32 {
-        return UInt32(strtoul(hex, nil, 16))
+    func getInt16FromHexString(hex: String) -> Int {
+        return Int(strtoul(hex, nil, 16))
     }
     
-    func handleStateACK(intValue : UInt32){
-        printLog("handleStateACK")
-        if intValue & mask9lock != 0 {
-            if waitingList.contains(0x71){
-                let index = waitingList.indexOf(0x71)
-                waitingList.removeAtIndex(index!)
-                showLocked()
-            }
-            stateLock = true
-        }else{
-            if waitingList.contains(0x70){
-                let index = waitingList.indexOf(0x70)
-                waitingList.removeAtIndex(index!)
-                showUnlocked()
-            }
-            stateLock = false
-        }
-        if intValue & mask9doors != 0 {
-            if !stateDoor {
-                showDoorOpened()
-            }
-            if waitingList.contains(0x61){
-                let index = waitingList.indexOf(0x61)
-                waitingList.removeAtIndex(index!)
-            }
-            stateDoor = true
-        }else{
-            if stateDoor {
-                showDoorClosed()
-            }
-            if waitingList.contains(0x60){
-                let index = waitingList.indexOf(0x60)
-                waitingList.removeAtIndex(index!)
-            }
-            stateDoor = false
-        }
-        if intValue & mask9trunk != 0 {
-            if !stateTrunk {
-                showTrunkOpened()
-            }
-            if waitingList.contains(0x51){
-                let index = waitingList.indexOf(0x51)
-                waitingList.removeAtIndex(index!)
-            }
-            stateTrunk = true
-        }else{
-            if stateTrunk {
-                showTrunkClosed()
-            }
-            if waitingList.contains(0x50){
-                let index = waitingList.indexOf(0x50)
-                waitingList.removeAtIndex(index!)
-            }
-            stateTrunk = false
-        }
-        if intValue & mask9hood != 0 {
-            if !stateHood {
-                showHoodOpened()
-            }
-            if waitingList.contains(0x41){
-                let index = waitingList.indexOf(0x41)
-                waitingList.removeAtIndex(index!)
-            }
-            stateHood = true
-        }else{
-            if stateHood {
-                showHoodClosed()
-            }
-            if waitingList.contains(0x40){
-                let index = waitingList.indexOf(0x40)
-                waitingList.removeAtIndex(index!)
-            }
-            stateHood = false
-        }
-        if intValue & mask9ignition != 0 {
-            if waitingList.contains(0x31){
-                let index = waitingList.indexOf(0x31)
-                waitingList.removeAtIndex(index!)
-                showIgnitionOn()
-                printLog("ignition on")
-            }
-            stateIgnition = true
-        }else{
-            if stateIgnition {
-                //                showUnlocked()
-            }
-            if waitingList.contains(0x30){
-                let index = waitingList.indexOf(0x30)
-                waitingList.removeAtIndex(index!)
-            }
-            stateIgnition = false
-        }
-        if intValue & mask9engine != 0 {
-            
-            if !stateEngine {
-                showStarted()
-            }
-            if waitingList.contains(0x21){
-                let index = waitingList.indexOf(0x21)
-                waitingList.removeAtIndex(index!)
-            }
-            stateEngine = true
-        }else{
-            if stateEngine {
-                showStopped()
-            }
-            if waitingList.contains(0x20){
-                let index = waitingList.indexOf(0x20)
-                waitingList.removeAtIndex(index!)
-            }
-            stateEngine = false
-        }
-        if intValue & mask9remote != 0 {
-            if !stateRemote {
-                //                showLocked()
-            }
-            if waitingList.contains(0x11){
-                let index = waitingList.indexOf(0x11)
-                waitingList.removeAtIndex(index!)
-            }
-            stateRemote = true
-        }else{
-            if stateRemote {
-                //                showUnlocked()
-            }
-            if waitingList.contains(0x10){
-                let index = waitingList.indexOf(0x10)
-                waitingList.removeAtIndex(index!)
-            }
-            stateRemote = false
-        }
-        if intValue & mask9valet != 0 {
-            if !stateValet {
-                showValetOn()
-            }
-            if waitingList.contains(0x01){
-                let index = waitingList.indexOf(0x01)
-                waitingList.removeAtIndex(index!)
-            }
-            stateValet = true
-        }else{
-            if stateValet {
-                showValetOff()
-            }
-            if waitingList.contains(0x00){
-                let index = waitingList.indexOf(0x00)
-                waitingList.removeAtIndex(index!)
-            }
-            stateValet = false
-        }
+    func getIntFromHexString(hex: String) -> Int {
+        return Int(strtoul(hex, nil, 16))
     }
     
+    func getInt32FromHexString(hex: String) -> Int {
+        return Int(strtoul(hex, nil, 32))
+    }
+    
+    func getInt64FromHexString(hex: String) -> Int {
+        return Int(strtoul(hex, nil, 64))
+    }
     func enableControl(val: Bool){
         if(!val){
             printLog("set disable")
@@ -496,12 +362,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func enableNotification(enabled: Bool){
         printLog("enableNotification : \(enabled)")
-        if peripheral != nil && stateCharacteristic != nil {
-            peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
-        }
-        if peripheral != nil && stateCharacteristic != nil {
-            peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
-        }
         if peripheral != nil && stateCharacteristic != nil {
             peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
         }
@@ -663,23 +523,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func resetNotification(countdown: Int){
         let application = UIApplication.sharedApplication()
         let scheduledNotifications = application.scheduledLocalNotifications!
-        
-//        for notification in scheduledNotifications {
-//            if notification.userInfo!["UUID"] == "testuuid" {
-//                application.cancelLocalNotification(notification)
-//                "cancel notification"
-//                break
-//            }
-//        }
-//
-//        let notification = UILocalNotification()
-//        notification.alertBody = "new Engine start : timeout"
-//        notification.alertAction = "new open"
-//        notification.fireDate = NSDate(timeIntervalSinceNow: countdown)
-//        notification.soundName = UILocalNotificationDefaultSoundName
-//        notification.userInfo = ["UUID": "testuuid"]
-//        print("add notification")
-//        application.scheduleLocalNotification(notification)
+        for notification in scheduledNotifications {
+            application.cancelLocalNotification(notification)
+        }
+        let notification = UILocalNotification()
+        notification.alertBody = "new Engine start : timeout"
+        notification.alertAction = "new open"
+        notification.fireDate = NSDate(timeIntervalSinceNow: NSTimeInterval(countdown))
+        notification.soundName = UILocalNotificationDefaultSoundName
+        print("add notification")
+        application.scheduleLocalNotification(notification)
     }
     
     func secondsToHoursMinutesSeconds (seconds : Int) -> (Int, Int, Int) {
@@ -1077,7 +930,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func setLastScene(){
         printLog("Set Last Scene : Control")
-    NSUserDefaults.standardUserDefaults().setObject("Control", forKey: tag_last_scene)
+        NSUserDefaults.standardUserDefaults().setObject("Control", forKey: tag_last_scene)
     }
     
     func rotateViewToAngle(view:UIView, angle: CGFloat){
@@ -1226,10 +1079,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     @IBAction func onButtonMore(sender: UIButton) {
         displayPanel()
-//        printLog("startEngine")
-//        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
-//        sendCommand(data, actionId: 0x21)
-//        resetNotification()
+        //        printLog("startEngine")
+        //        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
+        //        sendCommand(data, actionId: 0x21)
+        //        resetNotification()
     }
     
     @IBAction func onGPSButton(sender: UIButton) {
@@ -1253,10 +1106,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onGoToGarage(sender: UIButton) {
-//        performSegueWithIdentifier("control2garage", sender: sender)
-        printLog("startEngine")
-        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x21)
+                performSegueWithIdentifier("control2garage", sender: sender)
+//        printLog("startEngine")
+//        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
+//        sendCommand(data, actionId: 0x21)
     }
     
     @IBAction func onRetry(sender: UIButton) {
@@ -1314,6 +1167,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         longPressStart.enabled = true
     }
     
+    func requestTemperature(){
+        printLog("requestTemperature")
+        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0xAE)
+    }
+    
+    func requestRuntime(){
+        printLog("requestRuntime")
+        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0x73)
+    }
+    
     func requestStatus(){
         printLog("requestStatus")
         let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
@@ -1331,62 +1196,63 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x20)
     }
-
-//    func sendCommand(data : NSData, actionId: UInt8){
-//        if peripheral != nil && writeCharacteristic != nil {
-//            if !waitingList.contains(actionId){
-//                waitingList.append(actionId)
-//            }
-//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-//                if self.DBG {
-//                    print("1st time")
-//                }
-//                sleep(1)
-//                if !self.waitingList.contains(actionId) {
-//                    return
-//                }
-//                
-//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-//                if self.DBG {
-//                    print("2nd time")
-//                }
-//                sleep(1)
-//                if !self.waitingList.contains(actionId) {
-//                    return
-//                }
-//                
-//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-//                if self.DBG {
-//                    print("3rd time")
-//                }
-//                sleep(1)
-//                if !self.waitingList.contains(actionId) {
-//                    return
-//                }
-//                
-//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-//                if self.DBG {
-//                    print("4th time")
-//                }
-//                sleep(1)
-//                if !self.waitingList.contains(actionId) {
-//                    return
-//                }
-//                
-//                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-//                if self.DBG {
-//                    print("5th time")
-//                }
-//            })
-//            peripheral.setNotifyValue(true, forCharacteristic: runtimeCharacteristic)
-//            peripheral.setNotifyValue(true, forCharacteristic: temperatureCharacteristic)
-//            
-//            if peripheral != nil && stateCharacteristic != nil {
-//                peripheral.setNotifyValue(true, forCharacteristic: stateCharacteristic)
-//            }
-//        }
-//    }
+    //    func sendCommand(data : NSData, actionId: UInt8){
+    //        if peripheral != nil && writeCharacteristic != nil {
+    //            if !waitingList.contains(actionId){
+    //                waitingList.append(actionId)
+    //            }
+    //            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+    //                if self.DBG {
+    //                    print("1st time")
+    //                }
+    //                sleep(1)
+    //                if !self.waitingList.contains(actionId) {
+    //                    return
+    //                }
+    //
+    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+    //                if self.DBG {
+    //                    print("2nd time")
+    //                }
+    //                sleep(1)
+    //                if !self.waitingList.contains(actionId) {
+    //                    return
+    //                }
+    //
+    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+    //                if self.DBG {
+    //                    print("3rd time")
+    //                }
+    //                sleep(1)
+    //                if !self.waitingList.contains(actionId) {
+    //                    return
+    //                }
+    //
+    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+    //                if self.DBG {
+    //                    print("4th time")
+    //                }
+    //                sleep(1)
+    //                if !self.waitingList.contains(actionId) {
+    //                    return
+    //                }
+    //
+    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+    //                if self.DBG {
+    //                    print("5th time")
+    //                }
+    //            })
+    //        }
+    //    }
+    
+    func setNotification(enabled: Bool){
+        print("setNotification = true")
+        if peripheral != nil && stateCharacteristic != nil {
+            peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
+        }
+    }
+    
     func sendCommand(data : NSData, actionId: UInt8){
         if peripheral != nil && writeCharacteristic != nil {
             if !waitingList.contains(actionId){
@@ -1453,5 +1319,196 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         print("add notification")
         UIApplication.sharedApplication().scheduleLocalNotification(notification)
     }
+    
+    func handleStateACK(intValue : UInt32){
+        printLog("handleStateACK")
+        if intValue & mask9lock != 0 {
+            if waitingList.contains(0x71){
+                let index = waitingList.indexOf(0x71)
+                waitingList.removeAtIndex(index!)
+                showLocked()
+            }
+            stateLock = true
+        }else{
+            if waitingList.contains(0x70){
+                let index = waitingList.indexOf(0x70)
+                waitingList.removeAtIndex(index!)
+                showUnlocked()
+            }
+            stateLock = false
+        }
+        if intValue & mask9doors != 0 {
+            if !stateDoor {
+                showDoorOpened()
+            }
+            if waitingList.contains(0x61){
+                let index = waitingList.indexOf(0x61)
+                waitingList.removeAtIndex(index!)
+            }
+            stateDoor = true
+        }else{
+            if stateDoor {
+                showDoorClosed()
+            }
+            if waitingList.contains(0x60){
+                let index = waitingList.indexOf(0x60)
+                waitingList.removeAtIndex(index!)
+            }
+            stateDoor = false
+        }
+        if intValue & mask9trunk != 0 {
+            if !stateTrunk {
+                showTrunkOpened()
+            }
+            if waitingList.contains(0x51){
+                let index = waitingList.indexOf(0x51)
+                waitingList.removeAtIndex(index!)
+            }
+            stateTrunk = true
+        }else{
+            if stateTrunk {
+                showTrunkClosed()
+            }
+            if waitingList.contains(0x50){
+                let index = waitingList.indexOf(0x50)
+                waitingList.removeAtIndex(index!)
+            }
+            stateTrunk = false
+        }
+        if intValue & mask9hood != 0 {
+            if !stateHood {
+                showHoodOpened()
+            }
+            if waitingList.contains(0x41){
+                let index = waitingList.indexOf(0x41)
+                waitingList.removeAtIndex(index!)
+            }
+            stateHood = true
+        }else{
+            if stateHood {
+                showHoodClosed()
+            }
+            if waitingList.contains(0x40){
+                let index = waitingList.indexOf(0x40)
+                waitingList.removeAtIndex(index!)
+            }
+            stateHood = false
+        }
+        if intValue & mask9ignition != 0 {
+            if waitingList.contains(0x31){
+                let index = waitingList.indexOf(0x31)
+                waitingList.removeAtIndex(index!)
+                showIgnitionOn()
+                printLog("ignition on")
+            }
+            stateIgnition = true
+        }else{
+            if stateIgnition {
+                //                showUnlocked()
+            }
+            if waitingList.contains(0x30){
+                let index = waitingList.indexOf(0x30)
+                waitingList.removeAtIndex(index!)
+            }
+            stateIgnition = false
+        }
+        if intValue & mask9engine != 0 {
+            
+            if !stateEngine {
+                showStarted()
+            }
+            if waitingList.contains(0x21){
+                let index = waitingList.indexOf(0x21)
+                waitingList.removeAtIndex(index!)
+            }
+            stateEngine = true
+        }else{
+            if stateEngine {
+                showStopped()
+            }
+            if waitingList.contains(0x20){
+                let index = waitingList.indexOf(0x20)
+                waitingList.removeAtIndex(index!)
+            }
+            stateEngine = false
+        }
+        if intValue & mask9remote != 0 {
+            if !stateRemote {
+                //                showLocked()
+            }
+            if waitingList.contains(0x11){
+                let index = waitingList.indexOf(0x11)
+                waitingList.removeAtIndex(index!)
+            }
+            stateRemote = true
+        }else{
+            if stateRemote {
+                //                showUnlocked()
+            }
+            if waitingList.contains(0x10){
+                let index = waitingList.indexOf(0x10)
+                waitingList.removeAtIndex(index!)
+            }
+            stateRemote = false
+        }
+        if intValue & mask9valet != 0 {
+            if !stateValet {
+                showValetOn()
+            }
+            if waitingList.contains(0x01){
+                let index = waitingList.indexOf(0x01)
+                waitingList.removeAtIndex(index!)
+            }
+            stateValet = true
+        }else{
+            if stateValet {
+                showValetOff()
+            }
+            if waitingList.contains(0x00){
+                let index = waitingList.indexOf(0x00)
+                waitingList.removeAtIndex(index!)
+            }
+            stateValet = false
+        }
+    }
+
+    func getValueFromInt(src :Int) -> Int{
+        return src >> 16
+    }
+    
+    func getTypeFromInt(src :Int) -> Int{
+        return src & 0x00000000ffff
+    }
+    
+    func handle64value(data: NSData){
+        let hex = data.hexString
+        let intvalue = getIntFromNSData(data)
+        print("hex----\(hex)")
+        print("Int----\(intvalue)")
+        print("Inthex----\(intvalue.hexString)")
+        print("type----\((intvalue >> 32).hexString)")
+        print("value----\((intvalue & 0x00000000ffff).hexString)")
+//        switch header {
+//        case 0x1236:// state
+//            let intValue = UInt32(data & 0x0000ffffffff)
+//            handleStateACK(intValue)
+//            break
+//        case 0x123C:// temp
+//            let temp = UInt32(data & 0x0000ffffffff)
+//            print("\(temp)")
+//            break
+//        case 0x1237:// runtime
+//            let runtime = UInt32(data & 0x0000ffffffff)
+//            print("\(runtime)")
+//            countdown = Int(runtime)
+//            resetNotification(countdown)
+//            break
+//        case 0x0004:
+//            break
+//        default:
+//            break
+//        }
+    }
+    
 }
 
