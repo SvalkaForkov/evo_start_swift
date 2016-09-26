@@ -937,15 +937,16 @@
                                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Meter Temperature" translatesAutoresizingMaskIntoConstraints="NO" id="m0l-Py-9IL">
                                                 <rect key="frame" x="0.0" y="0.0" width="98" height="133"/>
                                                 <gestureRecognizers/>
-                                                <connections>
-                                                    <outletCollection property="gestureRecognizers" destination="N6Q-pH-7U2" appends="YES" id="Bns-BU-PY2"/>
-                                                </connections>
                                             </imageView>
                                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Needle" translatesAutoresizingMaskIntoConstraints="NO" id="YI3-7Q-Zqu">
                                                 <rect key="frame" x="0.0" y="18" width="98" height="98"/>
+                                                <gestureRecognizers/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" secondItem="YI3-7Q-Zqu" secondAttribute="height" multiplier="1:1" id="sPx-JU-6ud"/>
                                                 </constraints>
+                                                <connections>
+                                                    <outletCollection property="gestureRecognizers" destination="JMh-BZ-GRx" appends="YES" id="IKw-4G-WOB"/>
+                                                </connections>
                                             </imageView>
                                         </subviews>
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
@@ -1256,7 +1257,7 @@
                         <outlet property="stateView" destination="dIm-tV-bx7" id="3Xp-Yh-Fjz"/>
                         <outlet property="swipeDown" destination="bdw-0U-ezA" id="ZlK-ql-vdZ"/>
                         <outlet property="swipeUp" destination="Rov-D6-Iia" id="Cfr-oc-Vso"/>
-                        <outlet property="tapUpdateTemp" destination="N6Q-pH-7U2" id="bQH-ZX-Y3J"/>
+                        <outlet property="tapTemp" destination="JMh-BZ-GRx" id="yBo-wN-JFe"/>
                         <outlet property="topView" destination="HGk-aW-Csd" id="jH1-fD-jb4"/>
                         <segue destination="F1x-P8-EMz" kind="push" identifier="control2garage" id="G09-4w-YYc"/>
                         <segue destination="LJF-gz-DnY" kind="push" identifier="control2scan" id="FgY-LN-dHX"/>
@@ -1279,9 +1280,9 @@
                         <action selector="onLongPressStart:" destination="qfS-tC-vNs" id="qlg-5g-iSq"/>
                     </connections>
                 </pongPressGestureRecognizer>
-                <tapGestureRecognizer id="N6Q-pH-7U2">
+                <tapGestureRecognizer id="JMh-BZ-GRx">
                     <connections>
-                        <action selector="onTapUpdateTemp:" destination="qfS-tC-vNs" id="L5n-FF-O7L"/>
+                        <action selector="onTapTemp:" destination="qfS-tC-vNs" id="eHI-11-g21"/>
                     </connections>
                 </tapGestureRecognizer>
             </objects>
