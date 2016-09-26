@@ -309,10 +309,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
         switch characteristic {
         case stateCharacteristic:
-            let hexstring = characteristic.value!.hexString
-        
-//            printLog("stateCharacteristic \(characteristic.value!.hexString)")
-//            handleStateACK(intValue)
             handle64value(characteristic.value!)
             printLog(characteristic.value!.hexString)
             break
@@ -341,8 +337,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         return Int(strtoul(hex, nil, 16))
     }
     
-    func getInt32FromHexString(hex: String) -> Int {
-        return Int(strtoul(hex, nil, 32))
+    func getInt32FromHexString(hex: String) -> UInt32 {
+        return UInt32(strtoul(hex, nil, 16))
     }
     
     func getInt64FromHexString(hex: String) -> Int {
@@ -465,7 +461,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         stopTimer()
     }
     
-    func showStarted(){
+    func showStarted(value: Int){
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -490,19 +486,23 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             updateFuel(50)
             updateTemperature(0)
         }
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            usleep(1000 * 500)
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            usleep(1000 * 500)
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        })
-        
-        startTimerFrom(defaultCountdown)
+        if !stateEngine {
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                usleep(1000 * 500)
+                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                usleep(1000 * 500)
+                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            })
+        }
+        startTimerFrom(value)
     }
     
     func startTimerFrom(value: Int){
         countdown = value
+        if timer != nil {
+            stopTimer()
+        }
         timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: #selector(ViewController.updateCountDown), userInfo: nil, repeats: true)
         labelCountDown.textColor = UIColor.whiteColor()
         labelCountDown.text = stringValueOfHoursMinutesSeconds(countdown)
@@ -527,8 +527,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             application.cancelLocalNotification(notification)
         }
         let notification = UILocalNotification()
-        notification.alertBody = "new Engine start : timeout"
-        notification.alertAction = "new open"
+        notification.alertBody = "Engine shutdown : Timeout"
+        notification.alertAction = "open"
         notification.fireDate = NSDate(timeIntervalSinceNow: NSTimeInterval(countdown))
         notification.soundName = UILocalNotificationDefaultSoundName
         print("add notification")
@@ -971,8 +971,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         rotateViewToAngle(needleFuel, angle: getFuelAngle(percentage))
     }
     
-    func updateTemperature(temp: CGFloat){
-        printLog("\(currentAngleTemp)")
+    func updateTemperature(tempa: Int){
+        let temp = CGFloat(tempa)
+        printLog("temp=\(tempa)")
+        printLog("currentAngleTemp=\(currentAngleTemp)")
         rotateViewToAngle(needleTemp, angle: getTempAngle(temp)/2-currentAngleTemp)
         rotateViewToAngle(needleTemp, angle: getTempAngle(temp))
         currentAngleTemp = getTempAngle(temp)
@@ -1106,10 +1108,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onGoToGarage(sender: UIButton) {
-                performSegueWithIdentifier("control2garage", sender: sender)
-//        printLog("startEngine")
-//        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-//        sendCommand(data, actionId: 0x21)
+        performSegueWithIdentifier("control2garage", sender: sender)
+        //        printLog("startEngine")
+        //        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
+        //        sendCommand(data, actionId: 0x21)
     }
     
     @IBAction func onRetry(sender: UIButton) {
@@ -1413,9 +1415,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             stateIgnition = false
         }
         if intValue & mask9engine != 0 {
-            
             if !stateEngine {
-                showStarted()
+                showStarted(defaultCountdown)
             }
             if waitingList.contains(0x21){
                 let index = waitingList.indexOf(0x21)
@@ -1471,7 +1472,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             stateValet = false
         }
     }
-
+    
     func getValueFromInt(src :Int) -> Int{
         return src >> 16
     }
@@ -1482,32 +1483,37 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func handle64value(data: NSData){
         let hex = data.hexString
-        let intvalue = getIntFromNSData(data)
-        print("hex----\(hex)")
-        print("Int----\(intvalue)")
-        print("Inthex----\(intvalue.hexString)")
-        print("type----\((intvalue >> 32).hexString)")
-        print("value----\((intvalue & 0x00000000ffff).hexString)")
-//        switch header {
-//        case 0x1236:// state
-//            let intValue = UInt32(data & 0x0000ffffffff)
-//            handleStateACK(intValue)
-//            break
-//        case 0x123C:// temp
-//            let temp = UInt32(data & 0x0000ffffffff)
-//            print("\(temp)")
-//            break
-//        case 0x1237:// runtime
-//            let runtime = UInt32(data & 0x0000ffffffff)
-//            print("\(runtime)")
-//            countdown = Int(runtime)
-//            resetNotification(countdown)
-//            break
-//        case 0x0004:
-//            break
-//        default:
-//            break
-//        }
+        let intValue = getIntFromNSData(data)
+        let type = intValue >> 32
+        switch type {
+        case 0x1236:// state
+            print("state")
+            let int32str = hex.substringWithRange(hex.startIndex..<hex.endIndex.advancedBy(-4))
+            let int32value = getInt32FromHexString(int32str)
+            handleStateACK(int32value)
+            break
+        case 0x123C:// temp
+            let int32fromCroppedHex = getInt32FromHexString(intValue.hexString)
+            let temperature = int32fromCroppedHex - 44
+            updateTemperature(Int(temperature))
+            print("temp = \(temperature)")
+            break
+        case 0x1237:// runtime
+            let runtimeCountdown = getInt32FromHexString(intValue.hexString)
+            if runtimeCountdown != 0 {
+                print("runtime= \(runtimeCountdown) seconds")
+                countdown = Int(runtimeCountdown)
+                resetNotification(countdown)
+                showStarted(countdown)
+            }else{
+                // engine shutdown
+            }
+            break
+        case 0x0004:
+            break
+        default:
+            break
+        }
     }
     
 }
