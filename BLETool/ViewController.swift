@@ -1087,6 +1087,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         //        resetNotification()
     }
     
+    @IBOutlet var tapUpdateTemp: UITapGestureRecognizer!
+    @IBAction func onTapUpdateTemp(sender: UITapGestureRecognizer) {
+        print("on Tap")
+        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0x73)
+    }
+    
+    
+    
     @IBAction func onGPSButton(sender: UIButton) {
         if isPanelDispalyed {
             isPanelDispalyed = false
@@ -1134,7 +1143,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("onlock 30")
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x71)
-        
     }
     
     @IBAction func onUnlock(sender: UIButton) {

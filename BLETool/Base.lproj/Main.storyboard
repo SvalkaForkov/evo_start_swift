@@ -425,7 +425,7 @@
                                 <rect key="frame" x="0.0" y="226" width="375" height="216"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </pickerView>
-                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="n7N-mq-zrI">
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="n7N-mq-zrI">
                                 <rect key="frame" x="154" y="462" width="68" height="36"/>
                                 <fontDescription key="fontDescription" name="NeuropolXRg-Regular" family="Neuropol X" pointSize="20"/>
                                 <state key="normal" title="Done">
@@ -936,6 +936,10 @@
                                         <subviews>
                                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Meter Temperature" translatesAutoresizingMaskIntoConstraints="NO" id="m0l-Py-9IL">
                                                 <rect key="frame" x="0.0" y="0.0" width="98" height="133"/>
+                                                <gestureRecognizers/>
+                                                <connections>
+                                                    <outletCollection property="gestureRecognizers" destination="N6Q-pH-7U2" appends="YES" id="Bns-BU-PY2"/>
+                                                </connections>
                                             </imageView>
                                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Needle" translatesAutoresizingMaskIntoConstraints="NO" id="YI3-7Q-Zqu">
                                                 <rect key="frame" x="0.0" y="18" width="98" height="98"/>
@@ -1252,6 +1256,7 @@
                         <outlet property="stateView" destination="dIm-tV-bx7" id="3Xp-Yh-Fjz"/>
                         <outlet property="swipeDown" destination="bdw-0U-ezA" id="ZlK-ql-vdZ"/>
                         <outlet property="swipeUp" destination="Rov-D6-Iia" id="Cfr-oc-Vso"/>
+                        <outlet property="tapUpdateTemp" destination="N6Q-pH-7U2" id="bQH-ZX-Y3J"/>
                         <outlet property="topView" destination="HGk-aW-Csd" id="jH1-fD-jb4"/>
                         <segue destination="F1x-P8-EMz" kind="push" identifier="control2garage" id="G09-4w-YYc"/>
                         <segue destination="LJF-gz-DnY" kind="push" identifier="control2scan" id="FgY-LN-dHX"/>
@@ -1274,6 +1279,11 @@
                         <action selector="onLongPressStart:" destination="qfS-tC-vNs" id="qlg-5g-iSq"/>
                     </connections>
                 </pongPressGestureRecognizer>
+                <tapGestureRecognizer id="N6Q-pH-7U2">
+                    <connections>
+                        <action selector="onTapUpdateTemp:" destination="qfS-tC-vNs" id="L5n-FF-O7L"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="-315.5" y="-1250.5"/>
         </scene>
@@ -1356,7 +1366,7 @@
                                                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
-                                                        <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ia1-cQ-fd7">
+                                                        <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ia1-cQ-fd7">
                                                             <rect key="frame" x="54" y="66" width="60" height="30"/>
                                                             <constraints>
                                                                 <constraint firstAttribute="height" constant="30" id="oKc-ue-OR4"/>
@@ -1365,7 +1375,7 @@
                                                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                                             <nil key="highlightedColor"/>
                                                         </label>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8zd-lJ-sL3">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8zd-lJ-sL3">
                                                             <rect key="frame" x="50" y="66" width="60" height="21"/>
                                                             <fontDescription key="fontDescription" name="NeuropolXRg-Regular" family="Neuropol X" pointSize="17"/>
                                                             <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -1490,7 +1500,7 @@
         <image name="Texture Gray" width="640" height="960"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="uvA-9Q-rjs"/>
+        <segue reference="FgY-LN-dHX"/>
     </inferredMetricsTieBreakers>
     <color key="tintColor" red="0.64313725489999995" green="0.0" blue="0.1019607843" alpha="1" colorSpace="calibratedRGB"/>
 </document>
