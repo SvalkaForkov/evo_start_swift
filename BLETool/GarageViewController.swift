@@ -134,25 +134,25 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
-        case CBCentralManagerState.PoweredOn:
+        case .PoweredOn:
             print("CBCentralManagerState.PoweredOn")
             break
-        case CBCentralManagerState.PoweredOff:
+        case .PoweredOff:
             print("CBCentralManagerState.PoweredOff")
             if centralManager.isScanning {
                 centralManager.stopScan()
             }
             break
-        case CBCentralManagerState.Unauthorized:
+        case .Unauthorized:
             print("CBCentralManagerState.Unauthorized")
             break
-        case CBCentralManagerState.Resetting:
+        case .Resetting:
             print("CBCentralManagerState.Resetting")
             break
-        case CBCentralManagerState.Unknown:
+        case .Unknown:
             print("CBCentralManagerState.Unknown")
             break
-        case CBCentralManagerState.Unsupported:
+        case .Unsupported:
             print("CBCentralManagerState.Unsupported")
             break
         }

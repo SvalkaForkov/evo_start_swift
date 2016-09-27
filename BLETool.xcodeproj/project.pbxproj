@@ -283,10 +283,12 @@
 					CF1C2AB21C766F6B009F2892 = {
 						CreatedOnToolsVersion = 7.2.1;
 						DevelopmentTeam = 843JPG6XRD;
+						LastSwiftMigration = 0800;
 					};
 					CF1C2AC61C766F6B009F2892 = {
 						CreatedOnToolsVersion = 7.2.1;
 						DevelopmentTeam = 9WTEHENT7V;
+						LastSwiftMigration = 0800;
 						TestTargetID = CF1C2AB21C766F6B009F2892;
 					};
 				};
@@ -541,6 +543,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = fortin.xiaotu.BLEToolTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 2.3;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BLETool.app/BLETool";
 			};
 			name = Debug;
@@ -553,6 +556,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = fortin.xiaotu.BLEToolTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 2.3;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BLETool.app/BLETool";
 			};
 			name = Release;
