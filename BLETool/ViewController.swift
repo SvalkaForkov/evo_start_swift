@@ -9,7 +9,6 @@
 import UIKit
 import CoreBluetooth
 import AudioToolbox
-
 extension NSData {
     var hexString : String! {
         let buf = UnsafePointer<UInt8>(bytes)
@@ -575,9 +574,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else if countdown == 0 {
             labelCountDown.textColor = UIColor.redColor()
             imageHourGlass.image = UIImage(named: "Hourglass-0")
+            updateRPM(0)
+            updateBatt(0)
+            updateFuel(0)
         }
     }
     
+    @IBAction func onUpdateTemp(sender: UIButton) {
+        print("on Tap")
+        if stateEngine {
+        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0x73)
+        }
+    }
     func showUnlocked(){
         printLog("show locked")
         if isPanelDispalyed {
@@ -808,7 +817,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     usleep(150000)
                 }
                 dispatch_async(dispatch_get_main_queue(),{
-                    AudioServicesPlaySystemSound(1519)
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
                 })
                 if self.longPressCountDown>5{
                     self.isPressing = false
@@ -1087,12 +1096,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         //        resetNotification()
     }
 
-    @IBOutlet var tapTemp: UITapGestureRecognizer!
-    @IBAction func onTapTemp(sender: UITapGestureRecognizer) {
-        print("on Tap")
-        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x73)
-    }
+    
     
     @IBAction func onGPSButton(sender: UIButton) {
         if isPanelDispalyed {
@@ -1204,55 +1208,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x20)
     }
-    //    func sendCommand(data : NSData, actionId: UInt8){
-    //        if peripheral != nil && writeCharacteristic != nil {
-    //            if !waitingList.contains(actionId){
-    //                waitingList.append(actionId)
-    //            }
-    //            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-    //                if self.DBG {
-    //                    print("1st time")
-    //                }
-    //                sleep(1)
-    //                if !self.waitingList.contains(actionId) {
-    //                    return
-    //                }
-    //
-    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-    //                if self.DBG {
-    //                    print("2nd time")
-    //                }
-    //                sleep(1)
-    //                if !self.waitingList.contains(actionId) {
-    //                    return
-    //                }
-    //
-    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-    //                if self.DBG {
-    //                    print("3rd time")
-    //                }
-    //                sleep(1)
-    //                if !self.waitingList.contains(actionId) {
-    //                    return
-    //                }
-    //
-    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-    //                if self.DBG {
-    //                    print("4th time")
-    //                }
-    //                sleep(1)
-    //                if !self.waitingList.contains(actionId) {
-    //                    return
-    //                }
-    //
-    //                self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-    //                if self.DBG {
-    //                    print("5th time")
-    //                }
-    //            })
-    //        }
-    //    }
     
     func setNotification(enabled: Bool){
         print("setNotification = true")

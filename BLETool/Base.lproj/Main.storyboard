@@ -944,17 +944,25 @@
                                                 <constraints>
                                                     <constraint firstAttribute="width" secondItem="YI3-7Q-Zqu" secondAttribute="height" multiplier="1:1" id="sPx-JU-6ud"/>
                                                 </constraints>
-                                                <connections>
-                                                    <outletCollection property="gestureRecognizers" destination="JMh-BZ-GRx" appends="YES" id="IKw-4G-WOB"/>
-                                                </connections>
                                             </imageView>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QXa-wp-Wqc">
+                                                <rect key="frame" x="0.0" y="18" width="98" height="98"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                <connections>
+                                                    <action selector="onUpdateTemp:" destination="qfS-tC-vNs" eventType="touchUpInside" id="84h-OA-7V2"/>
+                                                </connections>
+                                            </button>
                                         </subviews>
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         <constraints>
+                                            <constraint firstItem="QXa-wp-Wqc" firstAttribute="width" secondItem="YI3-7Q-Zqu" secondAttribute="width" id="2b0-9w-bzJ"/>
                                             <constraint firstItem="m0l-Py-9IL" firstAttribute="width" secondItem="LaX-Yh-0jh" secondAttribute="width" id="37A-Sg-3tC"/>
+                                            <constraint firstItem="QXa-wp-Wqc" firstAttribute="centerX" secondItem="YI3-7Q-Zqu" secondAttribute="centerX" id="Yac-yK-T15"/>
+                                            <constraint firstItem="QXa-wp-Wqc" firstAttribute="centerY" secondItem="YI3-7Q-Zqu" secondAttribute="centerY" id="ewn-Sm-jb4"/>
                                             <constraint firstItem="m0l-Py-9IL" firstAttribute="centerX" secondItem="LaX-Yh-0jh" secondAttribute="centerX" id="jj0-qf-vhM"/>
                                             <constraint firstItem="YI3-7Q-Zqu" firstAttribute="width" secondItem="LaX-Yh-0jh" secondAttribute="width" id="oSB-HH-4R2"/>
                                             <constraint firstItem="m0l-Py-9IL" firstAttribute="height" secondItem="LaX-Yh-0jh" secondAttribute="height" id="rzT-V0-74Y"/>
+                                            <constraint firstItem="QXa-wp-Wqc" firstAttribute="height" secondItem="YI3-7Q-Zqu" secondAttribute="height" id="t0P-uN-ozA"/>
                                             <constraint firstItem="YI3-7Q-Zqu" firstAttribute="centerY" secondItem="LaX-Yh-0jh" secondAttribute="centerY" id="tnn-pf-Hia"/>
                                             <constraint firstItem="YI3-7Q-Zqu" firstAttribute="centerX" secondItem="LaX-Yh-0jh" secondAttribute="centerX" id="tvg-UW-yev"/>
                                             <constraint firstItem="m0l-Py-9IL" firstAttribute="centerY" secondItem="LaX-Yh-0jh" secondAttribute="centerY" id="vJE-xB-a0W"/>
@@ -1251,13 +1259,12 @@
                         <outlet property="needleBatt" destination="FDO-vN-8PU" id="56S-qr-9ss"/>
                         <outlet property="needleFuel" destination="ded-q4-eMJ" id="Uva-yl-scs"/>
                         <outlet property="needleRPM" destination="gJd-GY-DmF" id="OS8-Mo-qby"/>
-                        <outlet property="needleTemp" destination="YI3-7Q-Zqu" id="YV2-w3-8RI"/>
+                        <outlet property="needleTemp" destination="YI3-7Q-Zqu" id="X8L-xQ-QaT"/>
                         <outlet property="rightView" destination="4lF-0q-5ND" id="RTc-Yt-Woe"/>
                         <outlet property="slideUpView" destination="DBD-Vz-uBo" id="4aN-WB-gp3"/>
                         <outlet property="stateView" destination="dIm-tV-bx7" id="3Xp-Yh-Fjz"/>
                         <outlet property="swipeDown" destination="bdw-0U-ezA" id="ZlK-ql-vdZ"/>
                         <outlet property="swipeUp" destination="Rov-D6-Iia" id="Cfr-oc-Vso"/>
-                        <outlet property="tapTemp" destination="JMh-BZ-GRx" id="yBo-wN-JFe"/>
                         <outlet property="topView" destination="HGk-aW-Csd" id="jH1-fD-jb4"/>
                         <segue destination="F1x-P8-EMz" kind="push" identifier="control2garage" id="G09-4w-YYc"/>
                         <segue destination="LJF-gz-DnY" kind="push" identifier="control2scan" id="FgY-LN-dHX"/>
@@ -1280,11 +1287,6 @@
                         <action selector="onLongPressStart:" destination="qfS-tC-vNs" id="qlg-5g-iSq"/>
                     </connections>
                 </pongPressGestureRecognizer>
-                <tapGestureRecognizer id="JMh-BZ-GRx">
-                    <connections>
-                        <action selector="onTapTemp:" destination="qfS-tC-vNs" id="eHI-11-g21"/>
-                    </connections>
-                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="-315.5" y="-1250.5"/>
         </scene>
