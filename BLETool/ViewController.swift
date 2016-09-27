@@ -50,36 +50,9 @@ extension UInt64 {
         return String(format:"%2x", self)
     }
 }
+
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
-    
-    var centralManager:CBCentralManager!
-    var peripheral : CBPeripheral!
-    var service : CBService!
-    var writeCharacteristic : CBCharacteristic!
-    var stateCharacteristic : CBCharacteristic!
-    var temperatureCharacteristic : CBCharacteristic!
-    var runtimeCharacteristic : CBCharacteristic!
-    
-    let mask9lock : UInt32 = 0x00008000
-    let mask9doors : UInt32 = 0x00004000
-    let mask9trunk : UInt32 = 0x00002000
-    let mask9hood : UInt32 = 0x00001000
-    let mask9ignition : UInt32 = 0x00000800
-    let mask9engine : UInt32 = 0x00000400
-    let mask9remote : UInt32 = 0x00000200
-    let mask9valet : UInt32 = 0x00000100
-    let mask4header : UInt64 = 0xFFFF00000000
-    
-    let tag_default_module = "defaultModule"
-    let tag_last_scene = "lastScene"
-    let fontName = "NeuropolXRg-Regular"
-    
-    var isPanelDispalyed = false
-    var module = ""
-    
-    var longPressCountDown = 0
-    var isPressing = false
     
     @IBOutlet var labelCountDown: UILabel!
     @IBOutlet var labelMessage: UILabel!
@@ -125,6 +98,34 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var swipeDown: UISwipeGestureRecognizer!
     @IBOutlet var swipeUp: UISwipeGestureRecognizer!
     
+    var centralManager:CBCentralManager!
+    var peripheral : CBPeripheral!
+    var service : CBService!
+    var writeCharacteristic : CBCharacteristic!
+    var stateCharacteristic : CBCharacteristic!
+    var temperatureCharacteristic : CBCharacteristic!
+    var runtimeCharacteristic : CBCharacteristic!
+    
+    let mask9lock : UInt32 = 0x00008000
+    let mask9doors : UInt32 = 0x00004000
+    let mask9trunk : UInt32 = 0x00002000
+    let mask9hood : UInt32 = 0x00001000
+    let mask9ignition : UInt32 = 0x00000800
+    let mask9engine : UInt32 = 0x00000400
+    let mask9remote : UInt32 = 0x00000200
+    let mask9valet : UInt32 = 0x00000100
+    let mask4header : UInt64 = 0xFFFF00000000
+    
+    let tag_default_module = "defaultModule"
+    let tag_last_scene = "lastScene"
+    let fontName = "NeuropolXRg-Regular"
+    
+    var isPanelDispalyed = false
+    var module = ""
+    
+    var longPressCountDown = 0
+    var isPressing = false
+    
     var stateLock = false
     var stateDoor = false
     var stateTrunk = false
@@ -164,7 +165,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if module != "" {
             coverEmptyGarage.hidden = true
             centralManager = CBCentralManager(delegate: self, queue:nil)
-            buttonMore.setImage(UIImage(named: "More Control"), forState: .Normal)
         }else{
             coverEmptyGarage.hidden = false
         }
@@ -193,7 +193,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
-        case CBCentralManagerState.PoweredOn:
+        case .PoweredOn:
             printLog("CBCentralManagerState.PoweredOn")
             isMatchFound = false
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
@@ -211,20 +211,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
             printLog("scanForPeripheralsWithServices")
             break
-        case CBCentralManagerState.PoweredOff:
+        case .PoweredOff:
             printLog("CBCentralManagerState.PoweredOff")
             centralManager.stopScan()
             break
-        case CBCentralManagerState.Unauthorized:
+        case .Unauthorized:
             printLog("CBCentralManagerState.Unauthorized")
             break
-        case CBCentralManagerState.Resetting:
+        case .Resetting:
             printLog("CBCentralManagerState.Resetting")
             break
-        case CBCentralManagerState.Unknown:
+        case .Unknown:
             printLog("CBCentralManagerState.Unknown")
             break
-        case CBCentralManagerState.Unsupported:
+        case .Unsupported:
             printLog("CBCentralManagerState.Unsupported")
             break
         }
@@ -808,7 +808,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     usleep(150000)
                 }
                 dispatch_async(dispatch_get_main_queue(),{
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    AudioServicesPlaySystemSound(1519)
                 })
                 if self.longPressCountDown>5{
                     self.isPressing = false
