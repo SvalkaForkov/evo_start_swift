@@ -289,6 +289,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if(characteristic.UUID.UUIDString == "1236"){
                 stateCharacteristic = characteristic
                 printLog("set stateCharacteristic")
+                enableNotification(true)
             }
             if(characteristic.UUID.UUIDString == "1237"){
                 runtimeCharacteristic = characteristic
@@ -298,7 +299,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 temperatureCharacteristic = characteristic
                 printLog("set temperatureCharacteristic")
             }
-            enableNotification(true)
             printLog("Found characteristic: \(characteristic.UUID)")
         }
         printLog("Connection ready")
@@ -343,6 +343,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func getInt64FromHexString(hex: String) -> Int {
         return Int(strtoul(hex, nil, 64))
     }
+    
     func enableControl(val: Bool){
         if(!val){
             printLog("set disable")
@@ -352,6 +353,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             printLog("set enable")
             buttonLock.enabled = true
             buttonUnlock.enabled = true
+            requestStatus()
         }
     }
     
@@ -396,13 +398,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.imageViewTrunk.image = UIImage(named: "Trunk Opened")
                     self.buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Trunk Opened")
+                    self.displayMessage("Trunk Opened")
             })
         }else{
             imageViewTrunk.image = UIImage(named: "Trunk Opened")
             buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            showUpdate("Trunk Opened")
+            displayMessage("Trunk Opened")
         }
     }
     
@@ -421,13 +423,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.imageViewTrunk.image = nil
                     self.buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Trunk closed")
+                    self.displayMessage("Trunk closed")
             })
         }else{
             imageViewTrunk.image = nil
             buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            showUpdate("Trunk closed")
+            displayMessage("Trunk closed")
         }
     }
     
@@ -443,14 +445,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.showUpdate("Engine shut off")
+                    self.displayMessage("Engine shut off")
                     self.updateRPM(0)
                     self.updateBatt(0)
                     self.updateFuel(0)
                     self.updateTemperature(-40)
             })
         }else{
-            showUpdate("Engine shut off")
+            displayMessage("Engine shut off")
             updateRPM(0)
             updateBatt(0)
             updateFuel(0)
@@ -472,14 +474,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.showUpdate("Engine started")
+                    self.displayMessage("Engine started")
                     self.updateRPM(1100)
                     self.updateBatt(95)
                     self.updateFuel(50)
                     self.updateTemperature(0)
             })
         }else{
-            showUpdate("Engine started")
+            displayMessage("Engine started")
             updateRPM(1100)
             updateBatt(95)
             updateFuel(50)
@@ -583,8 +585,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBAction func onUpdateTemp(sender: UIButton) {
         print("on Tap")
         if stateEngine {
-        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x73)
+            let data = NSData(bytes: [0x73] as [UInt8], length: 1)
+            sendCommand(data, actionId: 0x73)
         }
     }
     func showUnlocked(){
@@ -603,13 +605,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.buttonLock.setImage(UIImage(named: "Button Lock Off"), forState: .Normal)
                     self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Door unlocked")
+                    self.displayMessage("Door unlocked")
             })
         }else{
             self.buttonLock.setImage(UIImage(named: "Button Lock Off"), forState: .Normal)
             self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            self.showUpdate("Door unlocked")
+            self.displayMessage("Door unlocked")
         }
     }
     
@@ -629,13 +631,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
                     self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Door opened")
+                    self.displayMessage("Door opened")
             })
         }else{
             self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
             self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            self.showUpdate("Door opened")
+            self.displayMessage("Door opened")
         }
     }
     
@@ -654,12 +656,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }, completion: { finished in
                     self.imageViewDoors.image = UIImage(named: "Door Opened")
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Door opened")
+                    self.displayMessage("Door opened")
             })
         }else{
             imageViewDoors.image = UIImage(named: "Door Opened")
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            showUpdate("Door opened")
+            displayMessage("Door opened")
         }
     }
     
@@ -677,12 +679,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }, completion: { finished in
                     self.imageViewDoors.image = nil
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Door closed")
+                    self.displayMessage("Door closed")
             })
         }else{
             self.imageViewDoors.image = nil
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            showUpdate("Door closed")
+            displayMessage("Door closed")
         }
     }
     
@@ -700,12 +702,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }, completion: { finished in
                     self.imageViewHood.image = UIImage(named: "Engine On")
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Engine On")
+                    self.displayMessage("Engine On")
             })
         }else{
             imageViewHood.image = UIImage(named: "Engine On")
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            showUpdate("Hood opened")
+            displayMessage("Hood opened")
         }
     }
     
@@ -723,12 +725,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }, completion: { finished in
                     self.imageViewHood.image = nil
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Engine Off")
+                    self.displayMessage("Engine Off")
             })
         }else{
             imageViewHood.image = nil
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            showUpdate("Hood closed")
+            displayMessage("Hood closed")
         }
     }
     
@@ -745,11 +747,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.buttonMore.transform = transform
                 }, completion: { finished in
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Valet activated")
+                    self.displayMessage("Valet activated")
             })
         }else{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            showUpdate("Valet activated")
+            displayMessage("Valet activated")
         }
     }
     
@@ -766,11 +768,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.buttonMore.transform = transform
                 }, completion: { finished in
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUpdate("Valet disactivated")
+                    self.displayMessage("Valet disactivated")
             })
         }else{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            showUpdate("Valet disactivated")
+            displayMessage("Valet disactivated")
         }
     }
     
@@ -1090,12 +1092,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     @IBAction func onButtonMore(sender: UIButton) {
         displayPanel()
-        //        printLog("startEngine")
-        //        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
-        //        sendCommand(data, actionId: 0x21)
-        //        resetNotification()
     }
-
+    
     
     
     @IBAction func onGPSButton(sender: UIButton) {
@@ -1194,7 +1192,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func requestStatus(){
         printLog("requestStatus")
         let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0xAA)
+        if peripheral != nil && writeCharacteristic != nil {
+            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+        }
     }
     
     func startEngine() {
@@ -1233,6 +1233,31 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         break
                     }
                     sendCount += 1
+                }
+                if sendCount == 5 {
+                    if self.waitingList.contains(actionId){
+                        let index = self.waitingList.indexOf(actionId)
+                        self.waitingList.removeAtIndex(index!)
+                    }
+                }
+            })
+        }
+    }
+    
+    var messageStack : [String] = []
+    
+    func displayMessage(line: String){
+        if self.messageStack.count != 0 {
+            messageStack.append(line)
+        }else{
+            messageStack.append(line)
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                while self.messageStack.count != 0 {
+                    dispatch_async(dispatch_get_main_queue(),{
+                        self.showUpdate(self.messageStack[0])
+                        self.messageStack.removeAtIndex(0)
+                    })
+                    usleep(50000)
                 }
             })
         }
@@ -1289,15 +1314,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if waitingList.contains(0x71){
                 let index = waitingList.indexOf(0x71)
                 waitingList.removeAtIndex(index!)
-                showLocked()
             }
+            showLocked()
             stateLock = true
         }else{
             if waitingList.contains(0x70){
                 let index = waitingList.indexOf(0x70)
                 waitingList.removeAtIndex(index!)
-                showUnlocked()
             }
+            showUnlocked()
             stateLock = false
         }
         if intValue & mask9doors != 0 {
@@ -1458,6 +1483,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             let temperature = int32fromCroppedHex - 44
             updateTemperature(Int(temperature))
             print("temp = \(temperature)")
+            if waitingList.contains(0x73){
+                let index = waitingList.indexOf(0x73)
+                waitingList.removeAtIndex(index!)
+            }
             break
         case 0x1237:// runtime
             let runtimeCountdown = getInt32FromHexString(intValue.hexString)
