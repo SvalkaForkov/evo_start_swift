@@ -9,15 +9,12 @@
 import UIKit
 import CoreBluetooth
 
-class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate, CBCentralManagerDelegate, CBPeripheralDelegate{
-    
-    var centralManager:CBCentralManager!
-    var peripheral : CBPeripheral!
+class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate{
     
     @IBOutlet var topBar: UIView!
     @IBOutlet var tableView: UITableView!
     
-    var devices : [CBPeripheral] = []
+    var devices : [String] = []
     var deviceWithRssi = Dictionary<String,Int>()
     var selectedName : String = ""
     var vehicles : [Vehicle] = []
@@ -26,8 +23,10 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     override func viewDidLoad() {
         super.viewDidLoad()
         print("viewDidLoad")
-        centralManager = CBCentralManager(delegate: self, queue:nil)
-//        addLayer()
+        devices.append("EVO_DEMO_1")
+        devices.append("EVO_DEMO_2")
+        deviceWithRssi["EVO_DEMO_1"] = -47
+        deviceWithRssi["EVO_DEMO_2"] = -85
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -59,7 +58,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("ScanCell", forIndexPath: indexPath) as! CustomScanCell
-        let deviceName = devices[indexPath.row].name! as String
+        let deviceName = devices[indexPath.row] as String
         cell.labelName!.text = deviceName
         let rssi = deviceWithRssi[deviceName]
         
@@ -90,7 +89,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        selectedName = devices[indexPath.row].name! as String
+        selectedName = devices[indexPath.row] as String
         print("didSelectRowAtIndexPath : \(selectedName)")
         var existing = false
         if vehicles.count > 0 {
@@ -102,7 +101,6 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
                 }
             }
         }
-        centralManager.stopScan()
         if !existing {
             performSegueWithIdentifier("scan2register", sender: nil)
         }else{
@@ -124,65 +122,6 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     func alertControllerBackgroundTapped()    {
         self.dismissViewControllerAnimated(true, completion: nil)
-    }
-    
-    func centralManagerDidUpdateState(central: CBCentralManager) {
-        switch(central.state){
-        case .PoweredOn:
-            print("CBCentralManagerState.PoweredOn")
-            centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            print("scanForPeripheralsWithServices")
-            break
-        case .PoweredOff:
-            print("CBCentralManagerState.PoweredOff")
-            centralManager.stopScan()
-            break
-        case .Unauthorized:
-            print("CBCentralManagerState.Unauthorized")
-            break
-        case .Resetting:
-            print("CBCentralManagerState.Resetting")
-            break
-        case .Unknown:
-            print("CBCentralManagerState.Unknown")
-            break
-        case .Unsupported:
-            print("CBCentralManagerState.Unsupported")
-            break
-        }
-    }
-    
-    func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        print("didDiscoverPeripheral")
-        let nameOfDeviceFound = peripheral.name
-        if nameOfDeviceFound != nil {
-            print("\(nameOfDeviceFound!) Found")
-            devices.append(peripheral)
-            deviceWithRssi[peripheral.name!] = RSSI.integerValue
-            tableView.reloadData()
-        }
-    }
-    
-    func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
-        print("didConnectPeripheral : \(peripheral.name)")
-    }
-    
-    func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        print("didDisconnectPeripheral")
-        central.scanForPeripheralsWithServices(nil, options: nil)
-    }
-    
-    func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        print("Characteristic value updated")
-    }
-    
-    func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
-        print("Discovering services & characteristics")
-        
-    }
-    
-    func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
-        
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {

@@ -502,7 +502,7 @@
 				INFOPLIST_FILE = BLETool/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = fortin.xiaotu.BLETool;
+				PRODUCT_BUNDLE_IDENTIFIER = EvoStartDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos9.3;
@@ -526,7 +526,7 @@
 				INFOPLIST_FILE = BLETool/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = fortin.xiaotu.BLETool;
+				PRODUCT_BUNDLE_IDENTIFIER = EvoStartDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos9.3;

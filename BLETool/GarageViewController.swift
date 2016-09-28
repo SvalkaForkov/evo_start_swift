@@ -10,12 +10,11 @@ import UIKit
 import CoreBluetooth
 
 
-class GarageViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate,CBCentralManagerDelegate, CBPeripheralDelegate{
+class GarageViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate{
     
     @IBOutlet var buttonAdd: UIButton!
     @IBOutlet var tableView: UITableView!
     let tag_default_module = "defaultModule"
-    var centralManager:CBCentralManager!
     var vehicles : [Vehicle] = []
     var selectedModule = ""
     var dataController : DataController?
@@ -33,7 +32,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         vehicles = dataController!.getAllVehicles()
         print("GarageViewController : fetching vehicle list")
         
-        centralManager = CBCentralManager(delegate: self, queue:nil)
         print("\(buttonAdd.layer.borderWidth)")
         buttonAdd.clipsToBounds = true
         tableView.dataSource = self
@@ -73,25 +71,8 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         selectedModule = vehicles[indexPath.row].module!
-        print("click \(selectedModule)")
-        isFound = false
-        if centralManager != nil {
-            centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            print("scan for selected module")
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                print("starting to find selected module")
-                sleep(2)
-                dispatch_async(dispatch_get_main_queue(),{
-                    if !self.isFound {
-                        print("No match module found")
-                        if self.centralManager.isScanning {
-                        self.centralManager.stopScan()
-                        }
-                        self.showAlert()
-                    }
-                })
-            })
-        }
+        setDefault(selectedModule)
+        self.navigationController?.popToRootViewControllerAnimated(true)
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
     }
     
@@ -128,51 +109,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                 vehicles.removeAtIndex(indexPath.row)
                 tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
                 dataController!.deleteVehicleByName(vehicleToDelete)
-            }
-        }
-    }
-    
-    func centralManagerDidUpdateState(central: CBCentralManager) {
-        switch(central.state){
-        case .PoweredOn:
-            print("CBCentralManagerState.PoweredOn")
-            break
-        case .PoweredOff:
-            print("CBCentralManagerState.PoweredOff")
-            if centralManager.isScanning {
-                centralManager.stopScan()
-            }
-            break
-        case .Unauthorized:
-            print("CBCentralManagerState.Unauthorized")
-            break
-        case .Resetting:
-            print("CBCentralManagerState.Resetting")
-            break
-        case .Unknown:
-            print("CBCentralManagerState.Unknown")
-            break
-        case .Unsupported:
-            print("CBCentralManagerState.Unsupported")
-            break
-        }
-    }
-    
-    func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        let nameOfDeviceFound = peripheral.name as String!
-        if nameOfDeviceFound != nil {
-            print("Did discover \(nameOfDeviceFound)")
-            print("Selected module is \(selectedModule)")
-            if nameOfDeviceFound == selectedModule{
-                print("Match")
-                isFound = true
-                if centralManager.isScanning {
-                    centralManager.stopScan()
-                }
-                print("Stop scanning after \(nameOfDeviceFound) device found")
-                setDefault(selectedModule)
-                centralManager = nil
-                self.navigationController?.popToRootViewControllerAnimated(true)
             }
         }
     }
@@ -269,16 +205,5 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func setUpNavigationBar(){
         print("setUpNavigationBar")    }
-    
-    func addLayer(){
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.frame = self.view.bounds
-        let colorTop = UIColor.clearColor().CGColor
-        let colorBottom = UIColor.whiteColor().CGColor
-        gradientLayer.colors = [colorTop, colorBottom]
-        self.view.layer.addSublayer(gradientLayer)
-    }
-    
-    
     
 }

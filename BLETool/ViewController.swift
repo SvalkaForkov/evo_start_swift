@@ -50,7 +50,7 @@ extension UInt64 {
     }
 }
 
-class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
+class ViewController: UIViewController {
     let DBG = true
     
     @IBOutlet var labelCountDown: UILabel!
@@ -96,24 +96,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var longPressStart: UILongPressGestureRecognizer!
     @IBOutlet var swipeDown: UISwipeGestureRecognizer!
     @IBOutlet var swipeUp: UISwipeGestureRecognizer!
-    
-    var centralManager:CBCentralManager!
-    var peripheral : CBPeripheral!
-    var service : CBService!
-    var writeCharacteristic : CBCharacteristic!
-    var stateCharacteristic : CBCharacteristic!
-    var temperatureCharacteristic : CBCharacteristic!
-    var runtimeCharacteristic : CBCharacteristic!
-    
-    let mask9lock : UInt32 = 0x00008000
-    let mask9doors : UInt32 = 0x00004000
-    let mask9trunk : UInt32 = 0x00002000
-    let mask9hood : UInt32 = 0x00001000
-    let mask9ignition : UInt32 = 0x00000800
-    let mask9engine : UInt32 = 0x00000400
-    let mask9remote : UInt32 = 0x00000200
-    let mask9valet : UInt32 = 0x00000100
-    let mask4header : UInt64 = 0xFFFF00000000
     
     let tag_default_module = "defaultModule"
     let tag_last_scene = "lastScene"
@@ -163,7 +145,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         module = getDefaultModuleName()
         if module != "" {
             coverEmptyGarage.hidden = true
-            centralManager = CBCentralManager(delegate: self, queue:nil)
         }else{
             coverEmptyGarage.hidden = false
         }
@@ -178,148 +159,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
         printLog("viewWillDisappear")
-        if centralManager != nil && peripheral != nil{
-            centralManager.cancelPeripheralConnection(peripheral)
-            printLog("cancel connection")
-            centralManager = nil
-            isConnected = false
-        }
+        isConnected = false
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
     
-    func centralManagerDidUpdateState(central: CBCentralManager) {
-        switch(central.state){
-        case .PoweredOn:
-            printLog("CBCentralManagerState.PoweredOn")
-            isMatchFound = false
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                self.printLog("starting to find matched module")
-                sleep(2)
-                dispatch_async(dispatch_get_main_queue(),{
-                    if !self.isMatchFound {
-                        self.printLog("No match module found")
-                        self.coverLostConnection.hidden = false
-                    }else{
-                        self.printLog("Match module found")
-                    }
-                })
-            })
-            centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            printLog("scanForPeripheralsWithServices")
-            break
-        case .PoweredOff:
-            printLog("CBCentralManagerState.PoweredOff")
-            centralManager.stopScan()
-            break
-        case .Unauthorized:
-            printLog("CBCentralManagerState.Unauthorized")
-            break
-        case .Resetting:
-            printLog("CBCentralManagerState.Resetting")
-            break
-        case .Unknown:
-            printLog("CBCentralManagerState.Unknown")
-            break
-        case .Unsupported:
-            printLog("CBCentralManagerState.Unsupported")
-            break
-        }
-    }
-    
-    func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        let nameOfDeviceFound = peripheral.name as String!
-        if nameOfDeviceFound != nil {
-            printLog("Did discover : \(nameOfDeviceFound)")
-            printLog("Default module is : \(module)")
-            if nameOfDeviceFound == module{
-                printLog("Match and stop scan")
-                isMatchFound = true
-                centralManager.stopScan()
-                self.peripheral = peripheral
-                self.peripheral.delegate = self
-                centralManager.connectPeripheral(self.peripheral, options: nil)
-                printLog("Connecting : \(self.peripheral.name)")
-            }
-        }
-    }
-    
-    func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
-        printLog("didConnectPeripheral")
-        isConnected = true
-        self.coverLostConnection.hidden = true
-        setDefaultModule(peripheral.name!)
-        peripheral.discoverServices([CBUUID(string: "1234")])
-        printLog("DiscoverService: 1234")
-    }
-    
-    func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        printLog("failed to connect")
-    }
-    
-    func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        printLog("Disconnected")
-        isConnected = false
+    func showLostConnection(){
+        printLog("No match module found")
         coverLostConnection.hidden = false
-        central.scanForPeripheralsWithServices(nil, options: nil)
-        enableControl(false)
-    }
-    
-    func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
-        printLog("Service discoverd")
-        for service in peripheral.services! {
-            if(service.UUID.UUIDString == "1234"){
-                self.service = service
-            }
-            printLog("Found service: \(service.UUID)")
-            peripheral.discoverCharacteristics([CBUUID(string: "1235"),CBUUID(string: "1236"),CBUUID(string: "1237"),CBUUID(string: "123C")], forService: service)
-        }
-    }
-    
-    func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
-        
-        for characteristic in service.characteristics! {
-            printLog("Discovered characteristic \(characteristic.UUID.UUIDString)")
-            if(characteristic.UUID.UUIDString == "1235"){
-                self.writeCharacteristic = characteristic
-                printLog("set writeCharacteristic")
-            }
-            if(characteristic.UUID.UUIDString == "1236"){
-                stateCharacteristic = characteristic
-                printLog("set stateCharacteristic")
-            }
-            if(characteristic.UUID.UUIDString == "1237"){
-                runtimeCharacteristic = characteristic
-                printLog("set runtimeCharacteristic")
-            }
-            if(characteristic.UUID.UUIDString == "123C"){
-                temperatureCharacteristic = characteristic
-                printLog("set temperatureCharacteristic")
-            }
-            enableNotification(true)
-            printLog("Found characteristic: \(characteristic.UUID)")
-        }
-        printLog("Connection ready")
-        enableControl(true)
-    }
-    
-    func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        switch characteristic {
-        case stateCharacteristic:
-            handle64value(characteristic.value!)
-            printLog(characteristic.value!.hexString)
-            break
-        case runtimeCharacteristic:
-            printLog("runtimeCharacteristic \(characteristic.value!.hexString)")
-            break
-        case temperatureCharacteristic:
-            printLog("temperatureCharacteristic \(characteristic.value!.hexString)")
-            break
-        default:
-            break
-        }
     }
     
     func getIntFromNSData(data: NSData) -> UInt64 {
@@ -343,6 +192,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func getInt64FromHexString(hex: String) -> Int {
         return Int(strtoul(hex, nil, 64))
     }
+    
     func enableControl(val: Bool){
         if(!val){
             printLog("set disable")
@@ -352,13 +202,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             printLog("set enable")
             buttonLock.enabled = true
             buttonUnlock.enabled = true
-        }
-    }
-    
-    func enableNotification(enabled: Bool){
-        printLog("enableNotification : \(enabled)")
-        if peripheral != nil && stateCharacteristic != nil {
-            peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
         }
     }
     
@@ -432,6 +275,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showStopped(){
+        stateEngine = false
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -461,6 +305,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showStarted(value: Int){
+        stateEngine = true
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -498,6 +343,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func startTimerFrom(value: Int){
+        print("starttimer")
         countdown = value
         if timer != nil {
             stopTimer()
@@ -583,8 +429,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBAction func onUpdateTemp(sender: UIButton) {
         print("on Tap")
         if stateEngine {
-        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x73)
+            requestTemperature()
         }
     }
     func showUnlocked(){
@@ -1088,14 +933,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             performSegueWithIdentifier("control2garage", sender: sender)
         }
     }
+    
     @IBAction func onButtonMore(sender: UIButton) {
         displayPanel()
-        //        printLog("startEngine")
-        //        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
-        //        sendCommand(data, actionId: 0x21)
-        //        resetNotification()
     }
-
+    
     
     
     @IBAction func onGPSButton(sender: UIButton) {
@@ -1131,26 +973,30 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onValet(sender: UIButton) {
         printLog("onValet A8")
-        let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x01)
+        if stateValet {
+            showValetOff()
+        }else{
+        showValetOn()
+        }
     }
     
     @IBAction func onTrunk(sender: UIButton) {
         printLog("onTrunk 34")
-        let data = NSData(bytes: [0x34] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x21)
+        if stateTrunk {
+            showTrunkClosed()
+        }else{
+            showTrunkOpened()
+        }
     }
     
     @IBAction func onLock(sender: UIButton) {
         printLog("onlock 30")
-        let data = NSData(bytes: [0x30] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x71)
+        showLocked()
     }
     
     @IBAction func onUnlock(sender: UIButton) {
         printLog("onUnlock 31")
-        let data = NSData(bytes: [0x31] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x70)
+        showUnlocked()
     }
     
     @IBAction func onDown(sender: UISwipeGestureRecognizer) {
@@ -1181,61 +1027,40 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func requestTemperature(){
         printLog("requestTemperature")
-        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0xAE)
+        let random = Int(arc4random_uniform(40))
+        updateTemperature(random)
     }
     
     func requestRuntime(){
         printLog("requestRuntime")
-        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x73)
     }
     
     func requestStatus(){
         printLog("requestStatus")
-        let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0xAA)
     }
     
     func startEngine() {
         printLog("startEngine")
-        let data = NSData(bytes: [0x32] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x21)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                sleep(3)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.showStarted(90)
+            })
+        })
     }
     
     func stopEngine() {
         printLog("stopEngine")
-        let data = NSData(bytes: [0x33] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x20)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            sleep(3)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.showStopped()
+            })
+        })
     }
     
     func setNotification(enabled: Bool){
         print("setNotification = true")
-        if peripheral != nil && stateCharacteristic != nil {
-            peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
-        }
-    }
-    
-    func sendCommand(data : NSData, actionId: UInt8){
-        if peripheral != nil && writeCharacteristic != nil {
-            if !waitingList.contains(actionId){
-                waitingList.append(actionId)
-            }
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                var sendCount = 1
-                while sendCount <= 5 {
-                    self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-                    if self.DBG {
-                        self.printLog("Send \(sendCount) time")
-                    }
-                    sleep(1)
-                    if !self.waitingList.contains(actionId) {
-                        break
-                    }
-                    sendCount += 1
-                }
-            })
-        }
     }
     
     func showUpdate(line: String){
@@ -1283,199 +1108,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         UIApplication.sharedApplication().scheduleLocalNotification(notification)
     }
     
-    func handleStateACK(intValue : UInt32){
-        printLog("handleStateACK")
-        if intValue & mask9lock != 0 {
-            if waitingList.contains(0x71){
-                let index = waitingList.indexOf(0x71)
-                waitingList.removeAtIndex(index!)
-                showLocked()
-            }
-            stateLock = true
-        }else{
-            if waitingList.contains(0x70){
-                let index = waitingList.indexOf(0x70)
-                waitingList.removeAtIndex(index!)
-                showUnlocked()
-            }
-            stateLock = false
-        }
-        if intValue & mask9doors != 0 {
-            if !stateDoor {
-                showDoorOpened()
-            }
-            if waitingList.contains(0x61){
-                let index = waitingList.indexOf(0x61)
-                waitingList.removeAtIndex(index!)
-            }
-            stateDoor = true
-        }else{
-            if stateDoor {
-                showDoorClosed()
-            }
-            if waitingList.contains(0x60){
-                let index = waitingList.indexOf(0x60)
-                waitingList.removeAtIndex(index!)
-            }
-            stateDoor = false
-        }
-        if intValue & mask9trunk != 0 {
-            if !stateTrunk {
-                showTrunkOpened()
-            }
-            if waitingList.contains(0x51){
-                let index = waitingList.indexOf(0x51)
-                waitingList.removeAtIndex(index!)
-            }
-            stateTrunk = true
-        }else{
-            if stateTrunk {
-                showTrunkClosed()
-            }
-            if waitingList.contains(0x50){
-                let index = waitingList.indexOf(0x50)
-                waitingList.removeAtIndex(index!)
-            }
-            stateTrunk = false
-        }
-        if intValue & mask9hood != 0 {
-            if !stateHood {
-                showHoodOpened()
-            }
-            if waitingList.contains(0x41){
-                let index = waitingList.indexOf(0x41)
-                waitingList.removeAtIndex(index!)
-            }
-            stateHood = true
-        }else{
-            if stateHood {
-                showHoodClosed()
-            }
-            if waitingList.contains(0x40){
-                let index = waitingList.indexOf(0x40)
-                waitingList.removeAtIndex(index!)
-            }
-            stateHood = false
-        }
-        if intValue & mask9ignition != 0 {
-            if waitingList.contains(0x31){
-                let index = waitingList.indexOf(0x31)
-                waitingList.removeAtIndex(index!)
-                showIgnitionOn()
-                printLog("ignition on")
-            }
-            stateIgnition = true
-        }else{
-            if stateIgnition {
-                //                showUnlocked()
-            }
-            if waitingList.contains(0x30){
-                let index = waitingList.indexOf(0x30)
-                waitingList.removeAtIndex(index!)
-            }
-            stateIgnition = false
-        }
-        if intValue & mask9engine != 0 {
-            if !stateEngine {
-                showStarted(defaultCountdown)
-            }
-            if waitingList.contains(0x21){
-                let index = waitingList.indexOf(0x21)
-                waitingList.removeAtIndex(index!)
-            }
-            stateEngine = true
-        }else{
-            if stateEngine {
-                showStopped()
-            }
-            if waitingList.contains(0x20){
-                let index = waitingList.indexOf(0x20)
-                waitingList.removeAtIndex(index!)
-            }
-            stateEngine = false
-        }
-        if intValue & mask9remote != 0 {
-            if !stateRemote {
-                //                showLocked()
-            }
-            if waitingList.contains(0x11){
-                let index = waitingList.indexOf(0x11)
-                waitingList.removeAtIndex(index!)
-            }
-            stateRemote = true
-        }else{
-            if stateRemote {
-                //                showUnlocked()
-            }
-            if waitingList.contains(0x10){
-                let index = waitingList.indexOf(0x10)
-                waitingList.removeAtIndex(index!)
-            }
-            stateRemote = false
-        }
-        if intValue & mask9valet != 0 {
-            if !stateValet {
-                showValetOn()
-            }
-            if waitingList.contains(0x01){
-                let index = waitingList.indexOf(0x01)
-                waitingList.removeAtIndex(index!)
-            }
-            stateValet = true
-        }else{
-            if stateValet {
-                showValetOff()
-            }
-            if waitingList.contains(0x00){
-                let index = waitingList.indexOf(0x00)
-                waitingList.removeAtIndex(index!)
-            }
-            stateValet = false
-        }
-    }
-    
-    func getValueFromInt(src :Int) -> Int{
-        return src >> 16
-    }
-    
-    func getTypeFromInt(src :Int) -> Int{
-        return src & 0x00000000ffff
-    }
-    
-    func handle64value(data: NSData){
-        let hex = data.hexString
-        let intValue = getIntFromNSData(data)
-        let type = intValue >> 32
-        switch type {
-        case 0x1236:// state
-            print("state")
-            let int32str = hex.substringWithRange(hex.startIndex..<hex.endIndex.advancedBy(-4))
-            let int32value = getInt32FromHexString(int32str)
-            handleStateACK(int32value)
-            break
-        case 0x123C:// temp
-            let int32fromCroppedHex = getInt32FromHexString(intValue.hexString)
-            let temperature = int32fromCroppedHex - 44
-            updateTemperature(Int(temperature))
-            print("temp = \(temperature)")
-            break
-        case 0x1237:// runtime
-            let runtimeCountdown = getInt32FromHexString(intValue.hexString)
-            if runtimeCountdown != 0 {
-                print("runtime= \(runtimeCountdown) seconds")
-                countdown = Int(runtimeCountdown)
-                resetNotification(countdown)
-                showStarted(countdown)
-            }else{
-                // engine shutdown
-            }
-            break
-        case 0x0004:
-            break
-        default:
-            break
-        }
-    }
     
 }
 
