@@ -1247,20 +1247,21 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var messageStack : [String] = []
     
     func displayMessage(line: String){
-        if self.messageStack.count != 0 {
-            messageStack.append(line)
-        }else{
-            messageStack.append(line)
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                while self.messageStack.count != 0 {
-                    dispatch_async(dispatch_get_main_queue(),{
-                        self.showUpdate(self.messageStack[0])
-                        self.messageStack.removeAtIndex(0)
-                    })
-                    usleep(50000)
-                }
-            })
-        }
+//        if self.messageStack.count != 0 {
+//            messageStack.append(line)
+//        }else{
+//            messageStack.append(line)
+//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+//                while self.messageStack.count != 0 {
+//                    dispatch_async(dispatch_get_main_queue(),{
+//                        self.showUpdate(self.messageStack[0])
+//                        self.messageStack.removeAtIndex(0)
+//                    })
+//                    usleep(50000)
+//                }
+//            })
+//        }
+        self.labelMessage.text = line
     }
     
     func showUpdate(line: String){
