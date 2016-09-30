@@ -26,7 +26,7 @@ extension NSData {
             p[i*2+1] = itoh(buf[i] & 0xF)
         }
         let result = NSString(bytesNoCopy: p, length: length*2, encoding: NSUTF8StringEncoding, freeWhenDone: true) as! String
-        print("hexString from NSData: \(result)")
+//        print("hexString from NSData: \(result)")
         return result
     }
 }
@@ -35,7 +35,7 @@ extension Int {
     var data: NSData {
         var int = self
         let result = NSData(bytes: &int, length: sizeof(Int))
-        print("Int value from NSData: \(result)")
+//        print("Int value from NSData: \(result)")
         return result
     }
     
@@ -139,6 +139,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var stateRPM = 0
     var stateFuel = 0
     
+    var isFirstACK = true
     var isMatchFound = false
     var isConnected = false
     let defaultCountdown = 90
@@ -160,6 +161,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     override func viewWillAppear(animated: Bool) {
         printLog("ViewController : viewWillAppear")
+        isFirstACK = true
         module = getDefaultModuleName()
         if module != "" {
             coverEmptyGarage.hidden = true
@@ -167,6 +169,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             coverEmptyGarage.hidden = false
         }
+        
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -308,7 +311,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
         switch characteristic {
         case stateCharacteristic:
-            handle64value(characteristic.value!)
+            handleRawAcknowledge(characteristic.value!)
             printLog(characteristic.value!.hexString)
             break
         case runtimeCharacteristic:
@@ -398,13 +401,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.imageViewTrunk.image = UIImage(named: "Trunk Opened")
                     self.buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.displayMessage("Trunk Opened")
             })
         }else{
             imageViewTrunk.image = UIImage(named: "Trunk Opened")
             buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            displayMessage("Trunk Opened")
         }
     }
     
@@ -423,13 +424,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.imageViewTrunk.image = nil
                     self.buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.displayMessage("Trunk closed")
             })
         }else{
             imageViewTrunk.image = nil
             buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            displayMessage("Trunk closed")
         }
     }
     
@@ -445,14 +444,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.displayMessage("Engine shut off")
                     self.updateRPM(0)
                     self.updateBatt(0)
                     self.updateFuel(0)
                     self.updateTemperature(-40)
             })
         }else{
-            displayMessage("Engine shut off")
             updateRPM(0)
             updateBatt(0)
             updateFuel(0)
@@ -474,14 +471,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.displayMessage("Engine started")
                     self.updateRPM(1100)
                     self.updateBatt(95)
                     self.updateFuel(50)
                     self.updateTemperature(0)
             })
         }else{
-            displayMessage("Engine started")
             updateRPM(1100)
             updateBatt(95)
             updateFuel(50)
@@ -584,10 +579,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onUpdateTemp(sender: UIButton) {
         print("on Tap")
-        if stateEngine {
-            let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-            sendCommand(data, actionId: 0x73)
-        }
+        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0x73)
     }
     func showUnlocked(){
         printLog("show locked")
@@ -606,13 +599,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
                     self.displayMessage("Door unlocked")
+                    self.stateLock = false
             })
         }else{
             self.buttonLock.setImage(UIImage(named: "Button Lock Off"), forState: .Normal)
             self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             self.displayMessage("Door unlocked")
+            stateLock = false
         }
+        
     }
     
     func showLocked(){
@@ -631,13 +627,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
                     self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.displayMessage("Door opened")
+                    self.stateLock = true
             })
         }else{
-            self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
-            self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
+            buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
+            buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            self.displayMessage("Door opened")
+            stateLock = true
         }
     }
     
@@ -656,13 +652,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }, completion: { finished in
                     self.imageViewDoors.image = UIImage(named: "Door Opened")
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.displayMessage("Door opened")
+                    self.showUnlocked()
+                    self.stateLock = false
             })
         }else{
             imageViewDoors.image = UIImage(named: "Door Opened")
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            displayMessage("Door opened")
+            self.showUnlocked()
+            stateLock = false
         }
+        
     }
     
     func showDoorClosed(){
@@ -679,12 +678,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }, completion: { finished in
                     self.imageViewDoors.image = nil
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.displayMessage("Door closed")
             })
         }else{
             self.imageViewDoors.image = nil
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            displayMessage("Door closed")
         }
     }
     
@@ -700,15 +697,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.imageViewHood.image = UIImage(named: "Engine On")
+                    self.imageViewHood.image = UIImage(named: "Hood On")
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.displayMessage("Engine On")
             })
         }else{
-            imageViewHood.image = UIImage(named: "Engine On")
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            displayMessage("Hood opened")
-        }
+            imageViewHood.image = UIImage(named: "Hood On")
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))        }
     }
     
     func showHoodClosed(){
@@ -725,12 +719,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }, completion: { finished in
                     self.imageViewHood.image = nil
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.displayMessage("Engine Off")
             })
         }else{
             imageViewHood.image = nil
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            displayMessage("Hood closed")
         }
     }
     
@@ -1309,136 +1301,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         UIApplication.sharedApplication().scheduleLocalNotification(notification)
     }
     
-    func handleStateACK(intValue : UInt32){
-        printLog("handleStateACK")
-        if intValue & mask9lock != 0 {
-            if waitingList.contains(0x71){
-                let index = waitingList.indexOf(0x71)
-                waitingList.removeAtIndex(index!)
-            }
-            showLocked()
-            stateLock = true
-        }else{
-            if waitingList.contains(0x70){
-                let index = waitingList.indexOf(0x70)
-                waitingList.removeAtIndex(index!)
-            }
-            showUnlocked()
-            stateLock = false
-        }
-        if intValue & mask9doors != 0 {
-            if !stateDoor {
-                showDoorOpened()
-            }
-            if waitingList.contains(0x61){
-                let index = waitingList.indexOf(0x61)
-                waitingList.removeAtIndex(index!)
-            }
-            stateDoor = true
-        }else{
-            if stateDoor {
-                showDoorClosed()
-            }
-            if waitingList.contains(0x60){
-                let index = waitingList.indexOf(0x60)
-                waitingList.removeAtIndex(index!)
-            }
-            stateDoor = false
-        }
-        if intValue & mask9trunk != 0 {
-            if !stateTrunk {
-                showTrunkOpened()
-            }
-            if waitingList.contains(0x51){
-                let index = waitingList.indexOf(0x51)
-                waitingList.removeAtIndex(index!)
-            }
-            stateTrunk = true
-        }else{
-            if stateTrunk {
-                showTrunkClosed()
-            }
-            if waitingList.contains(0x50){
-                let index = waitingList.indexOf(0x50)
-                waitingList.removeAtIndex(index!)
-            }
-            stateTrunk = false
-        }
-        if intValue & mask9hood != 0 {
-            if !stateHood {
-                showHoodOpened()
-            }
-            if waitingList.contains(0x41){
-                let index = waitingList.indexOf(0x41)
-                waitingList.removeAtIndex(index!)
-            }
-            stateHood = true
-        }else{
-            if stateHood {
-                showHoodClosed()
-            }
-            if waitingList.contains(0x40){
-                let index = waitingList.indexOf(0x40)
-                waitingList.removeAtIndex(index!)
-            }
-            stateHood = false
-        }
-        if intValue & mask9ignition != 0 {
-            if waitingList.contains(0x31){
-                let index = waitingList.indexOf(0x31)
-                waitingList.removeAtIndex(index!)
-                showIgnitionOn()
-                printLog("ignition on")
-            }
-            stateIgnition = true
-        }else{
-            if stateIgnition {
-                //                showUnlocked()
-            }
-            if waitingList.contains(0x30){
-                let index = waitingList.indexOf(0x30)
-                waitingList.removeAtIndex(index!)
-            }
-            stateIgnition = false
-        }
-        if intValue & mask9engine != 0 {
-            if !stateEngine {
-                showStarted(defaultCountdown)
-            }
-            if waitingList.contains(0x21){
-                let index = waitingList.indexOf(0x21)
-                waitingList.removeAtIndex(index!)
-            }
-            stateEngine = true
-        }else{
-            if stateEngine {
-                showStopped()
-            }
-            if waitingList.contains(0x20){
-                let index = waitingList.indexOf(0x20)
-                waitingList.removeAtIndex(index!)
-            }
-            stateEngine = false
-        }
-        if intValue & mask9remote != 0 {
-            if !stateRemote {
-                //                showLocked()
-            }
-            if waitingList.contains(0x11){
-                let index = waitingList.indexOf(0x11)
-                waitingList.removeAtIndex(index!)
-            }
-            stateRemote = true
-        }else{
-            if stateRemote {
-                //                showUnlocked()
-            }
-            if waitingList.contains(0x10){
-                let index = waitingList.indexOf(0x10)
-                waitingList.removeAtIndex(index!)
-            }
-            stateRemote = false
-        }
+    func checkValet(intValue : UInt32){
         if intValue & mask9valet != 0 {
             if !stateValet {
                 showValetOn()
@@ -1460,6 +1323,200 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
+    func checkRemote(intValue : UInt32){
+        if intValue & mask9remote != 0 {
+            if !stateRemote {
+            }
+            if waitingList.contains(0x11){
+                let index = waitingList.indexOf(0x11)
+                waitingList.removeAtIndex(index!)
+            }
+            stateRemote = true
+        }else{
+            if stateRemote {
+            }
+            if waitingList.contains(0x10){
+                let index = waitingList.indexOf(0x10)
+                waitingList.removeAtIndex(index!)
+            }
+            stateRemote = false
+        }
+    }
+    
+    func checkIgnition(intValue : UInt32){
+        if intValue & mask9ignition != 0 {
+            if waitingList.contains(0x31){
+                let index = waitingList.indexOf(0x31)
+                waitingList.removeAtIndex(index!)
+                showIgnitionOn()
+                printLog("ignition on")
+            }
+            stateIgnition = true
+        }else{
+            if stateIgnition {
+            }
+            if waitingList.contains(0x30){
+                let index = waitingList.indexOf(0x30)
+                waitingList.removeAtIndex(index!)
+            }
+            stateIgnition = false
+        }
+    }
+    
+    func checkEngine(intValue : UInt32){
+        if intValue & mask9engine != 0 {
+            if !stateEngine || isFirstACK{
+                showStarted(defaultCountdown)
+                if !isFirstACK {
+                    displayMessage("Engine started")
+                }
+            }
+            if waitingList.contains(0x21){
+                let index = waitingList.indexOf(0x21)
+                waitingList.removeAtIndex(index!)
+            }
+            stateEngine = true
+        }else{
+            if stateEngine || isFirstACK{
+                showStopped()
+                if !isFirstACK {
+                    displayMessage("Engine stopped")
+                }
+            }
+            if waitingList.contains(0x20){
+                let index = waitingList.indexOf(0x20)
+                waitingList.removeAtIndex(index!)
+            }
+            stateEngine = false
+        }
+    }
+    
+    func checkHood(intValue : UInt32){
+        if intValue & mask9hood != 0 {
+            if !stateHood || isFirstACK{
+                showHoodOpened()
+                if !isFirstACK {
+                    displayMessage("Hood opened")
+                }
+            }
+            if waitingList.contains(0x41){
+                let index = waitingList.indexOf(0x41)
+                waitingList.removeAtIndex(index!)
+            }
+            stateHood = true
+        }else{
+            if stateHood || isFirstACK{
+                showHoodClosed()
+                if !isFirstACK {
+                    displayMessage("Hood closed")
+                }
+            }
+            if waitingList.contains(0x40){
+                let index = waitingList.indexOf(0x40)
+                waitingList.removeAtIndex(index!)
+            }
+            stateHood = false
+        }
+    }
+    
+    func checkTrunk(intValue : UInt32){
+        if intValue & mask9trunk != 0 {
+            if !stateTrunk || isFirstACK{
+                showTrunkOpened()
+                if !isFirstACK {
+                    displayMessage("Trunk opened")
+                }
+            }
+            if waitingList.contains(0x51){
+                let index = waitingList.indexOf(0x51)
+                waitingList.removeAtIndex(index!)
+            }
+            stateTrunk = true
+        }else{
+            if stateTrunk || isFirstACK{
+                showTrunkClosed()
+                if !isFirstACK {
+                    displayMessage("Trunk closed")
+                }
+            }
+            if waitingList.contains(0x50){
+                let index = waitingList.indexOf(0x50)
+                waitingList.removeAtIndex(index!)
+            }
+            stateTrunk = false
+        }
+    }
+    
+    func checkDoor(intValue : UInt32){
+        if intValue & mask9doors != 0 {
+            if !stateDoor || isFirstACK{
+                showDoorOpened()
+                if !isFirstACK {
+                    displayMessage("Door opened")
+                }
+            }
+            if waitingList.contains(0x61){
+                let index = waitingList.indexOf(0x61)
+                waitingList.removeAtIndex(index!)
+            }
+            stateDoor = true
+        }else{
+            if stateDoor || isFirstACK{
+                showDoorClosed()
+                if !isFirstACK {
+                    displayMessage("Door closed")
+                }
+            }
+            if waitingList.contains(0x60){
+                let index = waitingList.indexOf(0x60)
+                waitingList.removeAtIndex(index!)
+            }
+            stateDoor = false
+        }
+    }
+    
+    func checkLock(intValue : UInt32){
+        if intValue & mask9lock != 0 {
+            if waitingList.contains(0x71){
+                let index = waitingList.indexOf(0x71)
+                waitingList.removeAtIndex(index!)
+            }
+            if !stateLock || isFirstACK{
+                showLocked()
+                if !isFirstACK {
+                    displayMessage("Door locked")
+                }
+            }
+        }else{
+            if waitingList.contains(0x70){
+                let index = waitingList.indexOf(0x70)
+                waitingList.removeAtIndex(index!)
+            }
+            if stateLock || isFirstACK{
+                showUnlocked()
+                if !isFirstACK {
+                    displayMessage("Door unlocked")
+                }
+            }
+        }
+    }
+    
+    func handleStateAcknowledge(intValue : UInt32){
+        printLog("handleStateAcknowledge")
+        checkLock(intValue)
+        checkValet(intValue)
+        checkRemote(intValue)
+        checkIgnition(intValue)
+        checkHood(intValue)
+        checkTrunk(intValue)
+        checkDoor(intValue)
+        checkEngine(intValue)
+        
+        if isFirstACK {
+            isFirstACK = false
+        }
+    }
+    
     func getValueFromInt(src :Int) -> Int{
         return src >> 16
     }
@@ -1468,28 +1525,28 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         return src & 0x00000000ffff
     }
     
-    func handle64value(data: NSData){
+    func handleRawAcknowledge(data: NSData){
         let hex = data.hexString
         let intValue = getIntFromNSData(data)
         let type = intValue >> 32
         switch type {
         case 0x1236:// state
-            print("state")
             let int32str = hex.substringWithRange(hex.startIndex..<hex.endIndex.advancedBy(-4))
             let int32value = getInt32FromHexString(int32str)
-            handleStateACK(int32value)
+            handleStateAcknowledge(int32value)
             break
         case 0x123C:// temp
+            print("handle temperature ACK")
             let int32fromCroppedHex = getInt32FromHexString(intValue.hexString)
             let temperature = int32fromCroppedHex - 44
             updateTemperature(Int(temperature))
-            print("temp = \(temperature)")
             if waitingList.contains(0x73){
                 let index = waitingList.indexOf(0x73)
                 waitingList.removeAtIndex(index!)
             }
             break
         case 0x1237:// runtime
+            print("handle runtime ACK")
             let runtimeCountdown = getInt32FromHexString(intValue.hexString)
             if runtimeCountdown != 0 {
                 print("runtime= \(runtimeCountdown) seconds")
@@ -1497,10 +1554,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 resetNotification(countdown)
                 showStarted(countdown)
             }else{
-                // engine shutdown
+                showStopped()
             }
-            break
-        case 0x0004:
             break
         default:
             break
