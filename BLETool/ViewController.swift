@@ -624,6 +624,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
+                    self.showDoorClosed()
                     self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
                     self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
