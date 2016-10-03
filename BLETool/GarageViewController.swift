@@ -29,27 +29,24 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         setUpNavigationBar()
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegate.dataController
-        print("GarageViewController : setting up delegate and core data")
         vehicles = dataController!.getAllVehicles()
         print("GarageViewController : fetching vehicle list")
-        
-        centralManager = CBCentralManager(delegate: self, queue:nil)
-        print("\(buttonAdd.layer.borderWidth)")
         buttonAdd.clipsToBounds = true
+        
         tableView.dataSource = self
         tableView.delegate = self
         
         if vehicles.count == 0 {
             print("no vehicle")
         }else{
-            print("found vehicle")
+            print("found vehicle : \(vehicles.count)")
         }
         animateTableView(false)
-        
+        centralManager = CBCentralManager(delegate: self, queue:nil)
     }
     
     override func viewDidAppear(animated: Bool) {
-        print("viewDidAppear")
+        print("GarageViewController: viewDidAppear")
         setLastScene()
     }
     
@@ -139,9 +136,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             break
         case .PoweredOff:
             print("CBCentralManagerState.PoweredOff")
-            if centralManager.isScanning {
-                centralManager.stopScan()
-            }
             break
         case .Unauthorized:
             print("CBCentralManagerState.Unauthorized")
@@ -211,6 +205,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             return ""
         }
     }
+    
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "garage2control" {
             print("prepareForSegue -> control scene")
@@ -233,7 +228,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             }
         } else {
             for cell in cells {
-                //old expression                let cell : UITableViewCell = i as UITableViewCell
                 if getLastScene() == "Control" {
                     cell.transform = CGAffineTransformMakeTranslation(tableWidth, 0)
                 }else if getLastScene() == "Scan" {
@@ -242,7 +236,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             }
         }
         for cell in cells {
-            //old expression           let cell : UITableViewCell = j as UITableViewCell
             UIView.animateWithDuration(1, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
                 cell.transform = CGAffineTransformMakeTranslation(0, 0)
                 }, completion: nil)
@@ -268,17 +261,6 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func setUpNavigationBar(){
-        print("setUpNavigationBar")    }
-    
-    func addLayer(){
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.frame = self.view.bounds
-        let colorTop = UIColor.clearColor().CGColor
-        let colorBottom = UIColor.whiteColor().CGColor
-        gradientLayer.colors = [colorTop, colorBottom]
-        self.view.layer.addSublayer(gradientLayer)
+        print("setUpNavigationBar")
     }
-    
-    
-    
 }

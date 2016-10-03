@@ -240,10 +240,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if nameOfDeviceFound == module{
                 printLog("Match and stop scan")
                 isMatchFound = true
-                centralManager.stopScan()
-                self.peripheral = peripheral
-                self.peripheral.delegate = self
-                centralManager.connectPeripheral(self.peripheral, options: nil)
+                if centralManager != nil {
+                    centralManager.stopScan()
+                    self.peripheral = peripheral
+                    self.peripheral.delegate = self
+                    centralManager.connectPeripheral(self.peripheral, options: nil)
+                }
                 printLog("Connecting : \(self.peripheral.name)")
             }
         }
