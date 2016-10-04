@@ -21,7 +21,6 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
     var currentLat : Double!
     var currentLon : Double!
     var marker : GMSMarker!
-    var isFirstUpdate = true
     override func viewDidLoad() {
         super.viewDidLoad()
     }
@@ -56,9 +55,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
         locationManager.startUpdatingLocation()
         
-        viewMap.settings.myLocationButton = true
-        isFirstUpdate = true
-    }
+        viewMap.settings.myLocationButton = true    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -74,7 +71,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         marker.title = "Last Position"
         marker.icon = UIImage(named: "Parked")
         marker.map = viewMap
-        
+        camera = GMSCameraPosition.cameraWithLatitude(currentLat, longitude: currentLon, zoom: 15.0)
     }
     
     func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
@@ -91,12 +88,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         let locValue:CLLocationCoordinate2D = manager.location!.coordinate
         print("Update locations : \(locValue.latitude) \(locValue.longitude)")
         currentLat = locValue.latitude
-        currentLon = locValue.longitude
-        if isFirstUpdate {
-            camera = GMSCameraPosition.cameraWithLatitude(currentLat, longitude: currentLon, zoom: 15.0)
-        }
-        isFirstUpdate = false
-    }
+        currentLon = locValue.longitude    }
     
     func setLastLocation(lat: NSNumber, lon: NSNumber){
         logEvent("Set Last location to app default")

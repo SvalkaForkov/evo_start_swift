@@ -16,10 +16,11 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     @IBOutlet var tableView: UITableView!
     let tag_default_module = "defaultModule"
     var centralManager:CBCentralManager!
-    var vehicles : [Vehicle] = []
+    var vehicleList : [Vehicle] = []
     var selectedModule = ""
     var dataController : DataController?
     var isFound = false
+    var appDelegate: AppDelegate?
     override func viewDidLoad() {
         super.viewDidLoad()
         print("GarageViewController : garage viewDidLoad")
@@ -27,19 +28,21 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     override func viewWillAppear(animated: Bool) {
         setUpNavigationBar()
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        dataController = appDelegate.dataController
-        vehicles = dataController!.getAllVehicles()
-        print("GarageViewController : fetching vehicle list")
         buttonAdd.clipsToBounds = true
+
+        appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
+        dataController = appDelegate!.dataController
+        
+        vehicleList = dataController!.getAllVehicles()
+        print("GarageViewController : fetching vehicle list")
         
         tableView.dataSource = self
         tableView.delegate = self
         
-        if vehicles.count == 0 {
+        if vehicleList.count == 0 {
             print("no vehicle")
         }else{
-            print("found vehicle : \(vehicles.count)")
+            print("found vehicle : \(vehicleList.count)")
         }
         animateTableView(false)
         centralManager = CBCentralManager(delegate: self, queue:nil)
@@ -51,25 +54,25 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return vehicles.count
+        return vehicleList.count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
-//        cell.contentView.layer.cornerRadius = 25.0
+
         cell.mainView.layer.cornerRadius = 20.0
-        cell.labelName!.text = vehicles[indexPath.row].name!.capitalizedString
-        let model = vehicles[indexPath.row].v2model!
+        cell.labelName!.text = vehicleList[indexPath.row].name!.capitalizedString
+        let model = vehicleList[indexPath.row].v2model!
         let make : Make! =  model.model2make
         cell.logo.image = UIImage(named: make.title!)
         cell.labelMake!.text = make!.title!.capitalizedString
-        cell.labelModel!.text = vehicles[indexPath.row].v2model!.title!.capitalizedString
+        cell.labelModel!.text = vehicleList[indexPath.row].v2model!.title!.capitalizedString
         
         return cell
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        selectedModule = vehicles[indexPath.row].module!
+        selectedModule = vehicleList[indexPath.row].module!
         print("click \(selectedModule)")
         isFound = false
         if centralManager != nil {
@@ -108,21 +111,21 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == UITableViewCellEditingStyle.Delete {
-            let vehicleToDelete : String! = vehicles[indexPath.row].module
+            let vehicleToDelete : String! = vehicleList[indexPath.row].module
             print("Vehicle to Delete : \(vehicleToDelete)")
             let currentDefault = getDefaultModuleName()
             print("Current default : \(currentDefault)")
             if vehicleToDelete == currentDefault {
-                vehicles.removeAtIndex(indexPath.row)
+                vehicleList.removeAtIndex(indexPath.row)
                 tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
                 dataController!.deleteVehicleByName(vehicleToDelete)
-                if vehicles.count == 0 {
+                if vehicleList.count == 0 {
                     setDefault("")
                 }else{
-                    setDefault(vehicles[0].module!)
+                    setDefault(vehicleList[0].module!)
                 }
             }else{
-                vehicles.removeAtIndex(indexPath.row)
+                vehicleList.removeAtIndex(indexPath.row)
                 tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
                 dataController!.deleteVehicleByName(vehicleToDelete)
             }

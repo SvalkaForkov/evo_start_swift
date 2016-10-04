@@ -75,6 +75,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var rightView: UIView!
     @IBOutlet var leftView: UIView!
     @IBOutlet var slideUpView: UIView!
+    @IBOutlet var buttonTemperature: UIButton!
     
     
     @IBOutlet var imageViewTempretureBackground: UIImageView!
@@ -476,13 +477,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.updateRPM(1100)
                     self.updateBatt(95)
                     self.updateFuel(50)
-                    self.updateTemperature(0)
+                    self.onUpdateTemp(self.buttonTemperature)
             })
         }else{
             updateRPM(1100)
             updateBatt(95)
             updateFuel(50)
-            updateTemperature(0)
+            onUpdateTemp(self.buttonTemperature)
         }
         if !stateEngine {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
