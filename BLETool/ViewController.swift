@@ -177,6 +177,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("viewDidAppear")
         setLastScene()
         setupNotification()
+        onUpdateTemp(self.buttonTemperature)
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -583,7 +584,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBAction func onUpdateTemp(sender: UIButton) {
         print("on Tap")
         let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x73)
+        sendCommand(data, actionId: 0x73, retry: 5)
     }
     func showUnlocked(){
         printLog("show locked")
@@ -845,10 +846,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                                 })
                         })
                     })
-                    if self.stateEngine {
-                        self.stopEngine()
-                    }else {
-                        self.startEngine()
+                    if self.stateValet {
+                        self.showRemoteStartDisabledFromValet()
+                    }else{
+                        if self.stateEngine {
+                            self.stopEngine()
+                        }else {
+                            self.startEngine()
+                        }
                     }
                 }
             })
@@ -1114,9 +1119,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onGoToGarage(sender: UIButton) {
         performSegueWithIdentifier("control2garage", sender: sender)
-        //        printLog("startEngine")
-        //        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        //        sendCommand(data, actionId: 0x21)
     }
     
     @IBAction func onRetry(sender: UIButton) {
@@ -1125,26 +1127,30 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onValet(sender: UIButton) {
         printLog("onValet A8")
-        let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x01)
+        if stateValet {
+            showActionSheetValet()
+        }else{
+            let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
+            sendCommand(data, actionId: 0x01, retry: 0)
+        }
     }
     
     @IBAction func onTrunk(sender: UIButton) {
         printLog("onTrunk 34")
         let data = NSData(bytes: [0x34] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x21)
+        sendCommand(data, actionId: 0x21, retry: 5)
     }
     
     @IBAction func onLock(sender: UIButton) {
         printLog("onlock 30")
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x71)
+        sendCommand(data, actionId: 0x71, retry: 5)
     }
     
     @IBAction func onUnlock(sender: UIButton) {
         printLog("onUnlock 31")
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x70)
+        sendCommand(data, actionId: 0x70, retry: 5)
     }
     
     @IBAction func onDown(sender: UISwipeGestureRecognizer) {
@@ -1171,18 +1177,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             self.imageCap.layer.transform = transform
         })
         longPressStart.enabled = true
-    }
-    
-    func requestTemperature(){
-        printLog("requestTemperature")
-        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0xAE)
+        if stateValet {
+            showRemoteStartDisabledFromValet()
+        }
     }
     
     func requestRuntime(){
         printLog("requestRuntime")
-        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x73)
+        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0xAE, retry: 5)
     }
     
     func requestStatus(){
@@ -1196,13 +1199,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func startEngine() {
         printLog("startEngine")
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x21)
+        sendCommand(data, actionId: 0x21, retry: 5)
     }
     
     func stopEngine() {
         printLog("stopEngine")
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x20)
+        sendCommand(data, actionId: 0x20, retry: 5)
     }
     
     func setNotification(enabled: Bool){
@@ -1212,31 +1215,35 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func sendCommand(data : NSData, actionId: UInt8){
+    func sendCommand(data : NSData, actionId: UInt8, retry: Int){
         if peripheral != nil && writeCharacteristic != nil {
             if !waitingList.contains(actionId){
                 waitingList.append(actionId)
             }
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                var sendCount = 1
-                while sendCount <= 5 {
-                    self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-                    if self.DBG {
-                        self.printLog("Send \(sendCount) time")
+            if retry == 0 {
+                peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+            }else{
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                    var sendCount = 1
+                    while sendCount <= retry + 1 {
+                        self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                        if self.DBG {
+                            self.printLog("Send \(sendCount) time")
+                        }
+                        sleep(1)
+                        if !self.waitingList.contains(actionId) {
+                            break
+                        }
+                        sendCount += 1
                     }
-                    sleep(1)
-                    if !self.waitingList.contains(actionId) {
-                        break
+                    if sendCount == 5 {
+                        if self.waitingList.contains(actionId){
+                            let index = self.waitingList.indexOf(actionId)
+                            self.waitingList.removeAtIndex(index!)
+                        }
                     }
-                    sendCount += 1
-                }
-                if sendCount == 5 {
-                    if self.waitingList.contains(actionId){
-                        let index = self.waitingList.indexOf(actionId)
-                        self.waitingList.removeAtIndex(index!)
-                    }
-                }
-            })
+                })
+            }
         }
     }
     
@@ -1566,5 +1573,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
+    func showActionSheetValet(){
+        let actionSheet = UIAlertController(title: "Warning", message: "Are you sure about disabling valet mode?", preferredStyle: .ActionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Confirm", style: .Default,handler: {
+            action in
+            let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
+            self.sendCommand(data, actionId: 0x01, retry: 0)
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .Cancel, handler: nil))
+        self.presentViewController(actionSheet, animated: true, completion: nil)
+    }
+    
+    func showRemoteStartDisabledFromValet(){
+        let actionSheet = UIAlertController(title: "Remote start is disabled", message: "Turn off valet mode to enable remote start", preferredStyle: .ActionSheet)
+        
+        actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
+        self.presentViewController(actionSheet, animated: true, completion: nil)
+    }
 }
 
