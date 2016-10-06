@@ -1602,6 +1602,37 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
+    func handleCertainState(intValue : UInt32, type : Int){
+        switch type {
+        case 0:
+            checkValet(intValue)
+            break
+        case 1:
+            checkRemote(intValue)
+            break
+        case 2:
+            checkEngine(intValue)
+            break
+        case 3:
+            checkIgnition(intValue)
+            break
+        case 4:
+            checkHood(intValue)
+            break
+        case 5:
+            checkTrunk(intValue)
+            break
+        case 6:
+            checkDoor(intValue)
+            break
+        case 7:
+            checkLock(intValue)
+            break
+        default:
+            break
+        }
+    }
+    
     func getValueFromInt(src :Int) -> Int{
         return src >> 16
     }
