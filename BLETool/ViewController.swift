@@ -26,7 +26,7 @@ extension NSData {
             p[i*2+1] = itoh(buf[i] & 0xF)
         }
         let result = NSString(bytesNoCopy: p, length: length*2, encoding: NSUTF8StringEncoding, freeWhenDone: true) as! String
-//        print("hexString from NSData: \(result)")
+        //        print("hexString from NSData: \(result)")
         return result
     }
 }
@@ -35,7 +35,7 @@ extension Int {
     var data: NSData {
         var int = self
         let result = NSData(bytes: &int, length: sizeof(Int))
-//        print("Int value from NSData: \(result)")
+        //        print("Int value from NSData: \(result)")
         return result
     }
     
@@ -45,6 +45,12 @@ extension Int {
 }
 
 extension UInt64 {
+    var hexString : String! {
+        return String(format:"%2x", self)
+    }
+}
+
+extension UInt32 {
     var hexString : String! {
         return String(format:"%2x", self)
     }
@@ -281,7 +287,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.service = service
             }
             printLog("Found service: \(service.UUID)")
-            peripheral.discoverCharacteristics([CBUUID(string: "1235"),CBUUID(string: "1236"),CBUUID(string: "1237"),CBUUID(string: "123C")], forService: service)
+            peripheral.discoverCharacteristics([CBUUID(string: "1235"),CBUUID(string: "1236")], forService: service)
         }
     }
     
@@ -298,14 +304,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 printLog("set stateCharacteristic")
                 enableNotification(true)
             }
-            if(characteristic.UUID.UUIDString == "1237"){
-                runtimeCharacteristic = characteristic
-                printLog("set runtimeCharacteristic")
-            }
-            if(characteristic.UUID.UUIDString == "123C"){
-                temperatureCharacteristic = characteristic
-                printLog("set temperatureCharacteristic")
-            }
             printLog("Found characteristic: \(characteristic.UUID)")
         }
         printLog("Connection ready")
@@ -317,12 +315,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         case stateCharacteristic:
             handleRawAcknowledge(characteristic.value!)
             printLog(characteristic.value!.hexString)
-            break
-        case runtimeCharacteristic:
-            printLog("runtimeCharacteristic \(characteristic.value!.hexString)")
-            break
-        case temperatureCharacteristic:
-            printLog("temperatureCharacteristic \(characteristic.value!.hexString)")
             break
         default:
             break
@@ -352,7 +344,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func enableControl(val: Bool){
-        if(!val){
+        if !val {
             printLog("set disable")
             buttonLock.enabled = false
             buttonUnlock.enabled = false
@@ -375,19 +367,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         updateRPM(8000)
         updateBatt(100)
         updateFuel(100)
-        updateTemperature(60)
         sleep(1)
         updateRPM(0)
         updateBatt(0)
         updateFuel(0)
-        updateTemperature(-40)
     }
     
     func showIgnitionOff(){
         updateRPM(0)
         updateBatt(0)
         updateFuel(0)
-        updateTemperature(-40)
     }
     
     func showTrunkOpened(){
@@ -451,13 +440,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.updateRPM(0)
                     self.updateBatt(0)
                     self.updateFuel(0)
-                    self.updateTemperature(-40)
             })
         }else{
             updateRPM(0)
             updateBatt(0)
             updateFuel(0)
-            updateTemperature(-40)
         }
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         stopTimer()
@@ -508,6 +495,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         labelCountDown.text = stringValueOfHoursMinutesSeconds(countdown)
         imageHourGlass.hidden = false
         imageHourGlass.image = UIImage(named: "Hourglass-100")
+        requestRuntime()
     }
     
     func stopTimer(){
@@ -1137,8 +1125,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onTrunk(sender: UIButton) {
         printLog("onTrunk 34")
-        let data = NSData(bytes: [0x34] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x21, retry: 5)
+        if !stateTrunk {
+            let data = NSData(bytes: [0x34] as [UInt8], length: 1)
+            sendCommand(data, actionId: 0x21, retry: 5)
+        }
     }
     
     @IBAction func onLock(sender: UIButton) {
@@ -1250,20 +1240,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var messageStack : [String] = []
     
     func displayMessage(line: String){
-//        if self.messageStack.count != 0 {
-//            messageStack.append(line)
-//        }else{
-//            messageStack.append(line)
-//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-//                while self.messageStack.count != 0 {
-//                    dispatch_async(dispatch_get_main_queue(),{
-//                        self.showUpdate(self.messageStack[0])
-//                        self.messageStack.removeAtIndex(0)
-//                    })
-//                    usleep(50000)
-//                }
-//            })
-//        }
+        //        if self.messageStack.count != 0 {
+        //            messageStack.append(line)
+        //        }else{
+        //            messageStack.append(line)
+        //            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+        //                while self.messageStack.count != 0 {
+        //                    dispatch_async(dispatch_get_main_queue(),{
+        //                        self.showUpdate(self.messageStack[0])
+        //                        self.messageStack.removeAtIndex(0)
+        //                    })
+        //                    usleep(50000)
+        //                }
+        //            })
+        //        }
         self.labelMessage.text = line
     }
     
@@ -1313,24 +1303,25 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func checkValet(intValue : UInt32){
+        print("Valet :\(intValue.hexString)")
         if intValue & mask9valet != 0 {
-            if !stateValet {
-                showValetOn()
+            if stateValet {
+                showValetOff()
             }
             if waitingList.contains(0x01){
                 let index = waitingList.indexOf(0x01)
                 waitingList.removeAtIndex(index!)
             }
-            stateValet = true
+            stateValet = false
         }else{
-            if stateValet {
-                showValetOff()
+            if !stateValet {
+                showValetOn()
             }
             if waitingList.contains(0x00){
                 let index = waitingList.indexOf(0x00)
                 waitingList.removeAtIndex(index!)
             }
-            stateValet = false
+            stateValet = true
         }
     }
     
@@ -1431,31 +1422,57 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func checkTrunk(intValue : UInt32){
-        if intValue & mask9trunk != 0 {
+        print("Trunk : \(intValue.hexString)")
+        let str = intValue.hexString
+        let value = str.substringFromIndex(str.endIndex.advancedBy(-2))
+        if value == "04" {
             if !stateTrunk || isFirstACK{
                 showTrunkOpened()
                 if !isFirstACK {
                     displayMessage("Trunk opened")
                 }
             }
-            if waitingList.contains(0x51){
-                let index = waitingList.indexOf(0x51)
+            if waitingList.contains(0x21){
+                let index = waitingList.indexOf(0x21)
                 waitingList.removeAtIndex(index!)
             }
             stateTrunk = true
         }else{
-            if stateTrunk || isFirstACK{
-                showTrunkClosed()
-                if !isFirstACK {
-                    displayMessage("Trunk closed")
+            if intValue & mask9trunk == 0 {
+                if stateTrunk || isFirstACK{
+                    showTrunkClosed()
+                    if !isFirstACK {
+                        displayMessage("Trunk closed")
+                    }
                 }
+                stateTrunk = false
             }
-            if waitingList.contains(0x50){
-                let index = waitingList.indexOf(0x50)
-                waitingList.removeAtIndex(index!)
-            }
-            stateTrunk = false
         }
+        //        if intValue & mask9trunk != 0 {
+        //            if !stateTrunk || isFirstACK{
+        //                showTrunkOpened()
+        //                if !isFirstACK {
+        //                    displayMessage("Trunk opened")
+        //                }
+        //            }
+        //            if waitingList.contains(0x51){
+        //                let index = waitingList.indexOf(0x51)
+        //                waitingList.removeAtIndex(index!)
+        //            }
+        //            stateTrunk = true
+        //        }else{
+        //            if stateTrunk || isFirstACK{
+        //                showTrunkClosed()
+        //                if !isFirstACK {
+        //                    displayMessage("Trunk closed")
+        //                }
+        //            }
+        //            if waitingList.contains(0x50){
+        //                let index = waitingList.indexOf(0x50)
+        //                waitingList.removeAtIndex(index!)
+        //            }
+        //            stateTrunk = false
+        //        }
     }
     
     func checkDoor(intValue : UInt32){
@@ -1563,7 +1580,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 print("runtime= \(runtimeCountdown) seconds")
                 countdown = Int(runtimeCountdown)
                 resetNotification(countdown)
-                showStarted(countdown)
+                reSyncTimer(countdown)
             }else{
                 showStopped()
             }
