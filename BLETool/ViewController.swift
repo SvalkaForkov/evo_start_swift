@@ -26,7 +26,6 @@ extension NSData {
             p[i*2+1] = itoh(buf[i] & 0xF)
         }
         let result = NSString(bytesNoCopy: p, length: length*2, encoding: NSUTF8StringEncoding, freeWhenDone: true) as! String
-        //        print("hexString from NSData: \(result)")
         return result
     }
 }
@@ -35,7 +34,6 @@ extension Int {
     var data: NSData {
         var int = self
         let result = NSData(bytes: &int, length: sizeof(Int))
-        //        print("Int value from NSData: \(result)")
         return result
     }
     
@@ -119,6 +117,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var runtimeCharacteristic : CBCharacteristic!
     
     var checkingValetState = true
+    var checkingTrunkEvent = true
+    var ackCount = 0
+    
     
     let mask9lock : UInt32 =        0x00008000
     let mask9doors : UInt32 =       0x00004000
@@ -321,7 +322,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         switch characteristic {
         case stateCharacteristic:
             handleRawAcknowledge(characteristic.value!)
-            printLog(characteristic.value!.hexString)
+            printLog("state : \(characteristic.value!.hexString)")
             break
         default:
             break
@@ -387,6 +388,35 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         updateFuel(0)
     }
     
+    func showTrunkReleased(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
+                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    if !self.isFirstACK {
+                        self.displayMessage("Trunk Released")
+                    }
+
+            })
+        }else{
+            buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            if !isFirstACK {
+                displayMessage("Trunk Released")
+            }
+
+        }
+    }
+    
     func showTrunkOpened(){
         if isPanelDispalyed {
             isPanelDispalyed = false
@@ -402,11 +432,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.imageViewTrunk.image = UIImage(named: "Trunk Opened")
                     self.buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    if !self.isFirstACK {
+                        self.displayMessage("Trunk opened")
+                    }
             })
         }else{
             imageViewTrunk.image = UIImage(named: "Trunk Opened")
             buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            if !isFirstACK {
+                displayMessage("Trunk opened")
+            }
         }
     }
     
@@ -424,12 +460,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }, completion: { finished in
                     self.imageViewTrunk.image = nil
                     self.buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    if !self.isFirstACK {
+                        self.displayMessage("Trunk closed")
+                    }
+
             })
         }else{
             imageViewTrunk.image = nil
             buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            if !isFirstACK {
+                displayMessage("Trunk closed")
+            }
         }
     }
     
@@ -527,7 +568,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         notification.alertAction = "open"
         notification.fireDate = NSDate(timeIntervalSinceNow: NSTimeInterval(countdown))
         notification.soundName = UILocalNotificationDefaultSoundName
-        print("add notification")
+        printLog("add notification")
         application.scheduleLocalNotification(notification)
     }
     
@@ -578,7 +619,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onUpdateTemp(sender: UIButton) {
-        print("onUpdateTemp")
+        printLog("onUpdateTemp")
         let data = NSData(bytes: [0x73] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x73, retry: 5)
     }
@@ -719,11 +760,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.buttonMore.transform = transform
                 }, completion: { finished in
                     self.imageViewHood.image = nil
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+//                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             })
         }else{
             imageViewHood.image = nil
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+//            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         }
     }
     
@@ -739,11 +780,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+//                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
                     self.displayMessage("Valet activated")
             })
         }else{
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+//            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             displayMessage("Valet activated")
         }
     }
@@ -760,11 +801,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+//                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
                     self.displayMessage("Valet disactivated")
             })
         }else{
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+//            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             displayMessage("Valet disactivated")
         }
     }
@@ -1143,6 +1184,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBAction func onTrunk(sender: UIButton) {
         printLog("onTrunk 34")
         if !stateTrunk {
+            checkingTrunkEvent = true
             let data = NSData(bytes: [0x34] as [UInt8], length: 1)
             sendCommand(data, actionId: 0x21, retry: 5)
         }
@@ -1216,7 +1258,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func setNotification(enabled: Bool){
-        print("setNotification = true")
+        printLog("setNotification = true")
         if peripheral != nil && stateCharacteristic != nil {
             peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
         }
@@ -1224,7 +1266,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func sendCommand(data : NSData, actionId: UInt8, retry: Int){
         if peripheral != nil && writeCharacteristic != nil {
-            print("send command : \(data.hexString)")
+            printLog("send command : \(data.hexString)")
             if !waitingList.contains(actionId){
                 waitingList.append(actionId)
             }
@@ -1316,12 +1358,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         notification.fireDate = NSDate(timeIntervalSinceNow: 5)
         notification.soundName = UILocalNotificationDefaultSoundName
         notification.userInfo = ["UUID": "testuuid"]
-        print("add notification")
+        printLog("add notification")
         UIApplication.sharedApplication().scheduleLocalNotification(notification)
     }
     
     func checkValet(intValue : UInt32){
-        print("Valet :\(intValue.hexString)")
+        printLog("Valet :\(intValue.hexString)")
         if checkingValetState {
             if intValue & mask9valet == 0 {
                 if stateValet {
@@ -1343,7 +1385,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 stateValet = true
             }
         }else{
-            print("valet intValue:\(intValue.hexString)")
+            printLog("valet intValue:\(intValue.hexString)")
             let value = intValue & mask9event
             
             if value == 2 {
@@ -1462,57 +1504,31 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func checkTrunk(intValue : UInt32){
-        print("Trunk : \(intValue.hexString)")
-        let str = intValue.hexString
-        let value = str.substringFromIndex(str.endIndex.advancedBy(-2))
-        if value == "04" {
-            if !stateTrunk || isFirstACK{
-                showTrunkOpened()
-                if !isFirstACK {
-                    displayMessage("Trunk opened")
+        printLog("Trunk : \(intValue.hexString)")
+        if checkingTrunkEvent {
+            let value = intValue & mask9event
+            print("trunk event: \(value)")
+            if value == 4{
+                showTrunkReleased()
+                if waitingList.contains(0x21){
+                    let index = waitingList.indexOf(0x21)
+                    waitingList.removeAtIndex(index!)
                 }
             }
-            if waitingList.contains(0x21){
-                let index = waitingList.indexOf(0x21)
-                waitingList.removeAtIndex(index!)
-            }
-            stateTrunk = true
+            checkingTrunkEvent = false
         }else{
-            if intValue & mask9trunk == 0 {
+            if intValue & mask9trunk != 0 {
+                if !stateTrunk || isFirstACK{
+                    showTrunkOpened()
+                }
+                stateTrunk = true
+            }else{
                 if stateTrunk || isFirstACK{
                     showTrunkClosed()
-                    if !isFirstACK {
-                        displayMessage("Trunk closed")
-                    }
                 }
                 stateTrunk = false
             }
         }
-        //        if intValue & mask9trunk != 0 {
-        //            if !stateTrunk || isFirstACK{
-        //                showTrunkOpened()
-        //                if !isFirstACK {
-        //                    displayMessage("Trunk opened")
-        //                }
-        //            }
-        //            if waitingList.contains(0x51){
-        //                let index = waitingList.indexOf(0x51)
-        //                waitingList.removeAtIndex(index!)
-        //            }
-        //            stateTrunk = true
-        //        }else{
-        //            if stateTrunk || isFirstACK{
-        //                showTrunkClosed()
-        //                if !isFirstACK {
-        //                    displayMessage("Trunk closed")
-        //                }
-        //            }
-        //            if waitingList.contains(0x50){
-        //                let index = waitingList.indexOf(0x50)
-        //                waitingList.removeAtIndex(index!)
-        //            }
-        //            stateTrunk = false
-        //        }
     }
     
     func checkDoor(intValue : UInt32){
@@ -1571,13 +1587,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func handleStateAcknowledge(intValue : UInt32){
         printLog("handleStateAcknowledge")
-        checkLock(intValue)
+        
         checkValet(intValue)
         checkRemote(intValue)
         checkIgnition(intValue)
         checkHood(intValue)
         checkTrunk(intValue)
         checkDoor(intValue)
+        checkLock(intValue)
         checkEngine(intValue)
         
         if isFirstACK {
@@ -1604,7 +1621,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             handleStateAcknowledge(int32value)
             break
         case 0x123C:// temp
-            print("handle temperature ACK")
+            printLog("handle temperature ACK")
             let int32fromCroppedHex = getInt32FromHexString(intValue.hexString)
             let temperature = int32fromCroppedHex - 44
             updateTemperature(Int(temperature))
@@ -1614,10 +1631,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             break
         case 0x1237:// runtime
-            print("handle runtime ACK")
+            printLog("handle runtime ACK")
             let runtimeCountdown = getInt32FromHexString(intValue.hexString)
             if runtimeCountdown != 0 {
-                print("runtime= \(runtimeCountdown) seconds")
+                printLog("runtime= \(runtimeCountdown) seconds")
                 countdown = Int(runtimeCountdown)
                 resetNotification(countdown)
                 reSyncTimer(countdown)
