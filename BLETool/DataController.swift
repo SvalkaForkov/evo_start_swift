@@ -20,7 +20,15 @@ class DataController {
     
     func initialDatabase(){
         let data = [
-            ["3 Series","BMW"],["5 Series","BMW"],["7 Series","BMW"],["X6","BMW"],["X5","BMW"],["X4","BMW"],["X3","BMW"],["X1","BMW"],
+            ["CL","Acura"],["CSX","Acura"],["EL","Acura"],["ILX","Acura"],["Integra","Acura"],["MDX","Acura"],["RDX","Acura"],["RL","Acura"],["RLX","Acura"],
+            ["RSX","Acura"],["SLX","Acura"],["TL","Acura"],["TLX","Acura"],["TSX","Acura"],["Vigor","Acura"],["ZDX","Acura"],
+            ["MV1","AM General"],
+            ["A1","Audi"],["A4","Audi"],["A4 Allroad","Audi"],["A5","Audi"],["A5 Cabriolet","Audi"],["A6","Audi"],["A7","Audi"],["A8","Audi"],["Q3","Audi"],["Q5","Audi"],["Q7","Audi"],
+            ["R8","Audi"],["RS4","Audi"],["RS5","Audi"],["RS7","Audi"],["S3","Audi"],["S4","Audi"],["S5","Audi"],["S6","Audi"],["S7","Audi"],["S8","Audi"],["SQ5","Audi"],["TT","Audi"],
+            ["1 Series","BMW"],["2 Series","BMW"],["3 Series Coupe","BMW"],["3 Series","BMW"],["5 Series","BMW"],["6 Series","BMW"],["M1","BMW"],["M3","BMW"],["M5","BMW"],["M6","BMW"],
+            ["X1","BMW"],["X4","BMW"],["X5","BMW"],["X5 Diesel","BMW"],["X6","BMW"],["Z4","BMW"],
+            ["Allure","Buick"],["Century","Buick"],["Encore","Buick"],["Enclave","Buick"],["LaCrosse","Buick"],["LeSabre","Buick"],["Lucerne","Buick"],["Park Avenue","Buick"],["Rainier","Buick"],
+            ["Regal","Buick"],["Rendezvous","Buick"],["Reviera","Buick"],["Roadmaster","Buick"],["Skylark","Buick"],["Terraza","Buick"],["Verano","Buick"],
             ["A1","Audi"],["A3","Audi"],["A4","Audi"],["A5","Audi"],["A6","Audi"],
             ["C-Class","Mercedes-Benz"],["B-Class","Mercedes-Benz"],["E-Class","Mercedes-Benz"]
         ]

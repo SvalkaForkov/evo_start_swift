@@ -56,6 +56,12 @@ extension UInt32 {
     }
 }
 
+extension String {
+    var last4 : String! {
+        return self.substringFromIndex(self.endIndex.advancedBy(-4))
+    }
+}
+
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
     
@@ -112,15 +118,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var temperatureCharacteristic : CBCharacteristic!
     var runtimeCharacteristic : CBCharacteristic!
     
-    let mask9lock : UInt32 = 0x00008000
-    let mask9doors : UInt32 = 0x00004000
-    let mask9trunk : UInt32 = 0x00002000
-    let mask9hood : UInt32 = 0x00001000
-    let mask9ignition : UInt32 = 0x00000800
-    let mask9engine : UInt32 = 0x00000400
-    let mask9remote : UInt32 = 0x00000200
-    let mask9valet : UInt32 = 0x00000100
-    let mask4header : UInt64 = 0xFFFF00000000
+    var checkingValetState = true
+    
+    let mask9lock : UInt32 =        0x00008000
+    let mask9doors : UInt32 =       0x00004000
+    let mask9trunk : UInt32 =       0x00002000
+    let mask9hood : UInt32 =        0x00001000
+    let mask9ignition : UInt32 =    0x00000800
+    let mask9engine : UInt32 =      0x00000400
+    let mask9remote : UInt32 =      0x00000200
+    let mask9valet : UInt32 =       0x00000100
+    let mask9event : UInt32 =       0x0000000f
+    let mask4header : UInt64 =      0xffff00000000
     
     let tag_default_module = "defaultModule"
     let tag_last_scene = "lastScene"
@@ -182,9 +191,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidAppear(animated: Bool) {
         printLog("viewDidAppear")
         setLastScene()
-        setupNotification()
-        onUpdateTemp(self.buttonTemperature)
-    }
+        setupNotification()    }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
@@ -353,6 +360,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonLock.enabled = true
             buttonUnlock.enabled = true
             requestStatus()
+            onUpdateTemp(self.buttonTemperature)
         }
     }
     
@@ -570,7 +578,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onUpdateTemp(sender: UIButton) {
-        print("on Tap")
+        print("onUpdateTemp")
         let data = NSData(bytes: [0x73] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x73, retry: 5)
     }
@@ -1115,12 +1123,21 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onValet(sender: UIButton) {
         printLog("onValet A8")
-        if stateValet {
-            showActionSheetValet()
-        }else{
-            let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
-            sendCommand(data, actionId: 0x01, retry: 0)
-        }
+        checkingValetState = true
+        requestStatus()
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            self.printLog("Wait for state update for valet")
+            sleep(2)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.checkingValetState = false
+                if self.stateValet {
+                    self.showActionSheetValet()
+                }else{
+                    let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
+                    self.sendCommand(data, actionId: 0x01, retry: 0)
+                }
+            })
+        })
     }
     
     @IBAction func onTrunk(sender: UIButton) {
@@ -1207,6 +1224,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func sendCommand(data : NSData, actionId: UInt8, retry: Int){
         if peripheral != nil && writeCharacteristic != nil {
+            print("send command : \(data.hexString)")
             if !waitingList.contains(actionId){
                 waitingList.append(actionId)
             }
@@ -1304,25 +1322,47 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func checkValet(intValue : UInt32){
         print("Valet :\(intValue.hexString)")
-        if intValue & mask9valet != 0 {
-            if stateValet {
-                showValetOff()
+        if checkingValetState {
+            if intValue & mask9valet == 0 {
+                if stateValet {
+                    showValetOff()
+                }
+                if waitingList.contains(0x01){
+                    let index = waitingList.indexOf(0x01)
+                    waitingList.removeAtIndex(index!)
+                }
+                stateValet = false
+            }else{
+                if !stateValet {
+                    showValetOn()
+                }
+                if waitingList.contains(0x00){
+                    let index = waitingList.indexOf(0x00)
+                    waitingList.removeAtIndex(index!)
+                }
+                stateValet = true
             }
-            if waitingList.contains(0x01){
-                let index = waitingList.indexOf(0x01)
-                waitingList.removeAtIndex(index!)
-            }
-            stateValet = false
         }else{
-            if !stateValet {
+            print("valet intValue:\(intValue.hexString)")
+            let value = intValue & mask9event
+            
+            if value == 2 {
+                showValetOff()
+                if waitingList.contains(0x01){
+                    let index = waitingList.indexOf(0x01)
+                    waitingList.removeAtIndex(index!)
+                }
+                stateValet = false
+            }else if value == 1{
                 showValetOn()
+                if waitingList.contains(0x00){
+                    let index = waitingList.indexOf(0x00)
+                    waitingList.removeAtIndex(index!)
+                }
+                stateValet = true
             }
-            if waitingList.contains(0x00){
-                let index = waitingList.indexOf(0x00)
-                waitingList.removeAtIndex(index!)
-            }
-            stateValet = true
         }
+        
     }
     
     func checkRemote(intValue : UInt32){
