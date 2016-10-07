@@ -637,13 +637,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBAction func onUpdateTemp(sender: UIButton) {
         printLog("onUpdateTemp")
         let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x73, retry: 4)
+        sendCommand(data, actionId: 0x73, retry: 2)
     }
     
     func requestRuntime(){
         printLog("requestRuntime")
         let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0xAE, retry: 4)
+        sendCommand(data, actionId: 0xAE, retry: 2)
     }
     func showUnlocked(){
         printLog("show locked")
@@ -1200,20 +1200,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if !stateTrunk {
             checkingTrunkEvent = true
             let data = NSData(bytes: [0x34] as [UInt8], length: 1)
-            sendCommand(data, actionId: 0x20, retry: 5)
+            sendCommand(data, actionId: 0x20, retry: 2)
         }
     }
     
     @IBAction func onLock(sender: UIButton) {
         printLog("onlock 30")
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x80, retry: 4)
+        sendCommand(data, actionId: 0x80, retry: 2)
     }
     
     @IBAction func onUnlock(sender: UIButton) {
         printLog("onUnlock 31")
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x80, retry: 4)
+        sendCommand(data, actionId: 0x80, retry: 2)
     }
     
     @IBAction func onDown(sender: UISwipeGestureRecognizer) {
@@ -1251,20 +1251,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("requestStatus")
         let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
         if peripheral != nil && writeCharacteristic != nil {
-            sendCommand(data, actionId: 0xAA, retry: 4)
+            sendCommand(data, actionId: 0xAA, retry: 2)
         }
     }
     
     func startEngine() {
         printLog("startEngine")
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x04, retry: 4)
+        sendCommand(data, actionId: 0x04, retry: 2)
     }
     
     func stopEngine() {
         printLog("stopEngine")
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x04, retry: 4)
+        sendCommand(data, actionId: 0x04, retry: 2)
     }
     
     func setNotification(enabled: Bool){
@@ -1297,7 +1297,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         }
                         sendCount += 1
                     }
-                    if sendCount == 4 {
+                    if sendCount == 3 {
                         if self.waitingList.contains(actionId){
                             let index = self.waitingList.indexOf(actionId)
                             self.waitingList.removeAtIndex(index!)
@@ -1681,8 +1681,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         case 0x123C:// temp
             printLog("handle temperature ACK")
             let int32fromCroppedHex = getInt32FromHexString(intValue.hexString)
-            let temperature = int32fromCroppedHex - 44
-            updateTemperature(Int(temperature))
+            var temperature = int32fromCroppedHex
+            if temperature > 120 {
+                temperature = 120
+            }else if temperature < 4 {
+                temperature = 4
+            }
+            updateTemperature(Int(temperature)-44)
             if waitingList.contains(0x73){
                 let index = waitingList.indexOf(0x73)
                 waitingList.removeAtIndex(index!)
