@@ -114,6 +114,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var swipeDown: UISwipeGestureRecognizer!
     @IBOutlet var swipeUp: UISwipeGestureRecognizer!
     
+    
+    var appDelegate : AppDelegate?
+    var dataController : DataController?
     var centralManager:CBCentralManager!
     var peripheral : CBPeripheral!
     var service : CBService!
@@ -175,6 +178,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     override func viewDidLoad() {
         printLog("ViewController : viewDidLoad")
         super.viewDidLoad()
+        appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
+        dataController = appDelegate!.dataController
         setUpNavigationBar()
         setUpStaticViews()
         needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
@@ -185,21 +190,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     override func viewWillAppear(animated: Bool) {
         printLog("ViewController : viewWillAppear")
-        isFirstACK = true
-        module = getDefaultModuleName()
-        if module != "" {
-            coverEmptyGarage.hidden = true
-            centralManager = CBCentralManager(delegate: self, queue:nil)
-        }else{
-            coverEmptyGarage.hidden = false
-        }
-        
+//        isFirstACK = true
+//        module = getDefaultModuleName()
+//        if module != "" {
+//            coverEmptyGarage.hidden = true
+//            centralManager = CBCentralManager(delegate: self, queue:nil)
+//        }else{
+//            coverEmptyGarage.hidden = false
+//        }
+        requestJSON()
     }
     
     override func viewDidAppear(animated: Bool) {
         printLog("viewDidAppear")
-        setLastScene()
-        setupNotification()    }
+//        setLastScene()
+//        setupNotification()
+    }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
@@ -329,7 +335,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         switch characteristic {
         case stateCharacteristic:
             handleRawAcknowledge(characteristic.value!)
-            printLog("state : \(characteristic.value!.hexString)")
             break
         default:
             break
@@ -1108,9 +1113,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func checkDatabase() -> String {
         printLog("Check database for registered vehicle")
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let dataController = appDelegate.dataController
-        let vehicles : [Vehicle] = dataController.getAllVehicles()
+        
+        let vehicles : [Vehicle] = dataController!.getAllVehicles()
         if vehicles.count > 0 {
             printLog("Use first vehicle in the database")
             return vehicles[0].module!
@@ -1657,6 +1661,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     
     func handleRawAcknowledge(data: NSData){
+        printLog("Raw hex: \(data.hexString)")
         let intValue = getIntFromNSData(data)
         for ey in waitingList {
             printLog(ey.hexString)
@@ -1679,7 +1684,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             handleStateAcknowledge(int32value)
             break
         case 0x123C:// temp
-            printLog("handle temperature ACK")
+            printLog("handle temperature")
             let int32fromCroppedHex = getInt32FromHexString(intValue.hexString)
             var temperature = int32fromCroppedHex
             if temperature > 120 {
@@ -1695,7 +1700,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             break
         case 0x1237:// runtime
             let runtimeCountdown = getInt32FromHexString(intValue.hexString)
-            printLog("handle runtime= \(runtimeCountdown) seconds")
+            printLog("handle runtime: \(runtimeCountdown) seconds")
             if runtimeCountdown != 0 {
                 countdown = Int(runtimeCountdown)
                 if isTimerRunning {
@@ -1733,6 +1738,90 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
         self.presentViewController(actionSheet, animated: true, completion: nil)
+    }
+    
+    
+    
+    func requestJSON(){
+        requestMake()
+        
+    }
+    
+    func requestModel(make: String, id: Int){
+        print("request model")
+        var makeAndModels : Array<Array<String>> = []
+        let requestURL: NSURL = NSURL(string: "http://fortin.ca/js/models.json?makeid=\(id)")!
+        let urlRequest: NSMutableURLRequest = NSMutableURLRequest(URL: requestURL)
+        let session = NSURLSession.sharedSession()
+        let task = session.dataTaskWithRequest(urlRequest) {
+            (data, response, error) -> Void in
+            
+            let httpResponse = response as! NSHTTPURLResponse
+            let statusCode = httpResponse.statusCode
+            
+            if (statusCode == 200) {
+                print("fetch model successfully.")
+                do{
+                    let json = try NSJSONSerialization.JSONObjectWithData(data!, options:.AllowFragments)
+                    if let models : [[String: AnyObject]] = json["models"] as? [[String: AnyObject]] {    //[[String: AnyObject]]
+                        for model in models {
+                            if let name = model["name"] as? String {
+                                makeAndModels.append([make, name])
+                            }
+                        }
+                    }
+                    print("\(makeAndModels)")
+                    for array in makeAndModels {
+                        self.dataController!.insertModelAndMake(array[1], makeTitle: array[0])
+                    }
+                }catch {
+                    print("Error with Json: \(error)")
+                }
+            }
+        }
+        
+        task.resume()
+
+    }
+    
+    func requestMake(){
+        print("request make")
+        var makeswithid = Dictionary<String, Int>()
+        let requestURL: NSURL = NSURL(string: "http://fortin.ca/js/makes.json")!
+        let urlRequest: NSMutableURLRequest = NSMutableURLRequest(URL: requestURL)
+        let session = NSURLSession.sharedSession()
+        let task = session.dataTaskWithRequest(urlRequest) {
+            (data, response, error) -> Void in
+            
+            let httpResponse = response as! NSHTTPURLResponse
+            let statusCode = httpResponse.statusCode
+            
+            if (statusCode == 200) {
+                print("fetch makes successfully.")
+                do{
+                    let json = try NSJSONSerialization.JSONObjectWithData(data!, options:.AllowFragments)
+                    if let makes : [[String: AnyObject]] = json["makes"] as? [[String: AnyObject]] {    //[[String: AnyObject]]
+                        for make in makes {
+                            if let name = make["name"] as? String {
+                                if let id = make["makeid"] as? Int {
+                                    let makename : String = name
+                                    let makeid : Int = id
+                                    makeswithid[makename] = makeid
+                                }
+                            }
+                        }
+                    }
+                    let sortedKeysAndValues = Array(makeswithid).sort({ $0.0 < $1.0 })
+                    for (make,id) in sortedKeysAndValues {
+                        self.requestModel(make,id: id)
+                    }
+                }catch {
+                    print("Error with Json: \(error)")
+                }
+            }
+        }
+        
+        task.resume()
     }
 }
 

@@ -29,7 +29,6 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
         appDelegeate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegeate.dataController
         vehicles = dataController.getAllVehicles()
-        dataController.initialDatabase()
         nameField.delegate = self
         
 //        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("keyboardWillShow:"), name: UIKeyboardWillShowNotification, object: nil)
