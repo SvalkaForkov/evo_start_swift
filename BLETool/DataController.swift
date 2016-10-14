@@ -100,10 +100,14 @@ class DataController {
                 let newModel = NSEntityDescription.insertNewObjectForEntityForName("Model", inManagedObjectContext: self.managedObjectContext) as! Model
                 newModel.model2make = fetchMakeByTitle(makeTitle)
                 newModel.title = title
-                do {
-                    try self.managedObjectContext.save()
-                } catch {
-                    fatalError("Save context failed")
+                if newModel.model2make != nil{
+                    do {
+                        try self.managedObjectContext.save()
+                    } catch {
+                        fatalError("Save context failed")
+                    }
+                }else{
+                    print("Make of this model is nil : \(title)")
                 }
             }
         }

@@ -1766,17 +1766,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     if let models : [[String: AnyObject]] = json["models"] as? [[String: AnyObject]] {    //[[String: AnyObject]]
                         for model in models {
                             if let name = model["name"] as? String {
-                                makeAndModels.append([make, name])
+                                makeAndModels.append([name, make])
                             }
                         }
                     }
                     print("\(makeAndModels)")
-                    for array in makeAndModels {
-                        self.dataController!.insertModelAndMake(array[1], makeTitle: array[0])
-                    }
+                    
                 }catch {
                     print("Error with Json: \(error)")
                 }
+            }
+            for array in makeAndModels {
+                dispatch_async(dispatch_get_main_queue(),{
+                    self.dataController!.insertModelAndMake(array[0], makeTitle: array[1])
+                })
             }
         }
         
