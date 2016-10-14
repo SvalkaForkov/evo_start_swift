@@ -152,11 +152,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var longPressCountDown = 0
     var isPressing = false
     
-    var stateLock = false
-    var stateDoor = false
-    var stateTrunk = false
-    var stateHood = false
-    var stateEngine = false
+    var stateLocked = false
+    var stateDoorOpened = false
+    var stateTrunkOpened = false
+    var stateHoodOpened = false
+    var stateEngineStarted = false
     var stateIgnition = false
     var stateRemote = false
     var stateValet = false
@@ -190,21 +190,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     override func viewWillAppear(animated: Bool) {
         printLog("ViewController : viewWillAppear")
-//        isFirstACK = true
-//        module = getDefaultModuleName()
-//        if module != "" {
-//            coverEmptyGarage.hidden = true
-//            centralManager = CBCentralManager(delegate: self, queue:nil)
-//        }else{
-//            coverEmptyGarage.hidden = false
-//        }
-        requestJSON()
+        isFirstACK = true
+        module = getDefaultModuleName()
+        if module != "" {
+            coverEmptyGarage.hidden = true
+            centralManager = CBCentralManager(delegate: self, queue:nil)
+        }else{
+            coverEmptyGarage.hidden = false
+        }
     }
     
     override func viewDidAppear(animated: Bool) {
         printLog("viewDidAppear")
-//        setLastScene()
-//        setupNotification()
+        setLastScene()
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -449,16 +447,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.imageViewTrunk.image = UIImage(named: "Trunk Opened")
-                    self.buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
+                    self.imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
+                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunkOn"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
                     if !self.isFirstACK {
                         self.displayMessage("Trunk opened")
                     }
             })
         }else{
-            imageViewTrunk.image = UIImage(named: "Trunk Opened")
-            buttonTrunk.setImage(UIImage(named: "Button Trunk On"), forState: .Normal)
+            imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
+            buttonTrunk.setImage(UIImage(named: "ButtonTrunkOn"), forState: .Normal)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             if !isFirstACK {
                 displayMessage("Trunk opened")
@@ -479,7 +477,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.buttonMore.transform = transform
                 }, completion: { finished in
                     self.imageViewTrunk.image = nil
-                    self.buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
+                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
                     if !self.isFirstACK {
                         self.displayMessage("Trunk closed")
                     }
@@ -487,7 +485,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             })
         }else{
             imageViewTrunk.image = nil
-            buttonTrunk.setImage(UIImage(named: "Button Trunk"), forState: .Normal)
+            buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
             if !isFirstACK {
                 displayMessage("Trunk closed")
             }
@@ -542,7 +540,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             updateFuel(50)
             onUpdateTemp(self.buttonTemperature)
         }
-        if !stateEngine {
+        if !stateEngineStarted {
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
                 usleep(1000 * 500)
@@ -650,8 +648,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
         sendCommand(data, actionId: 0xAE, retry: 2)
     }
+    
     func showUnlocked(){
-        printLog("show locked")
+        printLog("Door unlocked")
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -663,19 +662,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.buttonLock.setImage(UIImage(named: "Button Lock Off"), forState: .Normal)
-                    self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
+                    self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
                     self.displayMessage("Door unlocked")
-                    self.stateLock = false
+                    self.stateLocked = false
             })
         }else{
-            self.buttonLock.setImage(UIImage(named: "Button Lock Off"), forState: .Normal)
-            self.buttonUnlock.setImage(UIImage(named: "Button Unlock On"), forState: .Normal)
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            self.buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
+            self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
             self.displayMessage("Door unlocked")
-            stateLock = false
+            stateLocked = false
         }
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
     }
     
     func showLocked(){
@@ -690,19 +688,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
+                self.imageViewDoors.image = nil
                 }, completion: { finished in
-                    self.showDoorClosed()
-                    self.buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
-                    self.buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.stateLock = true
+                    self.buttonLock.setImage(UIImage(named: "ButtonLockOn"), forState: .Normal)
+                    self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
+                    self.stateLocked = true
             })
         }else{
-            buttonLock.setImage(UIImage(named: "Button Lock On"), forState: .Normal)
-            buttonUnlock.setImage(UIImage(named: "Button Unlock Off"), forState: .Normal)
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            stateLock = true
+            buttonLock.setImage(UIImage(named: "ButtonLockOn"), forState: .Normal)
+            buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
+            stateLocked = true
         }
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
     }
     
     func showDoorOpened(){
@@ -718,17 +715,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.imageViewDoors.image = UIImage(named: "Door Opened")
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.showUnlocked()
-                    self.stateLock = false
+                    self.imageViewDoors.image = UIImage(named: "StateDoorOpened")
             })
         }else{
-            imageViewDoors.image = UIImage(named: "Door Opened")
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            self.showUnlocked()
-            stateLock = false
+            imageViewDoors.image = UIImage(named: "StateDoorOpened")
         }
+        stateDoorOpened = true
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
     }
     
     func showDoorClosed(){
@@ -744,12 +737,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.buttonMore.transform = transform
                 }, completion: { finished in
                     self.imageViewDoors.image = nil
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             })
         }else{
             self.imageViewDoors.image = nil
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         }
+        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        stateDoorOpened = false
     }
     
     func showHoodOpened(){
@@ -764,11 +757,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.imageViewHood.image = UIImage(named: "Hood On")
+                    self.imageViewHood.image = UIImage(named: "StateHoodOn")
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             })
         }else{
-            imageViewHood.image = UIImage(named: "Hood On")
+            imageViewHood.image = UIImage(named: "StateHoodOn")
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))        }
     }
     
@@ -877,7 +870,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 if self.longPressCountDown>5{
                     self.isPressing = false
                     dispatch_async(dispatch_get_main_queue(),{
-                        
                         UIView.animateWithDuration(0.1, animations: {
                             self.imageGlowing.alpha = 0.0
                             },completion: {
@@ -905,7 +897,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     if self.stateValet {
                         self.showRemoteStartDisabledFromValet()
                     }else{
-                        if self.stateEngine {
+                        if self.stateEngineStarted {
                             self.stopEngine()
                         }else {
                             self.startEngine()
@@ -1201,7 +1193,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onTrunk(sender: UIButton) {
         printLog("onTrunk 34")
-        if !stateTrunk {
+        if !stateTrunkOpened {
             checkingTrunkEvent = true
             let data = NSData(bytes: [0x34] as [UInt8], length: 1)
             sendCommand(data, actionId: 0x20, retry: 2)
@@ -1419,7 +1411,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             checkingValetState = true
         }
-        
     }
     
     func checkRemote(intValue : UInt32){
@@ -1458,7 +1449,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func checkEngine(intValue : UInt32){
         if intValue & mask9engine != 0 {
-            if !stateEngine || isFirstACK{
+            if !stateEngineStarted || isFirstACK{
                 showStarted()
                 if !isFirstACK {
                     displayMessage("Engine started")
@@ -1468,9 +1459,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let index = waitingList.indexOf(0x04)
                 waitingList.removeAtIndex(index!)
             }
-            stateEngine = true
+            stateEngineStarted = true
         }else{
-            if stateEngine || isFirstACK{
+            if stateEngineStarted || isFirstACK{
                 showStopped()
                 if !isFirstACK {
                     displayMessage("Engine stopped")
@@ -1480,13 +1471,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let index = waitingList.indexOf(0x04)
                 waitingList.removeAtIndex(index!)
             }
-            stateEngine = false
+            stateEngineStarted = false
         }
     }
     
     func checkHood(intValue : UInt32){
         if intValue & mask9hood != 0 {
-            if !stateHood || isFirstACK{
+            if !stateHoodOpened || isFirstACK{
                 showHoodOpened()
                 if !isFirstACK {
                     displayMessage("Hood opened")
@@ -1496,9 +1487,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let index = waitingList.indexOf(0x10)
                 waitingList.removeAtIndex(index!)
             }
-            stateHood = true
+            stateHoodOpened = true
         }else{
-            if stateHood || isFirstACK{
+            if stateHoodOpened || isFirstACK{
                 showHoodClosed()
                 if !isFirstACK {
                     displayMessage("Hood closed")
@@ -1508,7 +1499,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let index = waitingList.indexOf(0x10)
                 waitingList.removeAtIndex(index!)
             }
-            stateHood = false
+            stateHoodOpened = false
         }
     }
     
@@ -1527,22 +1518,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             checkingTrunkEvent = false
         }else{
             if intValue & mask9trunk != 0 {
-                if !stateTrunk || isFirstACK{
+                if !stateTrunkOpened || isFirstACK{
                     showTrunkOpened()
                 }
-                stateTrunk = true
+                stateTrunkOpened = true
             }else{
-                if stateTrunk || isFirstACK{
+                if stateTrunkOpened || isFirstACK{
                     showTrunkClosed()
                 }
-                stateTrunk = false
+                stateTrunkOpened = false
             }
         }
     }
     
     func checkDoor(intValue : UInt32){
         if intValue & mask9doors != 0 {
-            if !stateDoor || isFirstACK{
+            if !stateDoorOpened || isFirstACK{
                 showDoorOpened()
                 if !isFirstACK {
                     displayMessage("Door opened")
@@ -1552,9 +1543,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let index = waitingList.indexOf(0x40)
                 waitingList.removeAtIndex(index!)
             }
-            stateDoor = true
+            stateDoorOpened = true
         }else{
-            if stateDoor || isFirstACK{
+            if stateDoorOpened || isFirstACK{
                 showDoorClosed()
                 if !isFirstACK {
                     displayMessage("Door closed")
@@ -1564,7 +1555,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let index = waitingList.indexOf(0x40)
                 waitingList.removeAtIndex(index!)
             }
-            stateDoor = false
+            stateDoorOpened = false
         }
     }
     
@@ -1574,30 +1565,33 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let index = waitingList.indexOf(0x80)
                 waitingList.removeAtIndex(index!)
             }
-            if !stateLock || isFirstACK{
+            if !stateLocked || isFirstACK{
                 showLocked()
                 if !isFirstACK {
                     displayMessage("Door locked")
                 }
             }
+            stateLocked = true
         }else{
             if waitingList.contains(0x80){
                 let index = waitingList.indexOf(0x80)
                 waitingList.removeAtIndex(index!)
             }
-            if stateLock || isFirstACK{
+            if stateLocked || isFirstACK{
                 showUnlocked()
                 if !isFirstACK {
                     displayMessage("Door unlocked")
                 }
             }
+            stateLocked = false
         }
+        
     }
     
     func handleStateAcknowledge(intValue : UInt32){
-        printLog("handle State Acknowledge")
+        printLog("Handle State Acknowledge")
         if waitingList.isEmpty {
-            printLog("Notified")
+            printLog("Check all : Notified")
             checkValet(intValue)
             checkRemote(intValue)
             checkIgnition(intValue)
@@ -1608,7 +1602,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             checkEngine(intValue)
         }else{
             if waitingList.contains(0xAA) {
-                printLog("AA")
+                printLog("Check all : Sent AA")
                 checkValet(intValue)
                 checkRemote(intValue)
                 checkIgnition(intValue)
@@ -1645,6 +1639,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 checkLock(intValue)
             }
         }
+        printLog("state valet    : \(stateValet)")
+        printLog("state remote   : \(stateRemote)")
+        printLog("state ignition : \(stateIgnition)")
+        printLog("state engine   : \(stateEngineStarted)")
+        printLog("state hood     : \(stateHoodOpened)")
+        printLog("state trunk    : \(stateTrunkOpened)")
+        printLog("state door     : \(stateDoorOpened)")
+        printLog("state lock     : \(stateLocked)")
         if isFirstACK {
             isFirstACK = false
         }
@@ -1738,93 +1740,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
         self.presentViewController(actionSheet, animated: true, completion: nil)
-    }
-    
-    
-    
-    func requestJSON(){
-        requestMake()
-        
-    }
-    
-    func requestModel(make: String, id: Int){
-        print("request model")
-        var makeAndModels : Array<Array<String>> = []
-        let requestURL: NSURL = NSURL(string: "http://fortin.ca/js/models.json?makeid=\(id)")!
-        let urlRequest: NSMutableURLRequest = NSMutableURLRequest(URL: requestURL)
-        let session = NSURLSession.sharedSession()
-        let task = session.dataTaskWithRequest(urlRequest) {
-            (data, response, error) -> Void in
-            
-            let httpResponse = response as! NSHTTPURLResponse
-            let statusCode = httpResponse.statusCode
-            
-            if (statusCode == 200) {
-                print("fetch model successfully.")
-                do{
-                    let json = try NSJSONSerialization.JSONObjectWithData(data!, options:.AllowFragments)
-                    if let models : [[String: AnyObject]] = json["models"] as? [[String: AnyObject]] {    //[[String: AnyObject]]
-                        for model in models {
-                            if let name = model["name"] as? String {
-                                makeAndModels.append([name, make])
-                            }
-                        }
-                    }
-                    print("\(makeAndModels)")
-                    
-                }catch {
-                    print("Error with Json: \(error)")
-                }
-            }
-            for array in makeAndModels {
-                dispatch_async(dispatch_get_main_queue(),{
-                    self.dataController!.insertModelAndMake(array[0], makeTitle: array[1])
-                })
-            }
-        }
-        
-        task.resume()
-
-    }
-    
-    func requestMake(){
-        print("request make")
-        var makeswithid = Dictionary<String, Int>()
-        let requestURL: NSURL = NSURL(string: "http://fortin.ca/js/makes.json")!
-        let urlRequest: NSMutableURLRequest = NSMutableURLRequest(URL: requestURL)
-        let session = NSURLSession.sharedSession()
-        let task = session.dataTaskWithRequest(urlRequest) {
-            (data, response, error) -> Void in
-            
-            let httpResponse = response as! NSHTTPURLResponse
-            let statusCode = httpResponse.statusCode
-            
-            if (statusCode == 200) {
-                print("fetch makes successfully.")
-                do{
-                    let json = try NSJSONSerialization.JSONObjectWithData(data!, options:.AllowFragments)
-                    if let makes : [[String: AnyObject]] = json["makes"] as? [[String: AnyObject]] {    //[[String: AnyObject]]
-                        for make in makes {
-                            if let name = make["name"] as? String {
-                                if let id = make["makeid"] as? Int {
-                                    let makename : String = name
-                                    let makeid : Int = id
-                                    makeswithid[makename] = makeid
-                                }
-                            }
-                        }
-                    }
-                    let sortedKeysAndValues = Array(makeswithid).sort({ $0.0 < $1.0 })
-                    for (make,id) in sortedKeysAndValues {
-                        self.requestModel(make,id: id)
-                    }
-                }catch {
-                    print("Error with Json: \(error)")
-                }
-            }
-        }
-        
-        task.resume()
     }
 }
 

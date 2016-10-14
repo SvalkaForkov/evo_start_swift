@@ -9,11 +9,13 @@
 import UIKit
 
 class RegisterViewController: UIViewController , UITextFieldDelegate{
-
+    
     var dataController : DataController!
     var appDelegeate : AppDelegate!
     var vehicles : [Vehicle] = []
     var module: String?
+    var networkFailedTime : Int?
+    let tag_last_update = "tag_last_update"
     
     @IBOutlet var nameField: UITextField!
     var indexForModel : Int! = 0
@@ -30,22 +32,20 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
         dataController = appDelegeate.dataController
         vehicles = dataController.getAllVehicles()
         nameField.delegate = self
-        
-//        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("keyboardWillShow:"), name: UIKeyboardWillShowNotification, object: nil)
-//        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("keyboardWillHide:"), name: UIKeyboardWillHideNotification, object: nil)
-
-        // Do any additional setup after loading the view.
+        networkFailedTime = 0
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     override func viewWillAppear(animated: Bool) {
         print("viewWillAppear: selected \(module)")
         buttonRegister.layer.cornerRadius = 25.0
         buttonRegister.clipsToBounds = true
+        if !compareDays(){
+        requestMake()
+        }
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -76,7 +76,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     @IBAction func onBack(sender: UIButton) {
         performSegueWithIdentifier("back", sender: sender)
     }
-
+    
     @IBAction func onSave(sender: UIButton) {
         if checkInfo() {
             print("save vehicle")
@@ -92,9 +92,9 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     }
     
     @IBAction func onTap(sender: UITapGestureRecognizer) {
-//        if nameField.isFirstResponder() {
-            nameField.endEditing(true)
-//        }
+        //        if nameField.isFirstResponder() {
+        nameField.endEditing(true)
+        //        }
     }
     
     func checkInfo() -> Bool {
@@ -151,7 +151,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     func alertControllerBackgroundTapped()    {
         self.dismissViewControllerAnimated(true, completion: nil)
     }
-
+    
     func setLastScene(){
         print("getLsetLastScene : Register")
         NSUserDefaults.standardUserDefaults().setObject("Register", forKey: "lastScene")
@@ -164,7 +164,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
             destController.registerViewController = self
         }else if segue.identifier == "selectMake"{
             let destController = segue.destinationViewController as! MakeViewController
-                destController.lastChoice = indexForMake
+            destController.lastChoice = indexForMake
             destController.registerViewController = self
         }else if segue.identifier == "selectModel"{
             let destController = segue.destinationViewController as! ModelViewController
@@ -174,6 +174,144 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
             destController.make = dataController.fetchMakeByTitle(make!)
         }else{
             
+        }
+    }
+    
+    func requestModel(make: String, id: Int){
+        var makeAndModels : Array<Array<String>> = []
+        let requestURL: NSURL = NSURL(string: "http://fortin.ca/js/models.json?makeid=\(id)")!
+        let urlRequest: NSMutableURLRequest = NSMutableURLRequest(URL: requestURL)
+        let session = NSURLSession.sharedSession()
+        let task = session.dataTaskWithRequest(urlRequest) {
+            (data, response, error) -> Void in
+            
+            let httpResponse = response as! NSHTTPURLResponse
+            let statusCode = httpResponse.statusCode
+            
+            if (statusCode == 200) {
+                print("fetch model statusCode 200.")
+                do{
+                    let json = try NSJSONSerialization.JSONObjectWithData(data!, options:.AllowFragments)
+                    if let models : [[String: AnyObject]] = json["models"] as? [[String: AnyObject]] {    //[[String: AnyObject]]
+                        for model in models {
+                            if let name = model["name"] as? String {
+                                makeAndModels.append([name, make])
+                            }
+                        }
+                    }
+                }catch {
+                    print("Error with Json: \(error)")
+                }
+            }
+            for array in makeAndModels {
+                dispatch_async(dispatch_get_main_queue(),{
+                    self.dataController!.insertModelAndMake(array[0], makeTitle: array[1])
+                })
+            }
+        }
+        task.resume()
+    }
+    
+    func requestMake(){
+        print("request make")
+        var makeswithid = Dictionary<String, Int>()
+        let requestURL: NSURL = NSURL(string: "http://fortin.ca/js/makes.json")!
+        let urlRequest: NSMutableURLRequest = NSMutableURLRequest(URL: requestURL)
+        let session = NSURLSession.sharedSession()
+        let task = session.dataTaskWithRequest(urlRequest) {
+            (data, response, error) -> Void in
+            if response != nil {
+                let httpResponse = response as! NSHTTPURLResponse
+                let statusCode = httpResponse.statusCode
+                
+                if (statusCode == 200) {
+                    NSUserDefaults.standardUserDefaults().setObject(NSDate(), forKey: self.tag_last_update)
+                    print("Set last updated date")
+                    self.networkFailedTime = 0
+                    print("fetch makes statusCode 200.")
+                    do{
+                        let json = try NSJSONSerialization.JSONObjectWithData(data!, options:.AllowFragments)
+                        if let makes : [[String: AnyObject]] = json["makes"] as? [[String: AnyObject]] {    //[[String: AnyObject]]
+                            for make in makes {
+                                if let name = make["name"] as? String {
+                                    if let id = make["makeid"] as? Int {
+                                        let makename : String = name
+                                        print(name)
+                                        let makeid : Int = id
+                                        makeswithid[makename] = makeid
+                                    }
+                                }
+                            }
+                        }
+                        let sortedKeysAndValues = Array(makeswithid).sort({ $0.0 < $1.0 })
+                        for (make,id) in sortedKeysAndValues {
+                            self.requestModel(make,id: id)
+                        }
+                    }catch {
+                        print("Error with Json: \(error)")
+                        if self.networkFailedTime > 1 {
+                            
+                        }else {
+                            self.showActionSheetCheckNetwork()
+                        }
+                        self.networkFailedTime = self.networkFailedTime! + 1
+                    }
+                }
+            }else{
+                if self.networkFailedTime > 1 {
+                    
+                }else {
+                    self.showActionSheetCheckNetwork()
+                }
+                self.networkFailedTime = self.networkFailedTime! + 1
+            }
+        }
+        task.resume()
+    }
+    
+    func showActionSheetCheckNetwork(){
+        let actionSheet = UIAlertController(title: "Cannot connect to server.", message: "Please check network settings or use local data.", preferredStyle: .ActionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Go to network setting.", style: .Default,handler: {
+            action in
+            let settingsUrl = NSURL(string: UIApplicationOpenSettingsURLString)
+            if let url = settingsUrl {
+                UIApplication.sharedApplication().openURL(url)
+            }
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Use Local Data", style: .Cancel, handler: nil))
+        self.presentViewController(actionSheet, animated: true, completion: nil)
+    }
+    
+    func showActionSheetCheckNetworkFailed(){
+        let actionSheet = UIAlertController(title: "Network is still not available.", message: "Please check use local data.", preferredStyle: .ActionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Use Local Data", style: .Cancel, handler: nil))
+        self.presentViewController(actionSheet, animated: true, completion: nil)
+    }
+    
+    
+    func compareDays() -> Bool{
+        let calendar = NSCalendar.currentCalendar()
+        
+        let firstDate = NSUserDefaults.standardUserDefaults().objectForKey(tag_last_update)
+            as? NSDate
+        if firstDate == nil {
+            return false
+        }else{
+        let secondDate = NSDate()
+        
+        
+        let date1 = calendar.startOfDayForDate(firstDate!)
+        let date2 = calendar.startOfDayForDate(secondDate)
+        
+        let flags = NSCalendarUnit.Day
+        let components = calendar.components(flags, fromDate: date1, toDate: date2, options: [])
+        
+        let days = components.day
+            if days > 1 {
+                return false
+            }else{
+                return true
+            }
         }
     }
 }

@@ -33,8 +33,10 @@ class ModelViewController: UIViewController ,UITableViewDataSource, UITableViewD
     }
     
     override func viewDidAppear(animated: Bool) {
+        if models?.count != 0 {
         let index = lastChoice as Int
         tableView.scrollToRowAtIndexPath(NSIndexPath(forRow: index, inSection: 0), atScrollPosition: .Top, animated: true)
+        }
     }
     
     override func didReceiveMemoryWarning() {

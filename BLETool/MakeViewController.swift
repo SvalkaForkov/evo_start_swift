@@ -16,18 +16,10 @@ class MakeViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     var dataController : DataController?
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         tableView.dataSource = self
         tableView.delegate = self
-
-        // Do any additional setup after loading the view.
     }
     
-    override func viewDidAppear(animated: Bool) {
-        let index = lastChoice as Int
-        tableView.scrollToRowAtIndexPath(NSIndexPath(forRow: index, inSection: 0), atScrollPosition: .Top, animated: true)
-    }
-
     override func viewWillAppear(animated: Bool) {
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         dataController = appDelegate.dataController
@@ -36,6 +28,13 @@ class MakeViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         print("[Make] size : \(makes?.count)")
     }
     
+    override func viewDidAppear(animated: Bool) {
+        if makes?.count != 0 {
+            let index = lastChoice as Int
+            tableView.scrollToRowAtIndexPath(NSIndexPath(forRow: index, inSection: 0), atScrollPosition: .Top, animated: true)
+        }
+    }
+
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
