@@ -83,7 +83,9 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
             let yearValue = NSDecimalNumber(string: buttonSelectYear.titleLabel!.text!)
             let model = dataController.fetchModelByTitle((buttonSelectModel?.titleLabel!.text)!)!
             dataController.saveVehicle(nameField.text!, model: model, year: yearValue, module: self.module!)
-            setDefault(self.module!)
+            if dataController.getAllVehicles().count == 1 {
+                setDefault(self.module!)
+            }
             print("prepare to go back to control")
             self.navigationController?.popToRootViewControllerAnimated(true)
         }else{

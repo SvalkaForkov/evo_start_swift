@@ -199,6 +199,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             centralManager = CBCentralManager(delegate: self, queue:nil)
         }else{
             coverEmptyGarage.hidden = false
+            self.title = "Control"
         }
     }
     
@@ -284,7 +285,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("Did connect peripheral \(peripheral.name)")
         isConnected = true
         self.coverLostConnection.hidden = true
-        setDefaultModule(peripheral.name!)
         peripheral.discoverServices([CBUUID(string: "1234")])
         printLog("Discovering service: 1234")
     }
@@ -989,10 +989,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func setDefaultModule(value: String){
-        printLog("Set default module : \(value)")
-        NSUserDefaults.standardUserDefaults().setObject(value, forKey: tag_default_module)
-    }
+    
     
     func getLastScene() -> String{
         printLog("Get last scene")
@@ -1207,19 +1204,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         requestStatus()
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
             self.printLog("Wait for state update for valet")
-            sleep(1)
+            sleep(2)
+            self.printLog("state valet : \(self.stateValet)")
             if self.stateValet {
                 dispatch_async(dispatch_get_main_queue(),{
                     self.showActionSheetValet()
                 })
             }else{
-                dispatch_async(dispatch_get_main_queue(),{
+//                dispatch_async(dispatch_get_main_queue(),{
                     self.checkingValetEvent = true
                     self.printLog("set event  = true")
                     let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
                     self.sendCommand(data, actionId: 0x01, retry: 0)
                     self.printLog("Wait for valet event... from off")
-                })
+//                })
             }
             
         })
@@ -1613,11 +1611,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 
                 print("------\(intValue.hexString)-----")
                 if result == 1 {
-                    showValetOn()
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                        dispatch_async(dispatch_get_main_queue(),{
+                            self.showValetOn()
+                        })
+                    })
                     stateValet = true
                 }else if result == 2 {
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                        dispatch_async(dispatch_get_main_queue(),{
+                            self.showValetOff()
+                        })
+                    })
                     stateValet = false
-                    showValetOff()
                 }
                 printLog("state valet    : \(stateValet)")
                 printLog("state remote   : \(stateRemote)")
@@ -1772,11 +1778,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let actionSheet = UIAlertController(title: "Warning", message: "Are you sure about disabling valet mode?", preferredStyle: .ActionSheet)
         actionSheet.addAction(UIAlertAction(title: "Confirm", style: .Default,handler: {
             action in
-            self.checkingValetEvent = true
-            self.printLog("set event  = true")
-            let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
-            self.sendCommand(data, actionId: 0x01, retry: 0)
-            self.printLog("Wait for valet event... from on")
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                dispatch_async(dispatch_get_main_queue(),{
+                    self.checkingValetEvent = true
+                    self.printLog("set event  = true")
+                    let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
+                    self.sendCommand(data, actionId: 0x01, retry: 0)
+                    self.printLog("Wait for valet event... from on")
+                })
+            })
         }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .Cancel, handler: nil))
         self.presentViewController(actionSheet, animated: true, completion: nil)

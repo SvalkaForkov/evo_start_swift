@@ -29,7 +29,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     override func viewWillAppear(animated: Bool) {
         setUpNavigationBar()
         buttonAdd.clipsToBounds = true
-
+        
         appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
         dataController = appDelegate!.dataController
         
@@ -59,7 +59,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
-
+        
         cell.mainView.layer.cornerRadius = 20.0
         cell.labelName!.text = vehicleList[indexPath.row].name!.capitalizedString
         let model = vehicleList[indexPath.row].v2model!
@@ -85,7 +85,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                     if !self.isFound {
                         print("No match module found")
                         if self.centralManager.isScanning {
-                        self.centralManager.stopScan()
+                            self.centralManager.stopScan()
                         }
                         self.showAlert()
                     }
@@ -110,26 +110,68 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == UITableViewCellEditingStyle.Delete {
-            let vehicleToDelete : String! = vehicleList[indexPath.row].module
+        //        if editingStyle == UITableViewCellEditingStyle.Delete {
+        //            let vehicleToDelete : String! = vehicleList[indexPath.row].module
+        //            print("Vehicle to Delete : \(vehicleToDelete)")
+        //            let currentDefault = getDefaultModuleName()
+        //            print("Current default : \(currentDefault)")
+        //            if vehicleToDelete == currentDefault {
+        //                vehicleList.removeAtIndex(indexPath.row)
+        //                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+        //                dataController!.deleteVehicleByName(vehicleToDelete)
+        //                if vehicleList.count == 0 {
+        //                    setDefault("")
+        //                }else{
+        //                    setDefault(vehicleList[0].module!)
+        //                }
+        //            }else{
+        //                vehicleList.removeAtIndex(indexPath.row)
+        //                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+        //                dataController!.deleteVehicleByName(vehicleToDelete)
+        //            }
+        //        }
+    }
+    func setDefaultModule(value: String){
+        print("Set default module : \(value)")
+        NSUserDefaults.standardUserDefaults().setObject(value, forKey: tag_default_module)
+    }
+    func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
+        let favorite = UITableViewRowAction(style: .Default, title: "Set Favorite") { action, index in
+            print("favorite button tapped")
+            let vehicleToFavorate : String! = self.vehicleList[indexPath.row].module
+            self.setDefaultModule(vehicleToFavorate)
+            self.tableView.setEditing(false, animated: true)
+        }
+        favorite.backgroundColor = UIColor.orangeColor()
+        
+        let share = UITableViewRowAction(style: .Normal, title: "Delete") { action, index in
+            let vehicleToDelete : String! = self.vehicleList[indexPath.row].module
             print("Vehicle to Delete : \(vehicleToDelete)")
-            let currentDefault = getDefaultModuleName()
+            let currentDefault = self.getDefaultModuleName()
             print("Current default : \(currentDefault)")
             if vehicleToDelete == currentDefault {
-                vehicleList.removeAtIndex(indexPath.row)
+                self.vehicleList.removeAtIndex(indexPath.row)
                 tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-                dataController!.deleteVehicleByName(vehicleToDelete)
-                if vehicleList.count == 0 {
-                    setDefault("")
+                self.dataController!.deleteVehicleByName(vehicleToDelete)
+                if self.vehicleList.count == 0 {
+                    self.setDefault("")
                 }else{
-                    setDefault(vehicleList[0].module!)
+                    self.setDefault(self.vehicleList[0].module!)
                 }
             }else{
-                vehicleList.removeAtIndex(indexPath.row)
+                self.vehicleList.removeAtIndex(indexPath.row)
                 tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-                dataController!.deleteVehicleByName(vehicleToDelete)
+                self.dataController!.deleteVehicleByName(vehicleToDelete)
             }
         }
+        share.backgroundColor = UIColor.redColor()
+        
+        return [share, favorite]
+    }
+    
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        // the cells you would like the actions to appear needs to be editable
+        return true
     }
     
     func centralManagerDidUpdateState(central: CBCentralManager) {
