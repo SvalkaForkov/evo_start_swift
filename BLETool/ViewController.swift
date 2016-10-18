@@ -187,12 +187,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         super.viewDidLoad()
         appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
         dataController = appDelegate!.dataController
-        
-        setUpStaticViews()
-        needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
-        needleRPM.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getRPMAngle(0) / 180)
-        needleFuel.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getFuelAngle(0) / 180)
-        needleTemp.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getTempAngle(-40) / 180)
+        initializeUIComponents()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -302,9 +297,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("Disconnected")
         isConnected = false
         coverLostConnection.hidden = false
+        enableControl(false)
         central.scanForPeripheralsWithServices(nil, options: nil)
         printLog("Scan for peripherals with services, after disconnected")
-        enableControl(false)
+        
     }
     
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
@@ -387,11 +383,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 dispatch_async(dispatch_get_main_queue(),{
                     self.onUpdateTemp(self.buttonTemperature)
                 })
-                //                dispatch_async(dispatch_get_main_queue(),{
-                //                    self.requestStatus()
-                //                    self.onUpdateTemp(self.buttonTemperature)
-                //                })
+                dispatch_async(dispatch_get_main_queue(),{
+                    self.findVehicleNameFromPeripheral()
+                })
             })
+        }
+    }
+    
+    func findVehicleNameFromPeripheral(){
+        printLog("Find vehicle name for connected module")
+        let vehicleList = dataController?.getAllVehicles()
+        for vehicle in vehicleList! {
+            if vehicle.module == self.peripheral.name!{
+                self.title = "Control / \(vehicle.name!)"
+            }
         }
     }
     
@@ -403,19 +408,29 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showIgnitionOn(){
-        updateRPM(8000)
-        updateBatt(100)
-        updateFuel(100)
-        sleep(1)
-        updateRPM(0)
-        updateBatt(0)
-        updateFuel(0)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            dispatch_async(dispatch_get_main_queue(),{
+                self.updateRPM(8000)
+                self.updateBatt(100)
+                self.updateFuel(100)
+            })
+            sleep(1)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.updateRPM(0)
+                self.updateBatt(0)
+                self.updateFuel(0)
+            })
+        })
     }
     
     func showIgnitionOff(){
-        updateRPM(0)
-        updateBatt(0)
-        updateFuel(0)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            dispatch_async(dispatch_get_main_queue(),{
+                self.updateRPM(0)
+                self.updateBatt(0)
+                self.updateFuel(0)
+            })
+        })
     }
     
     func showTrunkReleased(){
@@ -1082,8 +1097,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func setUpStaticViews(){
-        printLog("Set up view components")
+    func initializeUIComponents(){
+        printLog("Initialize UI components")
         setUpNavigationBar()
         longPressStart.enabled = false
         buttonCover.backgroundColor = UIColor.clearColor()
@@ -1108,6 +1123,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageButtonStart)
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageGlowing)
+        
+        needleBatt.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getBattAngle(0) / 180)
+        needleRPM.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getRPMAngle(0) / 180)
+        needleFuel.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getFuelAngle(0) / 180)
+        needleTemp.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * getTempAngle(-40) / 180)
     }
     
     func checkDatabase() -> String {

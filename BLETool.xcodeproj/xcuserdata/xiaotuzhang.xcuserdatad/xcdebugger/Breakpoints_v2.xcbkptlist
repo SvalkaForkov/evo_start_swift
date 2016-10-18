@@ -26,12 +26,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "BLETool/ViewController.swift"
-            timestampString = "498433459.497294"
+            timestampString = "498497727.468381"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1730"
-            endingLineNumber = "1730"
-            landmarkName = "handleIntValue(intValue:data:)"
+            startingLineNumber = "1750"
+            endingLineNumber = "1750"
+            landmarkName = "handleIntValue(_:data:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
