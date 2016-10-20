@@ -60,7 +60,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
         
-        cell.mainView.layer.cornerRadius = 20.0
+        cell.contentView.layer.cornerRadius = 20.0
         cell.labelName!.text = vehicleList[indexPath.row].name!.capitalizedString
         let model = vehicleList[indexPath.row].v2model!
         let make : Make! =  model.model2make
@@ -109,28 +109,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         self.dismissViewControllerAnimated(true, completion: nil)
     }
     
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        //        if editingStyle == UITableViewCellEditingStyle.Delete {
-        //            let vehicleToDelete : String! = vehicleList[indexPath.row].module
-        //            print("Vehicle to Delete : \(vehicleToDelete)")
-        //            let currentDefault = getDefaultModuleName()
-        //            print("Current default : \(currentDefault)")
-        //            if vehicleToDelete == currentDefault {
-        //                vehicleList.removeAtIndex(indexPath.row)
-        //                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-        //                dataController!.deleteVehicleByName(vehicleToDelete)
-        //                if vehicleList.count == 0 {
-        //                    setDefault("")
-        //                }else{
-        //                    setDefault(vehicleList[0].module!)
-        //                }
-        //            }else{
-        //                vehicleList.removeAtIndex(indexPath.row)
-        //                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-        //                dataController!.deleteVehicleByName(vehicleToDelete)
-        //            }
-        //        }
-    }
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {    }
     func setDefaultModule(value: String){
         print("Set default module : \(value)")
         NSUserDefaults.standardUserDefaults().setObject(value, forKey: tag_default_module)
@@ -155,6 +134,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                 self.dataController!.deleteVehicleByName(vehicleToDelete)
                 if self.vehicleList.count == 0 {
                     self.setDefault("")
+                    print("clear default")
                 }else{
                     self.setDefault(self.vehicleList[0].module!)
                 }

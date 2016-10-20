@@ -136,7 +136,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var lastIntValue : UInt64?
     var lastRaw : String?
     var isTimerRunning = false
-    
+    var ifNeedVibration = false
     let mask9lock : UInt32 =        0x00008000
     let mask9doors : UInt32 =       0x00004000
     let mask9trunk : UInt32 =       0x00002000
@@ -376,9 +376,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonUnlock.enabled = true
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 sleep(1)
-                dispatch_async(dispatch_get_main_queue(),{
+//                dispatch_async(dispatch_get_main_queue(),{
                     self.requestStatus()
-                })
+//                })
                 sleep(1)
                 dispatch_async(dispatch_get_main_queue(),{
                     self.onUpdateTemp(self.buttonTemperature)
@@ -453,6 +453,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             displayMessage("Trunk Released")
         }
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        ifNeedVibration = false
     }
     
     func showTrunkOpened(){
@@ -470,6 +471,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
                     self.buttonTrunk.setImage(UIImage(named: "ButtonTrunkOn"), forState: .Normal)
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    self.ifNeedVibration = false
                     if !self.isFirstACK {
                         self.displayMessage("Trunk opened")
                     }
@@ -477,7 +479,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
             buttonTrunk.setImage(UIImage(named: "ButtonTrunkOn"), forState: .Normal)
+            if ifNeedVibration{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            ifNeedVibration = false
+            }
             if !isFirstACK {
                 displayMessage("Trunk opened")
             }
@@ -533,7 +538,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             updateBatt(0)
             updateFuel(0)
         }
+        if ifNeedVibration {
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        ifNeedVibration = false
+        }
         stopTimer()
     }
     
@@ -565,6 +573,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 for _ in 1...3 {
                     dispatch_async(dispatch_get_main_queue(),{
                         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                        self.ifNeedVibration = false
                     })
                     usleep(1000 * 500)
                 }
@@ -691,7 +700,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
             displayMessage("Door unlocked")
         }
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        if ifNeedVibration{
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            ifNeedVibration = false
+        }
     }
     
     func showLocked(){
@@ -715,7 +727,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonLock.setImage(UIImage(named: "ButtonLockOn"), forState: .Normal)
             buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
         }
+        if ifNeedVibration{
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        ifNeedVibration = false
+        }
     }
     
     func showDoorOpened(){
@@ -736,7 +751,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             imageViewDoors.image = UIImage(named: "StateDoorOpened")
         }
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        if ifNeedVibration{
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            ifNeedVibration = false
+        }
     }
     
     func showDoorClosed(){
@@ -757,7 +775,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             self.imageViewDoors.image = nil
         }
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        if ifNeedVibration{
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            ifNeedVibration = false
+        }
     }
     
     func showHoodOpened(){
@@ -778,7 +799,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             imageViewHood.image = UIImage(named: "StateHoodOn")
         }
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+        if ifNeedVibration{
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            ifNeedVibration = false
+        }
     }
     
     func showHoodClosed(){
@@ -818,6 +842,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             displayMessage("Valet activated")
         }
+        if ifNeedVibration{
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            ifNeedVibration = false
+        }
     }
     
     func showValetOff(){
@@ -836,6 +864,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             })
         }else{
             displayMessage("Valet disactivated")
+        }
+        if ifNeedVibration{
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            ifNeedVibration = false
         }
     }
     
@@ -1200,26 +1232,25 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBAction func onValet(sender: UIButton) {
         printLog("On valet")
         checkingValetState = true
-        printLog("set state  = true")
+        printLog("set checkingValetState = true")
         requestStatus()
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
             self.printLog("Wait for state update for valet")
             sleep(2)
-            self.printLog("state valet : \(self.stateValet)")
+            self.ifNeedVibration = true
             if self.stateValet {
                 dispatch_async(dispatch_get_main_queue(),{
                     self.showActionSheetValet()
                 })
             }else{
-//                dispatch_async(dispatch_get_main_queue(),{
+                dispatch_async(dispatch_get_main_queue(),{
                     self.checkingValetEvent = true
-                    self.printLog("set event  = true")
+                    self.printLog("set checkingValetEvent = true")
                     let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
                     self.sendCommand(data, actionId: 0x01, retry: 0)
                     self.printLog("Wait for valet event... from off")
-//                })
+                })
             }
-            
         })
     }
     
@@ -1229,6 +1260,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             checkingTrunkEvent = true
             let data = NSData(bytes: [0x34] as [UInt8], length: 1)
             sendCommand(data, actionId: 0x20, retry: 2)
+            ifNeedVibration = true
         }
     }
     
@@ -1236,12 +1268,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("onlock 30")
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x80, retry: 2)
+        ifNeedVibration = true
     }
     
     @IBAction func onUnlock(sender: UIButton) {
         printLog("onUnlock 31")
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x80, retry: 2)
+        ifNeedVibration = true
     }
     
     @IBAction func onDown(sender: UISwipeGestureRecognizer) {
@@ -1280,6 +1314,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
         if peripheral != nil && writeCharacteristic != nil {
             sendCommand(data, actionId: 0xAA, retry: 0)
+            ifNeedVibration = true
         }
     }
     
@@ -1315,12 +1350,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                     var sendCount = 0
                     while sendCount < retry + 1 {
-                        dispatch_async(dispatch_get_main_queue(),{
-                            self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
+                        self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
                             if self.DBG {
                                 self.printLog("Send command: \(sendCount): 0x\(data.hexString)")
                             }
-                        })
                         sleep(3)
                         if !self.waitingList.contains(actionId) {
                             break
@@ -1328,16 +1361,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         sendCount = sendCount + 1
                     }
                     if sendCount == retry + 1 {
-                        dispatch_async(dispatch_get_main_queue(),{
-                            if self.waitingList.contains(actionId){
-                                let index = self.waitingList.indexOf(actionId)
-                                self.waitingList.removeAtIndex(index!)
-                                self.printLog("Auto removing \(actionId)")
-                                let actionSheet = UIAlertController(title: "Action \(actionId.hexString) timed out", message: nil, preferredStyle: .ActionSheet)
-                                actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
+                        let index = self.waitingList.indexOf(actionId)
+                        self.waitingList.removeAtIndex(index!)
+                        self.lastRaw = nil
+                        self.printLog("Auto removing \(actionId)")
+                        if self.waitingList.contains(actionId){let actionSheet = UIAlertController(title: "Action \(actionId.hexString) timed out", message: nil, preferredStyle: .ActionSheet)
+                            actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
+                            dispatch_async(dispatch_get_main_queue(),{
                                 self.presentViewController(actionSheet, animated: true, completion: nil)
-                            }
-                        })
+                            })
+                        }
                     }
                 })
             }
@@ -1453,6 +1486,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if waitingList.contains(0x08){
                 let index = waitingList.indexOf(0x08)
                 waitingList.removeAtIndex(index!)
+                lastRaw = nil
                 showIgnitionOn()
                 printLog("Ignition on")
             }
@@ -1463,6 +1497,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if waitingList.contains(0x08){
                 let index = waitingList.indexOf(0x08)
                 waitingList.removeAtIndex(index!)
+                lastRaw = nil
             }
             stateIgnition = false
         }
@@ -1513,6 +1548,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if waitingList.contains(0x10){
             let index = waitingList.indexOf(0x10)
             waitingList.removeAtIndex(index!)
+            lastRaw = nil
         }
     }
     
@@ -1525,6 +1561,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 if waitingList.contains(0x20){
                     let index = waitingList.indexOf(0x20)
                     waitingList.removeAtIndex(index!)
+                    lastRaw = nil
                 }
             }
             checkingTrunkEvent = false
@@ -1564,6 +1601,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if waitingList.contains(0x40){
             let index = waitingList.indexOf(0x40)
             waitingList.removeAtIndex(index!)
+            lastRaw = nil
         }
     }
     
@@ -1588,6 +1626,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if waitingList.contains(0x80){
             let index = waitingList.indexOf(0x80)
             waitingList.removeAtIndex(index!)
+            lastRaw = nil
             printLog("Removing 0x80")
         }
     }
@@ -1602,28 +1641,49 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 checkingValetState = false
                 printLog("set state  = false")
                 
-                let result = intValue & mask9event
-                let index = waitingList.indexOf(0x01)
-                waitingList.removeAtIndex(index!)
-                printLog("removing 0x01")
-                checkingValetEvent = false
-                printLog("set event  = false")
+//                let result = intValue & mask9event
+//                let index = waitingList.indexOf(0x01)
+//                waitingList.removeAtIndex(index!)
+//                printLog("removing 0x01")
+//                checkingValetEvent = false
+//                printLog("set event  = false")
+//                
+//                print("------\(intValue.hexString)-----")
+//                if result == 1 {
+//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+//                        dispatch_async(dispatch_get_main_queue(),{
+//                            self.showValetOn()
+//                        })
+//                    })
+//                    stateValet = true
+//                }else if result == 2 {
+//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+//                        dispatch_async(dispatch_get_main_queue(),{
+//                            self.showValetOff()
+//                        })
+//                    })
+//                    stateValet = false
+//                }
                 
-                print("------\(intValue.hexString)-----")
-                if result == 1 {
+                let index = waitingList.indexOf(0x01)
+                if index != nil {
+                waitingList.removeAtIndex(index!)
+                }
+                if intValue & mask9valet != 0{
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                        dispatch_async(dispatch_get_main_queue(),{
-                            self.showValetOn()
-                        })
-                    })
-                    stateValet = true
-                }else if result == 2 {
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                        dispatch_async(dispatch_get_main_queue(),{
-                            self.showValetOff()
-                        })
-                    })
-                    stateValet = false
+                                                dispatch_async(dispatch_get_main_queue(),{
+                                                    self.showValetOn()
+                                                })
+                                            })
+                                            stateValet = true
+
+                }else{
+                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                                                dispatch_async(dispatch_get_main_queue(),{
+                                                    self.showValetOff()
+                                                })
+                                            })
+                                            stateValet = false
                 }
                 printLog("state valet    : \(stateValet)")
                 printLog("state remote   : \(stateRemote)")
@@ -1778,15 +1838,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let actionSheet = UIAlertController(title: "Warning", message: "Are you sure about disabling valet mode?", preferredStyle: .ActionSheet)
         actionSheet.addAction(UIAlertAction(title: "Confirm", style: .Default,handler: {
             action in
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                dispatch_async(dispatch_get_main_queue(),{
+//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+//                dispatch_async(dispatch_get_main_queue(),{
                     self.checkingValetEvent = true
                     self.printLog("set event  = true")
                     let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
                     self.sendCommand(data, actionId: 0x01, retry: 0)
                     self.printLog("Wait for valet event... from on")
-                })
-            })
+//                })
+//            })
         }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .Cancel, handler: nil))
         self.presentViewController(actionSheet, animated: true, completion: nil)

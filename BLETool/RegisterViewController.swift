@@ -85,6 +85,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
             dataController.saveVehicle(nameField.text!, model: model, year: yearValue, module: self.module!)
             if dataController.getAllVehicles().count == 1 {
                 setDefault(self.module!)
+                print("set default because it's the only one")
             }
             print("prepare to go back to control")
             self.navigationController?.popToRootViewControllerAnimated(true)
