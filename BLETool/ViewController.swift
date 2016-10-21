@@ -73,6 +73,19 @@ extension String {
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
     
+    let msgRemoteStarted =  "Remote Started"
+    let msgRemoteStopped =  "Remote Stopped"
+    let msgDoorOpenned =    "Door Openned"
+    let msgDoorClosed =     "Door Closed"
+    let msgDoorLocked =     "Door Locked"
+    let msgDoorUnlocked =   "Door Unlocked"
+    let msgTrunkOpened =    "Trunk Opened"
+    let msgTrunkClosed =    "Trunk Closed"
+    let msgTrunkReleased =  "Trunk Released"
+    let msgHoodOpened =     "Hood Opened"
+    let msgHoodClosed =     "Hood Closed"
+    let msgValetOn =        "Valet mode: On"
+    let msgValetOff =       "Valet mode: Off"
     @IBOutlet var labelCountDown: UILabel!
     @IBOutlet var labelMessage: UILabel!
     
@@ -137,16 +150,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var lastRaw : String?
     var isTimerRunning = false
     var ifNeedVibration = false
-    let mask9lock : UInt32 =        0x00008000
-    let mask9doors : UInt32 =       0x00004000
-    let mask9trunk : UInt32 =       0x00002000
-    let mask9hood : UInt32 =        0x00001000
-    let mask9ignition : UInt32 =    0x00000800
-    let mask9engine : UInt32 =      0x00000400
-    let mask9remote : UInt32 =      0x00000200
-    let mask9valet : UInt32 =       0x00000100
-    let mask9event : UInt32 =       0x0000000f
-    let mask4header : UInt64 =      0xffff00000000
+    let mask9lock : UInt8 =        0x80
+    let mask9doors : UInt8 =       0x40
+    let mask9trunk : UInt8 =       0x20
+    let mask9hood : UInt8 =        0x10
+    let mask9ignition : UInt8 =    0x08
+    let mask9engine : UInt8 =      0x04
+    let mask9remote : UInt8 =      0x02
+    let mask9valet : UInt8 =       0x01
     
     let tag_default_module = "defaultModule"
     let tag_last_scene = "lastScene"
@@ -376,13 +387,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonUnlock.enabled = true
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 sleep(1)
-//                dispatch_async(dispatch_get_main_queue(),{
-                    self.requestStatus()
-//                })
-                sleep(1)
                 dispatch_async(dispatch_get_main_queue(),{
-                    self.onUpdateTemp(self.buttonTemperature)
+                    self.requestStatus()
                 })
+                sleep(1)
                 dispatch_async(dispatch_get_main_queue(),{
                     self.findVehicleNameFromPeripheral()
                 })
@@ -446,11 +454,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.buttonMore.transform = transform
                 }, completion: { finished in
                     self.buttonTrunk.setImage(UIImage(named: "ButtonTrunkReleased"), forState: .Normal)
-                    self.displayMessage("Trunk Released")
+                    self.displayMessage(self.msgTrunkReleased)
             })
         }else{
             buttonTrunk.setImage(UIImage(named: "ButtonTrunkReleased"), forState: .Normal)
-            displayMessage("Trunk Released")
+            displayMessage(msgTrunkReleased)
         }
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         ifNeedVibration = false
@@ -473,7 +481,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
                     self.ifNeedVibration = false
                     if !self.isFirstACK {
-                        self.displayMessage("Trunk opened")
+                        self.displayMessage(self.msgTrunkOpened)
                     }
             })
         }else{
@@ -484,7 +492,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             ifNeedVibration = false
             }
             if !isFirstACK {
-                displayMessage("Trunk opened")
+                displayMessage(msgTrunkOpened)
             }
         }
     }
@@ -504,7 +512,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     self.imageViewTrunk.image = nil
                     self.buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
                     if !self.isFirstACK {
-                        self.displayMessage("Trunk closed")
+                        self.displayMessage(self.msgTrunkClosed)
                     }
                     
             })
@@ -512,7 +520,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             imageViewTrunk.image = nil
             buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
             if !isFirstACK {
-                displayMessage("Trunk closed")
+                displayMessage(msgTrunkClosed)
             }
         }
     }
@@ -669,8 +677,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     @IBAction func onUpdateTemp(sender: UIButton) {
         printLog("On update temperatrure")
-        let data = NSData(bytes: [0x73] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x73, retry: 2)
     }
     
     func requestRuntime(){
@@ -694,11 +700,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }, completion: { finished in
                     self.buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
                     self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
-                    self.displayMessage("Door unlocked")            })
+            })
         }else{
             buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
             buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
-            displayMessage("Door unlocked")
         }
         if ifNeedVibration{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
@@ -837,10 +842,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.displayMessage("Valet activated")
+                    self.displayMessage(self.msgValetOn)
             })
         }else{
-            displayMessage("Valet activated")
+            displayMessage(msgValetOn)
         }
         if ifNeedVibration{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
@@ -860,10 +865,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let transform = CGAffineTransformIdentity
                 self.buttonMore.transform = transform
                 }, completion: { finished in
-                    self.displayMessage("Valet disactivated")
+                    self.displayMessage(self.msgValetOff)
             })
         }else{
-            displayMessage("Valet disactivated")
+            displayMessage(msgValetOff)
         }
         if ifNeedVibration{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
@@ -1431,42 +1436,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    //    func setupNotification(){
-    //        let notification = UILocalNotification()
-    //        notification.alertBody = "Engine start : timeout"
-    //        notification.alertAction = "open"
-    //        notification.fireDate = NSDate(timeIntervalSinceNow: 5)
-    //        notification.soundName = UILocalNotificationDefaultSoundName
-    //        notification.userInfo = ["UUID": "testuuid"]
-    //        printLog("add notification")
-    //        UIApplication.sharedApplication().scheduleLocalNotification(notification)
-    //    }
-    
-    func checkValet(intValue : UInt32){
+    func checkValet(intValue : UInt8){
         if intValue & mask9valet == 0 {
             stateValet = false
         }else{
             stateValet = true
         }
-        //        if !checkingValetState{
-        //            if waitingList.contains(0x01){
-        //                let index = waitingList.indexOf(0x01)
-        //                waitingList.removeAtIndex(index!)
-        //                if stateValet {
-        //                    showValetOff()
-        //                }else{
-        //                    showValetOn()
-        //                }
-        //            }
-        //        }
     }
     
-    func checkRemote(intValue : UInt32){
+    func checkRemote(intValue : UInt8){
         if intValue & mask9remote != 0 {
             if !stateRemote || isFirstACK{
                 showStarted()
                 if !isFirstACK {
-                    displayMessage("Remote started")
+                    displayMessage(msgRemoteStarted)
                 }
             }
             stateRemote = true
@@ -1474,14 +1457,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if stateRemote || isFirstACK{
                 showStopped()
                 if !isFirstACK {
-                    displayMessage("Remote started")
+                    displayMessage(msgRemoteStopped)
                 }
             }
             stateRemote = false
         }
     }
     
-    func checkIgnition(intValue : UInt32){
+    func checkIgnition(intValue : UInt8){
         if intValue & mask9ignition != 0 {
             if waitingList.contains(0x08){
                 let index = waitingList.indexOf(0x08)
@@ -1503,7 +1486,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func checkEngine(intValue : UInt32){
+    func checkEngine(intValue : UInt8){
                 if intValue & mask9engine != 0 {
         //            if !stateRemote && (!stateEngineStarted || isFirstACK){
         //                showStarted()
@@ -1527,12 +1510,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         //        }
     }
     
-    func checkHood(intValue : UInt32){
+    func checkHood(intValue : UInt8){
         if intValue & mask9hood != 0 {
             if !stateHoodOpened || isFirstACK{
                 showHoodOpened()
                 if !isFirstACK {
-                    displayMessage("Hood opened")
+                    displayMessage(msgHoodOpened)
                 }
             }
             stateHoodOpened = true
@@ -1540,7 +1523,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if stateHoodOpened || isFirstACK{
                 showHoodClosed()
                 if !isFirstACK {
-                    displayMessage("Hood closed")
+                    displayMessage(msgHoodClosed)
                 }
             }
             stateHoodOpened = false
@@ -1552,11 +1535,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func checkTrunk(intValue : UInt32){
+    func checkTrunk(intValue : UInt8, event: UInt8){
         if checkingTrunkEvent {
             printLog("Trunk event: 0x\(intValue.hexString)")
-            let value = intValue & mask9event
-            if value == 4{
+            if event == 4{
                 showTrunkReleased()
                 if waitingList.contains(0x20){
                     let index = waitingList.indexOf(0x20)
@@ -1580,12 +1562,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func checkDoor(intValue : UInt32){
+    func checkDoor(intValue : UInt8){
         if intValue & mask9doors != 0 {
             if !stateDoorOpened || isFirstACK{
                 showDoorOpened()
                 if !isFirstACK {
-                    displayMessage("Door opened")
+                    displayMessage(msgDoorOpenned)
                 }
             }
             stateDoorOpened = true
@@ -1593,7 +1575,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if stateDoorOpened || isFirstACK{
                 showDoorClosed()
                 if !isFirstACK {
-                    displayMessage("Door closed")
+                    displayMessage(msgDoorClosed)
                 }
             }
             stateDoorOpened = false
@@ -1605,12 +1587,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func checkLock(intValue : UInt32){
+    func checkLock(intValue : UInt8){
         if intValue & mask9lock != 0 {
             if !stateLocked || isFirstACK{
                 showLocked()
                 if !isFirstACK {
-                    displayMessage("Door locked")
+                    displayMessage(msgDoorLocked)
                 }
             }
             stateLocked = true
@@ -1618,7 +1600,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if stateLocked || isFirstACK{
                 showUnlocked()
                 if !isFirstACK {
-                    displayMessage("Door unlocked")
+                    displayMessage(msgDoorUnlocked)
                 }
             }
             stateLocked = false
@@ -1631,7 +1613,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func handleStateAcknowledge(intValue : UInt32){
+    func handleStateAcknowledge(status : UInt8, event: UInt8){
         printLog("Handle state ACK")
         
         if checkingValetState {
@@ -1641,49 +1623,25 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 checkingValetState = false
                 printLog("set state  = false")
                 
-//                let result = intValue & mask9event
-//                let index = waitingList.indexOf(0x01)
-//                waitingList.removeAtIndex(index!)
-//                printLog("removing 0x01")
-//                checkingValetEvent = false
-//                printLog("set event  = false")
-//                
-//                print("------\(intValue.hexString)-----")
-//                if result == 1 {
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-//                        dispatch_async(dispatch_get_main_queue(),{
-//                            self.showValetOn()
-//                        })
-//                    })
-//                    stateValet = true
-//                }else if result == 2 {
-//                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-//                        dispatch_async(dispatch_get_main_queue(),{
-//                            self.showValetOff()
-//                        })
-//                    })
-//                    stateValet = false
-//                }
-                
                 let index = waitingList.indexOf(0x01)
                 if index != nil {
-                waitingList.removeAtIndex(index!)
+                    waitingList.removeAtIndex(index!)
                 }
-                if intValue & mask9valet != 0{
+                if status & mask9valet != 0{
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                                                dispatch_async(dispatch_get_main_queue(),{
-                                                    self.showValetOn()
-                                                })
-                                            })
-                                            stateValet = true
-
+                        dispatch_async(dispatch_get_main_queue(),{
+                            self.showValetOn()
+                        })
+                    })
+                    stateValet = true
+                    
                 }else{
-                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                                                dispatch_async(dispatch_get_main_queue(),{
-                                                    self.showValetOff()
-                                                })
-                                            })
-                                            stateValet = false
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                        dispatch_async(dispatch_get_main_queue(),{
+                            self.showValetOff()
+                        })
+                    })
+                    stateValet = false
                 }
                 printLog("state valet    : \(stateValet)")
                 printLog("state remote   : \(stateRemote)")
@@ -1695,7 +1653,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 printLog("state lock     : \(stateLocked)")
                 return
             }
-            checkValet(intValue)
+            checkValet(status)
             let index = waitingList.indexOf(0xAA)
             waitingList.removeAtIndex(index!)
             printLog("removing 0xaa")
@@ -1703,51 +1661,51 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         if waitingList.isEmpty {
             printLog("Check all : Notified")
-            checkValet(intValue)
-            checkRemote(intValue)
-            checkIgnition(intValue)
-            checkHood(intValue)
-            checkTrunk(intValue)
-            checkDoor(intValue)
-            checkLock(intValue)
-            checkEngine(intValue)
+            checkValet(status)
+            checkRemote(status)
+            checkIgnition(status)
+            checkHood(status)
+            checkTrunk(status, event: event)
+            checkDoor(status)
+            checkLock(status)
+            checkEngine(status)
         }else{
             if waitingList.contains(0xAA) {
                 printLog("Check state change")
-                checkValet(intValue)
-                checkRemote(intValue)
-                checkIgnition(intValue)
-                checkHood(intValue)
-                checkTrunk(intValue)
-                checkDoor(intValue)
-                checkLock(intValue)
-                checkEngine(intValue)
+                checkValet(status)
+                checkRemote(status)
+                checkIgnition(status)
+                checkHood(status)
+                checkTrunk(status, event: event)
+                checkDoor(status)
+                checkLock(status)
+                checkEngine(status)
                 let index = waitingList.indexOf(0xAA)
                 waitingList.removeAtIndex(index!)
             }
             if waitingList.contains(0x01) {
-                checkValet(intValue)
+                checkValet(status)
             }
             if waitingList.contains(0x02) {
-                checkRemote(intValue)
+                checkRemote(status)
             }
             if waitingList.contains(0x04) {
-                checkEngine(intValue)
+                checkEngine(status)
             }
             if waitingList.contains(0x08) {
-                checkIgnition(intValue)
+                checkIgnition(status)
             }
             if waitingList.contains(0x10) {
-                checkHood(intValue)
+                checkHood(status)
             }
             if waitingList.contains(0x20) {
-                checkTrunk(intValue)
+                checkTrunk(status, event: event)
             }
             if waitingList.contains(0x40) {
-                checkDoor(intValue)
+                checkDoor(status)
             }
             if waitingList.contains(0x80) {
-                checkLock(intValue)
+                checkLock(status)
             }
         }
         printLog("state valet    : \(stateValet)")
@@ -1767,54 +1725,39 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         return src >> 16
     }
     
-    func getTypeFromInt(src :Int) -> Int{
-        return src & 0x00000000ffff
-    }
-    
-    func handleRawAcknowledge(data: NSData){
-        let rawHex = data.hexString
-        if lastRaw == nil || rawHex != lastRaw{
-            printLog("Raw: [\(rawHex.last4)]: \(rawHex.first8)")
-            let intValue = getIntFromNSData(data)
-            handleIntValue(intValue, data: data)
-            for ey in waitingList {
-                printLog("Waiting list: \(waitingList.count) -- 0x\(ey.hexString)")
+    func handleData(data :NSData){
+        let count = data.length / sizeof(UInt8)
+        var array = [UInt8](count: count, repeatedValue: 0)
+        data.getBytes(&array, length: count * sizeof(UInt8))
+        if array.count == 6 {
+            for index in 0...5 {
+                print("\(index+1): \(array[index])")
             }
-        }else{
-//            printLog("repeat ack")
-        }
-        lastRaw = rawHex
-    }
-    
-    func handleIntValue(intValue: UInt64, data: NSData){
-        let type = intValue >> 32
-        switch type {
-        case 0x1236:// state
-            let hex = data.hexString
-            let int32str = hex.substringWithRange(hex.startIndex..<hex.endIndex.advancedBy(-4))
-            let int32value = getInt32FromHexString(int32str)
-            handleStateAcknowledge(int32value)
-            break
-        case 0x123C:// temp
-            printLog("Handle temperature ACK")
-            let int32fromCroppedHex = getInt32FromHexString(intValue.hexString)
-            var temperature = int32fromCroppedHex
+            var result = Dictionary<String,Int!>()
+            result["runtime"] = Int(array[0]) + 256 * Int(array[1])
+            result["event"] = Int(array[2])
+            result["status"] = Int(array[3])
+            result["temperature"] = Int(array[4])
+            for key in result.keys{
+                print("\(key): \(result[key]!)")
+            }
+            
+            var temperature = Int(array[4])
             if temperature > 120 {
                 temperature = 120
             }else if temperature < 4 {
                 temperature = 4
             }
-            updateTemperature(Int(temperature)-44)
-            if waitingList.contains(0x73){
-                let index = waitingList.indexOf(0x73)
-                waitingList.removeAtIndex(index!)
-            }
-            break
-        case 0x1237:// runtime
-            let runtimeCountdown = getInt32FromHexString(intValue.hexString)
+            updateTemperature(temperature)
+            
+            handleStateAcknowledge(array[3], event:array[2])
+            
+            
+            let runtimeCountdown = result["runtime"]!
+            
             printLog("Handle runtime ACK : \(runtimeCountdown) seconds")
-            if runtimeCountdown != 0 {
-                countdown = Int(runtimeCountdown)
+            if runtimeCountdown != 0 && runtimeCountdown != 65535{
+                countdown = runtimeCountdown
                 if isTimerRunning {
                     resetNotification(countdown)
                     reSyncTimer(countdown)
@@ -1828,25 +1771,31 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let index = waitingList.indexOf(0xAE)
                 waitingList.removeAtIndex(index!)
             }
-            break
-        default:
-            break
+        }else{
+            print("Array count : \(array.count)")
         }
+    }
+    
+    func handleRawAcknowledge(data: NSData){
+        let rawHex = data.hexString
+        if lastRaw == nil || rawHex != lastRaw{
+            printLog("Raw: [\(rawHex)]")
+            handleData(data)
+        }else{
+//            printLog("repeat ack")
+        }
+        lastRaw = rawHex
     }
     
     func showActionSheetValet(){
         let actionSheet = UIAlertController(title: "Warning", message: "Are you sure about disabling valet mode?", preferredStyle: .ActionSheet)
         actionSheet.addAction(UIAlertAction(title: "Confirm", style: .Default,handler: {
             action in
-//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-//                dispatch_async(dispatch_get_main_queue(),{
-                    self.checkingValetEvent = true
-                    self.printLog("set event  = true")
-                    let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
-                    self.sendCommand(data, actionId: 0x01, retry: 0)
-                    self.printLog("Wait for valet event... from on")
-//                })
-//            })
+            self.checkingValetEvent = true
+            self.printLog("set event  = true")
+            let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
+            self.sendCommand(data, actionId: 0x01, retry: 0)
+            self.printLog("Wait for valet event... from on")
         }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .Cancel, handler: nil))
         self.presentViewController(actionSheet, animated: true, completion: nil)

@@ -14,17 +14,17 @@
     },
     {
       "idiom" : "iphone",
-      "filename" : "LOCK_NEUTRE.png",
+      "filename" : "bouton_lock_v2_disable-4.png",
       "scale" : "1x"
     },
     {
       "idiom" : "iphone",
-      "filename" : "LOCK_NEUTRE-1.png",
+      "filename" : "bouton_lock_v2_disable-3.png",
       "scale" : "2x"
     },
     {
       "idiom" : "iphone",
-      "filename" : "LOCK_NEUTRE-2.png",
+      "filename" : "bouton_lock_v2_disable-2.png",
       "scale" : "3x"
     }
   ],
