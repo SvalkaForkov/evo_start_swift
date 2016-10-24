@@ -31,15 +31,15 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         navigationController?.navigationBar.barStyle = UIBarStyle.BlackTranslucent
         let lat = getLastSavedLat()
         let lon = getLastSavedLon()
-        if lat != 0 && lon != 0 {
+        if lat == 0 && lon == 0 {
+            camera = GMSCameraPosition.cameraWithLatitude(48.857165, longitude: 2.354613, zoom: 8.0)
+        }else{
             let position = CLLocationCoordinate2DMake(lat, lon)
             marker = GMSMarker(position: position)
             marker.title = "Last Position"
             marker.icon = UIImage(named: "Parked")
             marker.map = viewMap
             camera = GMSCameraPosition.cameraWithLatitude(lat, longitude: lon, zoom: 15.0)
-        }else{
-            camera = GMSCameraPosition.cameraWithLatitude(48.857165, longitude: 2.354613, zoom: 8.0)
         }
         buttonSetLocation.layer.cornerRadius = 28.0
         buttonSetLocation.layer.shadowRadius = 2.0
@@ -55,7 +55,8 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
         locationManager.startUpdatingLocation()
         
-        viewMap.settings.myLocationButton = true    }
+        viewMap.settings.myLocationButton = true
+    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -65,13 +66,15 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
         if marker != nil {
             marker.map = nil
         }
+        camera = GMSCameraPosition.cameraWithLatitude(currentLat, longitude: currentLon, zoom: 15.0)
+        viewMap.camera = camera
         setLastLocation(currentLat, lon: currentLon)
         let position = CLLocationCoordinate2DMake(currentLat, currentLon)
         marker = GMSMarker(position: position)
         marker.title = "Last Position"
         marker.icon = UIImage(named: "Parked")
         marker.map = viewMap
-        camera = GMSCameraPosition.cameraWithLatitude(currentLat, longitude: currentLon, zoom: 15.0)
+        
     }
     
     func locationManager(manager: CLLocationManager, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
@@ -87,8 +90,16 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
     func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let locValue:CLLocationCoordinate2D = manager.location!.coordinate
         print("Update locations : \(locValue.latitude) \(locValue.longitude)")
-        currentLat = locValue.latitude
-        currentLon = locValue.longitude    }
+        if currentLat != nil && currentLon != nil{
+            currentLat = locValue.latitude
+            currentLon = locValue.longitude
+        }else{
+            currentLat = locValue.latitude
+            currentLon = locValue.longitude
+camera = GMSCameraPosition.cameraWithLatitude(currentLat, longitude: currentLon, zoom: 15.0)
+                    viewMap.camera = camera
+        }
+    }
     
     func setLastLocation(lat: NSNumber, lon: NSNumber){
         logEvent("Set Last location to app default")

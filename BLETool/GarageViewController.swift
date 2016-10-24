@@ -25,6 +25,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         super.viewDidLoad()
 //        self.navigationController?.navigationBar.backgroundColor = UIColor.darkGrayColor()
         print("GarageViewController : garage viewDidLoad")
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
     }
     
     override func viewWillAppear(animated: Bool) {

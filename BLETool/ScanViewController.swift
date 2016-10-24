@@ -27,6 +27,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         super.viewDidLoad()
         print("viewDidLoad")
         centralManager = CBCentralManager(delegate: self, queue:nil)
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
     }
     
     override func viewWillAppear(animated: Bool) {

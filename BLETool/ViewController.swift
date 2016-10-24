@@ -145,6 +145,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var checkingValetState = false
     var checkingValetEvent = false
     var checkingTrunkEvent = false
+    var startingEngine = false
     var ackCount = 0
     var lastIntValue : UInt64?
     var lastRaw : String?
@@ -212,6 +213,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             coverEmptyGarage.hidden = false
             self.title = "Control"
         }
+//        resetNotification(10)
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -488,8 +490,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
             buttonTrunk.setImage(UIImage(named: "ButtonTrunkOn"), forState: .Normal)
             if ifNeedVibration{
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            ifNeedVibration = false
+                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                ifNeedVibration = false
             }
             if !isFirstACK {
                 displayMessage(msgTrunkOpened)
@@ -547,10 +549,45 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             updateUIFuel(0)
         }
         if ifNeedVibration {
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            ifNeedVibration = false
+        }
+        if timer != nil {
+            stopTimer()
+        }
+        
+    }
+    
+    func showStartFailed(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.capContainerView.alpha = 1
+                self.buttonLock.alpha = 1
+                self.buttonUnlock.alpha = 1
+                self.slideUpView.alpha = 0
+                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+                let transform = CGAffineTransformIdentity
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+                    self.updateUIRPM(0)
+                    self.updateUIBattery(0)
+                    self.updateUIFuel(0)
+            })
+        }else{
+            updateUIRPM(0)
+            updateUIBattery(0)
+            updateUIFuel(0)
+        }
+        if !isFirstACK {
+            displayMessage("Started failed")
+        }
+        if timer != nil {
+            stopTimer()
+        }
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         ifNeedVibration = false
-        }
-        stopTimer()
+        startingEngine = false
     }
     
     func showStarted(){
@@ -587,7 +624,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
             })
         }
-        requestRuntime()
+        startingEngine = false
     }
     
     func startTimerFrom(value: Int){
@@ -679,12 +716,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("On update temperatrure")
     }
     
-    func requestRuntime(){
-        printLog("Request runtime")
-        let data = NSData(bytes: [0xAE] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0xAE, retry: 20)
-    }
-    
     func showUnlocked(){
         printLog("Show door unlocked")
         if isPanelDispalyed {
@@ -706,6 +737,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
         }
         if ifNeedVibration{
+            if !isFirstACK {
+                displayMessage(msgDoorUnlocked)
+            }
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             ifNeedVibration = false
         }
@@ -733,8 +767,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
         }
         if ifNeedVibration{
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        ifNeedVibration = false
+            if !isFirstACK {
+                displayMessage(msgDoorLocked)
+            }
+            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            ifNeedVibration = false
         }
     }
     
@@ -989,9 +1026,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func setUpNavigationBar(){
         printLog("Set up navigation bar : background, font, text color")
         navigationController?.navigationBar.setBackgroundImage(UIImage(named: "AppBackground"), forBarMetrics: .Default)
-//        navigationController?.navigationBar.topItem?.backBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: fontName, size: 20)!], forState: .Normal)
+        //        navigationController?.navigationBar.topItem?.backBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: fontName, size: 20)!], forState: .Normal)
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
-
+        
         navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.greenColor()]    //set Title color
         navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: fontName, size: 20)!]
         removeTopbarShadow()
@@ -1339,6 +1376,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printLog("Start engine")
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x02, retry: 2)
+        startingEngine = true
     }
     
     func stopEngine() {
@@ -1368,9 +1406,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     var sendCount = 0
                     while sendCount < retry + 1 {
                         self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-                            if self.DBG {
-                                self.printLog("Send command: \(sendCount): 0x\(data.hexString)")
-                            }
+                        if self.DBG {
+                            self.printLog("Send command: \(sendCount): 0x\(data.hexString)")
+                        }
                         sleep(3)
                         if !self.waitingList.contains(actionId) {
                             break
@@ -1426,42 +1464,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func checkRemote(intValue : UInt8){
         if intValue & mask9remote != 0 {
-            if !stateRemote || isFirstACK{
-                showStarted()
-                if !isFirstACK {
-                    displayMessage(msgRemoteStarted)
-                }
-            }
             stateRemote = true
         }else{
-            if stateRemote || isFirstACK{
-                showStopped()
-                if !isFirstACK {
-                    displayMessage(msgRemoteStopped)
-                }
-            }
             stateRemote = false
         }
     }
     
     func checkIgnition(intValue : UInt8){
         if intValue & mask9ignition != 0 {
-            if waitingList.contains(0x08){
-                let index = waitingList.indexOf(0x08)
-                waitingList.removeAtIndex(index!)
-                lastRaw = nil
-                showIgnitionOn()
-                printLog("Ignition on")
-            }
             stateIgnition = true
         }else{
-            if stateIgnition {
-            }
-            if waitingList.contains(0x08){
-                let index = waitingList.indexOf(0x08)
-                waitingList.removeAtIndex(index!)
-                lastRaw = nil
-            }
             stateIgnition = false
         }
     }
@@ -1491,11 +1503,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
             }
             stateHoodOpened = false
-        }
-        if waitingList.contains(0x10){
-            let index = waitingList.indexOf(0x10)
-            waitingList.removeAtIndex(index!)
-            lastRaw = nil
         }
     }
     
@@ -1544,28 +1551,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             stateDoorOpened = false
         }
-        if waitingList.contains(0x40){
-            let index = waitingList.indexOf(0x40)
-            waitingList.removeAtIndex(index!)
-            lastRaw = nil
-        }
     }
     
     func checkLock(intValue : UInt8){
         if intValue & mask9lock != 0 {
             if !stateLocked || isFirstACK{
                 showLocked()
-                if !isFirstACK {
-                    displayMessage(msgDoorLocked)
-                }
+                
             }
             stateLocked = true
         }else{
             if stateLocked || isFirstACK{
                 showUnlocked()
-                if !isFirstACK {
-                    displayMessage(msgDoorUnlocked)
-                }
+                
             }
             stateLocked = false
         }
@@ -1573,11 +1571,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             let index = waitingList.indexOf(0x80)
             waitingList.removeAtIndex(index!)
             lastRaw = nil
-            printLog("Removing 0x80")
         }
     }
-    
-    
     
     func getValueFromInt(src :Int) -> Int{
         return src >> 16
@@ -1610,8 +1605,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             for key in result.keys{
                 print("\(key): \(result[key]!.hexString)")
             }
-            //handle temperature
             
+            
+            //handle temperature
             var temperature = Int(array[4])
             if temperature != 0 {
                 if temperature > 120 {
@@ -1621,8 +1617,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
                 updateUITemperature(temperature-44)
             }
+            
+            
             //handle status and event
             handleStatusAndEvent(array[2], event:array[3])
+            
             
             //handle runtime countdown
             let runtimeCountdown = result["runtime"]!
@@ -1634,7 +1633,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     resetNotification(countdown)
                     reSyncTimer(countdown)
                 }else{
-                    startTimerFrom(countdown)
+                    if stateEngineStarted && stateRemote{
+                        startTimerFrom(countdown)
+                    }
                 }
             }else{
                 let event = Int(array[3])
@@ -1653,6 +1654,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func handleStatusAndEvent(status : UInt8, event: UInt8){
         printLog("Handle state ACK")
+        checkHood(status)
+        
+        checkDoor(status)
+        checkLock(status)
         
         if checkingValetState {
             printLog("Check valet mode before commmand")
@@ -1697,21 +1702,53 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             return
         }
         
+        if startingEngine {
+            if event == 7 {
+                print("777777777")
+                showStartFailed()
+            }else if event == 6{
+                showStarted()
+                if !isFirstACK {
+                    displayMessage(msgRemoteStarted)
+                }
+            }
+        }
+        
         
         checkValet(status)
-        checkIgnition(status)
-        checkHood(status)
         checkTrunk(status, event: event)
-        checkDoor(status)
-        checkLock(status)
-        checkRemote(status)
-        checkEngine(status)
+        
+        
+        
+        if !stateEngineStarted {
+            checkIgnition(status)
+            checkRemote(status)
+            checkEngine(status)
+            //            if !stateEngineStarted  {
+            //                showStarted()
+            //            }
+        }else{
+            if stateEngineStarted {
+                
+                checkIgnition(status)
+                checkRemote(status)
+                checkEngine(status)
+                
+                if event == 7 {
+                    print("----777777777")
+                    showStartFailed()
+                }else if !stateEngineStarted{
+                    showStopped()
+                    displayMessage("Engine Stopped")
+                }
+            }
+        }
         
         if waitingList.contains(0xAA){
             let index = waitingList.indexOf(0xAA)
             waitingList.removeAtIndex(index!)
         }
-    
+        
         printLog("state valet    : \(stateValet)")
         printLog("state remote   : \(stateRemote)")
         printLog("state ignition : \(stateIgnition)")
