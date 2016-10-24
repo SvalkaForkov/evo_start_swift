@@ -23,11 +23,11 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     var appDelegate: AppDelegate?
     override func viewDidLoad() {
         super.viewDidLoad()
+//        self.navigationController?.navigationBar.backgroundColor = UIColor.darkGrayColor()
         print("GarageViewController : garage viewDidLoad")
     }
     
     override func viewWillAppear(animated: Bool) {
-        setUpNavigationBar()
         buttonAdd.clipsToBounds = true
         
         appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
@@ -60,7 +60,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
         
-        cell.contentView.layer.cornerRadius = 20.0
+        cell.contentView.layer.cornerRadius = 0.0
         cell.labelName!.text = vehicleList[indexPath.row].name!.capitalizedString
         let model = vehicleList[indexPath.row].v2model!
         let make : Make! =  model.model2make
@@ -115,7 +115,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         NSUserDefaults.standardUserDefaults().setObject(value, forKey: tag_default_module)
     }
     func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
-        let favorite = UITableViewRowAction(style: .Default, title: "Set Favorite") { action, index in
+        let favorite = UITableViewRowAction(style: .Default, title: "Set\nDefault") { action, index in
             print("favorite button tapped")
             let vehicleToFavorate : String! = self.vehicleList[indexPath.row].module
             self.setDefaultModule(vehicleToFavorate)
@@ -123,7 +123,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         }
         favorite.backgroundColor = UIColor.orangeColor()
         
-        let share = UITableViewRowAction(style: .Normal, title: "Delete") { action, index in
+        let share = UITableViewRowAction(style: .Normal, title: "Delete ") { action, index in
             let vehicleToDelete : String! = self.vehicleList[indexPath.row].module
             print("Vehicle to Delete : \(vehicleToDelete)")
             let currentDefault = self.getDefaultModuleName()
@@ -283,9 +283,5 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func setLastScene(){
         print("getLsetLastScene : Garage")
         NSUserDefaults.standardUserDefaults().setObject("Garage", forKey: "lastScene")
-    }
-    
-    func setUpNavigationBar(){
-        print("setUpNavigationBar")
     }
 }

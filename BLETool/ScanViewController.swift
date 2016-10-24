@@ -27,7 +27,6 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         super.viewDidLoad()
         print("viewDidLoad")
         centralManager = CBCentralManager(delegate: self, queue:nil)
-//        addLayer()
     }
     
     override func viewWillAppear(animated: Bool) {
