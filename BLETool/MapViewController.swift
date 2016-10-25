@@ -13,6 +13,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
     @IBOutlet var buttonSetLocation: UIButton!
     @IBOutlet weak var viewMap: GMSMapView!
     let DBG = true
+    let VDBG = false
     var locationManager = CLLocationManager()
     var didFindMyLocation = false
     let tagLat = "lastLat"
@@ -84,12 +85,12 @@ class MapViewController: UIViewController, CLLocationManagerDelegate ,GMSMapView
     }
     
     func mapView(mapView: GMSMapView, idleAtCameraPosition position: GMSCameraPosition) {
-        print("Camera finished")
+        printVDBG("Camera finished")
     }
     
     func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let locValue:CLLocationCoordinate2D = manager.location!.coordinate
-        print("Update locations : \(locValue.latitude) \(locValue.longitude)")
+        printVDBG("Update locations : \(locValue.latitude) \(locValue.longitude)")
         if currentLat != nil && currentLon != nil{
             currentLat = locValue.latitude
             currentLon = locValue.longitude
@@ -130,7 +131,27 @@ camera = GMSCameraPosition.cameraWithLatitude(currentLat, longitude: currentLon,
     }
     func logEvent(string :String){
         if DBG {
-            print("\(string)")
+            printVDBG("\(string)")
         }
+    }
+    
+    func printDBG(string :String){
+        if DBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func printVDBG(string :String){
+        if VDBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func getTimestamp() -> String{
+        let date = NSDate()
+        let calender = NSCalendar.currentCalendar()
+        let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
+        
+        return "[\(components.hour):\(components.minute):\(components.second)] - Map - "
     }
 }

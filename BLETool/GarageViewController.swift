@@ -11,7 +11,8 @@ import CoreBluetooth
 
 
 class GarageViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate,CBCentralManagerDelegate, CBPeripheralDelegate{
-    
+    let DBG = true
+    let VDBG = false
     @IBOutlet var buttonAdd: UIButton!
     @IBOutlet var tableView: UITableView!
     let tag_default_module = "defaultModule"
@@ -24,7 +25,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     override func viewDidLoad() {
         super.viewDidLoad()
 //        self.navigationController?.navigationBar.backgroundColor = UIColor.darkGrayColor()
-        print("GarageViewController : garage viewDidLoad")
+        printVDBG("GarageViewController : garage viewDidLoad")
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
     }
     
@@ -35,22 +36,22 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         dataController = appDelegate!.dataController
         
         vehicleList = dataController!.getAllVehicles()
-        print("GarageViewController : fetching vehicle list")
+        printVDBG("GarageViewController : fetching vehicle list")
         
         tableView.dataSource = self
         tableView.delegate = self
         
         if vehicleList.count == 0 {
-            print("no vehicle")
+            printVDBG("no vehicle")
         }else{
-            print("found vehicle : \(vehicleList.count)")
+            printVDBG("found vehicle : \(vehicleList.count)")
         }
         animateTableView(false)
         centralManager = CBCentralManager(delegate: self, queue:nil)
     }
     
     override func viewDidAppear(animated: Bool) {
-        print("GarageViewController: viewDidAppear")
+        printVDBG("GarageViewController: viewDidAppear")
         setLastScene()
     }
     
@@ -74,17 +75,17 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         selectedModule = vehicleList[indexPath.row].module!
-        print("click \(selectedModule)")
+        printVDBG("click \(selectedModule)")
         isFound = false
         if centralManager != nil {
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            print("scan for selected module")
+            printVDBG("scan for selected module")
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                print("starting to find selected module")
+                self.printVDBG("starting to find selected module")
                 sleep(2)
                 dispatch_async(dispatch_get_main_queue(),{
                     if !self.isFound {
-                        print("No match module found")
+                        self.printDBG("No match module found")
                         if self.centralManager.isScanning {
                             self.centralManager.stopScan()
                         }
@@ -112,12 +113,12 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {    }
     func setDefaultModule(value: String){
-        print("Set default module : \(value)")
+        printVDBG("Set default module : \(value)")
         NSUserDefaults.standardUserDefaults().setObject(value, forKey: tag_default_module)
     }
     func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
         let favorite = UITableViewRowAction(style: .Default, title: "Set\nDefault") { action, index in
-            print("favorite button tapped")
+            self.printVDBG("favorite button tapped")
             let vehicleToFavorate : String! = self.vehicleList[indexPath.row].module
             self.setDefaultModule(vehicleToFavorate)
             self.tableView.setEditing(false, animated: true)
@@ -126,16 +127,16 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         
         let share = UITableViewRowAction(style: .Normal, title: "Delete ") { action, index in
             let vehicleToDelete : String! = self.vehicleList[indexPath.row].module
-            print("Vehicle to Delete : \(vehicleToDelete)")
+            self.printDBG("Vehicle to Delete : \(vehicleToDelete)")
             let currentDefault = self.getDefaultModuleName()
-            print("Current default : \(currentDefault)")
+            self.printDBG("Current default : \(currentDefault)")
             if vehicleToDelete == currentDefault {
                 self.vehicleList.removeAtIndex(indexPath.row)
                 tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
                 self.dataController!.deleteVehicleByName(vehicleToDelete)
                 if self.vehicleList.count == 0 {
                     self.setDefault("")
-                    print("clear default")
+                    self.printDBG("clear default")
                 }else{
                     self.setDefault(self.vehicleList[0].module!)
                 }
@@ -158,22 +159,22 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
         case .PoweredOn:
-            print("CBCentralManagerState.PoweredOn")
+            printVDBG("CBCentralManagerState.PoweredOn")
             break
         case .PoweredOff:
-            print("CBCentralManagerState.PoweredOff")
+            printVDBG("CBCentralManagerState.PoweredOff")
             break
         case .Unauthorized:
-            print("CBCentralManagerState.Unauthorized")
+            printVDBG("CBCentralManagerState.Unauthorized")
             break
         case .Resetting:
-            print("CBCentralManagerState.Resetting")
+            printVDBG("CBCentralManagerState.Resetting")
             break
         case .Unknown:
-            print("CBCentralManagerState.Unknown")
+            printVDBG("CBCentralManagerState.Unknown")
             break
         case .Unsupported:
-            print("CBCentralManagerState.Unsupported")
+            printVDBG("CBCentralManagerState.Unsupported")
             break
         }
     }
@@ -181,15 +182,15 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
         let nameOfDeviceFound = peripheral.name as String!
         if nameOfDeviceFound != nil {
-            print("Did discover \(nameOfDeviceFound)")
-            print("Selected module is \(selectedModule)")
+            printVDBG("Did discover \(nameOfDeviceFound)")
+            printVDBG("Selected module is \(selectedModule)")
             if nameOfDeviceFound == selectedModule{
-                print("Match")
+                printVDBG("Match")
                 isFound = true
                 if centralManager.isScanning {
                     centralManager.stopScan()
                 }
-                print("Stop scanning after \(nameOfDeviceFound) device found")
+                printVDBG("Stop scanning after \(nameOfDeviceFound) device found")
                 setDefault(selectedModule)
                 centralManager = nil
                 self.navigationController?.popToRootViewControllerAnimated(true)
@@ -198,7 +199,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     @IBAction func onAddVehicle(sender: UIButton) {
-        print("aGarageViewController : dd click vehicle")
+        printVDBG("aGarageViewController : dd click vehicle")
     }
     
     func getColorFromHex(value: UInt) -> UIColor{
@@ -211,31 +212,31 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func setDefault(value: String){
-        print("Set default : \(value)")
+        printVDBG("Set default : \(value)")
         NSUserDefaults.standardUserDefaults().setObject(value, forKey: tag_default_module)
         let defaultModule =
             NSUserDefaults.standardUserDefaults().objectForKey(tag_default_module)
                 as? String
-        print("Default now is : \(defaultModule)")
+        printVDBG("Default now is : \(defaultModule)")
     }
     
     func getDefaultModuleName() -> String{
-        print("Get Default Module Name")
+        printVDBG("Get Default Module Name")
         let defaultModule = NSUserDefaults.standardUserDefaults().objectForKey(tag_default_module)
             as? String
         if defaultModule != nil {
-            print("default is not nil : \(defaultModule)")
+            printVDBG("default is not nil : \(defaultModule)")
             return defaultModule!
         }else{
-            print("default is nil")
+            printVDBG("default is nil")
             return ""
         }
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "garage2control" {
-            print("prepareForSegue -> control scene")
-            print("now select name is \(selectedModule)")
+            printVDBG("prepareForSegue -> control scene")
+            printVDBG("now select name is \(selectedModule)")
             let dest = segue.destinationViewController as! ViewController
             dest.module = selectedModule
         }
@@ -270,7 +271,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func getLastScene() -> String{
-        print("getLastScene")
+        printVDBG("getLastScene")
         let lastScene =
             NSUserDefaults.standardUserDefaults().objectForKey("lastScene")
                 as? String
@@ -282,7 +283,27 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func setLastScene(){
-        print("getLsetLastScene : Garage")
+        printVDBG("getLsetLastScene : Garage")
         NSUserDefaults.standardUserDefaults().setObject("Garage", forKey: "lastScene")
+    }
+    
+    func printDBG(string :String){
+        if DBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func printVDBG(string :String){
+        if VDBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func getTimestamp() -> String{
+        let date = NSDate()
+        let calender = NSCalendar.currentCalendar()
+        let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
+        
+        return "[\(components.hour):\(components.minute):\(components.second)] - Garage - "
     }
 }

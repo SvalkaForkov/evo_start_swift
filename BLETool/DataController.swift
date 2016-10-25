@@ -12,36 +12,33 @@ import UIKit
 
 class DataController {
     let managedObjectContext: NSManagedObjectContext
+    let DBG = true
+    let VDBG = false
     
     init(moc: NSManagedObjectContext) {
         self.managedObjectContext = moc
-        print("DataController : init moc")
+        printVDBG("DataController : init moc")
     }
     
-//    func initialDatabase(){
-//        let data = [
-//            ["CL","Acura"],["CSX","Acura"],["EL","Acura"],["ILX","Acura"],["Integra","Acura"],["MDX","Acura"],["RDX","Acura"],["RL","Acura"],["RLX","Acura"],
-//            ["RSX","Acura"],["SLX","Acura"],["TL","Acura"],["TLX","Acura"],["TSX","Acura"],["Vigor","Acura"],["ZDX","Acura"],
-//            ["MV1","AM General"],
-//            ["A1","Audi"],["A4","Audi"],["A4 Allroad","Audi"],["A5","Audi"],["A5 Cabriolet","Audi"],["A6","Audi"],["A7","Audi"],["A8","Audi"],["Q3","Audi"],["Q5","Audi"],["Q7","Audi"],
-//            ["R8","Audi"],["RS4","Audi"],["RS5","Audi"],["RS7","Audi"],["S3","Audi"],["S4","Audi"],["S5","Audi"],["S6","Audi"],["S7","Audi"],["S8","Audi"],["SQ5","Audi"],["TT","Audi"],
-//            ["1 Series","BMW"],["2 Series","BMW"],["3 Series Coupe","BMW"],["3 Series","BMW"],["5 Series","BMW"],["6 Series","BMW"],["M1","BMW"],["M3","BMW"],["M5","BMW"],["M6","BMW"],
-//            ["X1","BMW"],["X4","BMW"],["X5","BMW"],["X5 Diesel","BMW"],["X6","BMW"],["Z4","BMW"],
-//            ["Allure","Buick"],["Century","Buick"],["Encore","Buick"],["Enclave","Buick"],["LaCrosse","Buick"],["LeSabre","Buick"],["Lucerne","Buick"],["Park Avenue","Buick"],["Rainier","Buick"],
-//            ["Regal","Buick"],["Rendezvous","Buick"],["Reviera","Buick"],["Roadmaster","Buick"],["Skylark","Buick"],["Terraza","Buick"],["Verano","Buick"],
-//            ["A1","Audi"],["A3","Audi"],["A4","Audi"],["A5","Audi"],["A6","Audi"],
-//            ["C-Class","Mercedes-Benz"],["B-Class","Mercedes-Benz"],["E-Class","Mercedes-Benz"]
-//        ]
-//        for array in data {
-//            insertModelAndMake(array[0], makeTitle: array[1])
-//        }
-//    }
+    func printDBG(string :String){
+        if DBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
     
-//    func insertAll(data: [[String : String]]){
-//        for array in data {
-//            insertModelAndMake(array[0]!, makeTitle: array[1]!)
-//        }
-//    }
+    func printVDBG(string :String){
+        if VDBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func getTimestamp() -> String{
+        let date = NSDate()
+        let calender = NSCalendar.currentCalendar()
+        let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
+        return "[\(components.hour):\(components.minute):\(components.second)] - DataController - "
+    }
+
     
     func insertMake(title : String){
         let makeFetch = NSFetchRequest(entityName: "Make")
@@ -107,7 +104,7 @@ class DataController {
                         fatalError("Save context failed")
                     }
                 }else{
-                    print("Make of this model is nil : \(title)")
+                    printVDBG("Make of this model is nil : \(title)")
                 }
             }
         }
@@ -122,12 +119,11 @@ class DataController {
         } catch {
             fatalError("fetch failed")
         }
-        print("DataController : fetched \(fetchedMakes!.count)")
+        printVDBG("DataController : fetched \(fetchedMakes!.count)")
         return fetchedMakes!
     }
     
     convenience init?() {
-        print("DataController : convenience init")
         guard let modelURL = NSBundle.mainBundle().URLForResource("Vehicle", withExtension: "momd") else {
             return nil
         }
@@ -153,7 +149,7 @@ class DataController {
     }
     
     func getAllVehicles() -> [Vehicle]{
-        print("DataController : getAllVehicles")
+        printVDBG("DataController : getAllVehicles")
         let vehicleFetch = NSFetchRequest(entityName: "Vehicle")
         
         var fetchedVehicles: [Vehicle]! = []
@@ -162,12 +158,12 @@ class DataController {
         } catch {
             fatalError("fetch failed")
         }
-        print("DataController : fetched \(fetchedVehicles.count)")
+        printVDBG("DataController : fetched \(fetchedVehicles.count)")
         return fetchedVehicles
     }
     
     func saveVehicle(name: String, module: String){
-        print("saveVehicle(\(name))")
+        printVDBG("saveVehicle(\(name))")
         let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
         newVehicle.name = name
         newVehicle.module = module
@@ -179,7 +175,7 @@ class DataController {
     }
     
     func saveVehicle(name: String, model: Model, year: NSDecimalNumber, module: String){
-        print("DataController : Save vehicle \(name)")
+        printVDBG("DataController : Save vehicle \(name)")
         let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
         newVehicle.name = name
         newVehicle.module = module
@@ -258,7 +254,7 @@ class DataController {
     }
     
     func fetchVehicleByName(name: String)-> [Vehicle]{
-        print("fetchVehicleByName: \(name)")
+        printVDBG("fetchVehicleByName: \(name)")
         
         let fetchRequest = NSFetchRequest()
         let entityDescription = NSEntityDescription.entityForName("Vehicle", inManagedObjectContext: self.managedObjectContext)
@@ -271,15 +267,15 @@ class DataController {
         }
         
         if fetchedVehicle.count == 0 {
-            print("none fetched")
+            printVDBG("none fetched")
         }else{
-            print("\(fetchedVehicle.count) fetched")
+            printVDBG("\(fetchedVehicle.count) fetched")
         }
         return fetchedVehicle
     }
     
     func updateVehicle(vehicle: Vehicle){
-        print("updateVehicle: \(vehicle.name))")
+        printVDBG("updateVehicle: \(vehicle.name))")
         let result = fetchVehicleByName(vehicle.name!)
         let newVehicle = result[0] as Vehicle
         newVehicle.name = vehicle.name
@@ -294,7 +290,7 @@ class DataController {
     }
     
     func deleteVehicleByName(name : String){
-        print("deleteVehicle")
+        printVDBG("deleteVehicle")
         let result = fetchVehicleByName(name)
         let vehicle = result[0]
         self.managedObjectContext.deleteObject(vehicle)
@@ -302,7 +298,7 @@ class DataController {
             try self.managedObjectContext.save()
         } catch {
             let saveError = error as NSError
-            print(saveError)
+            printVDBG("\(saveError)")
         }
     }
 }

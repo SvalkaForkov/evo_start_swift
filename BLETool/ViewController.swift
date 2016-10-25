@@ -72,9 +72,11 @@ extension String {
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
+    let VDBG = false
     
     let msgRemoteStarted =  "Remote Started"
     let msgRemoteStopped =  "Remote Stopped"
+    let msgRemoteFailed =   "Start Failed"
     let msgDoorOpenned =    "Door Openned"
     let msgDoorClosed =     "Door Closed"
     let msgDoorLocked =     "Door Locked"
@@ -86,6 +88,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     let msgHoodClosed =     "Hood Closed"
     let msgValetOn =        "Valet mode: On"
     let msgValetOff =       "Valet mode: Off"
+    
+    
     @IBOutlet var labelCountDown: UILabel!
     @IBOutlet var labelMessage: UILabel!
     
@@ -146,6 +150,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var checkingValetEvent = false
     var checkingTrunkEvent = false
     var startingEngine = false
+    var stoppingEngine = false
     var ackCount = 0
     var lastIntValue : UInt64?
     var lastRaw : String?
@@ -195,38 +200,49 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var changedStatus : [UInt8] = []
     
     override func viewDidLoad() {
-        printLog("ViewController : viewDidLoad")
+        printVDBG("ViewController : viewDidLoad")
         super.viewDidLoad()
         appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
         dataController = appDelegate!.dataController
         initializeUIComponents()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ViewController.willEnterForeground(_:)), name: UIApplicationWillEnterForegroundNotification, object: nil)
+    }
+    
+    func willEnterForeground(notification: NSNotification!) {
+        printDBG("Do whatever you want when the app is brought back to the foreground")
+        sendRequestStatus()
+    }
+    
+    deinit {
+        printVDBG("Remove Observer")
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: nil, object: nil)
     }
     
     override func viewWillAppear(animated: Bool) {
-        printLog("ViewController : viewWillAppear")
+        printVDBG("ViewController : viewWillAppear")
         isFirstACK = true
         module = getDefaultModule()
         if module != "" {
             coverEmptyGarage.hidden = true
             centralManager = CBCentralManager(delegate: self, queue:nil)
+            printVDBG("Initialize CBCentralManager")
         }else{
             coverEmptyGarage.hidden = false
             self.title = "Control"
         }
-//        resetNotification(10)
     }
     
     override func viewDidAppear(animated: Bool) {
-        printLog("viewDidAppear")
+        printVDBG("viewDidAppear")
         setLastScene()
     }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
-        printLog("viewWillDisappear")
+        printVDBG("viewWillDisappear")
         if centralManager != nil && peripheral != nil{
             centralManager.cancelPeripheralConnection(peripheral)
-            printLog("cancel connection")
+            printVDBG("Cancel BLE connection")
             centralManager = nil
             isConnected = false
         }
@@ -239,38 +255,38 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
         case .PoweredOn:
-            printLog("CBCentralManagerState.PoweredOn")
+            printVDBG("CBCentralManagerState.PoweredOn")
             isMatchFound = false
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                self.printLog("Finding matched module")
+                self.printDBG("Finding matched module")
                 sleep(1)
                 dispatch_async(dispatch_get_main_queue(),{
                     if !self.isMatchFound {
-                        self.printLog("No match module found")
+                        self.printDBG("No match module found")
                         self.coverLostConnection.hidden = false
                     }else{
-                        self.printLog("Match module found")
+                        self.printDBG("Match module found")
                     }
                 })
             })
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            printLog("Scan for peripherals with services")
+            printVDBG("Scan for peripherals with services")
             break
         case .PoweredOff:
-            printLog("CBCentralManagerState.PoweredOff")
+            printVDBG("CBCentralManagerState.PoweredOff")
             centralManager.stopScan()
             break
         case .Unauthorized:
-            printLog("CBCentralManagerState.Unauthorized")
+            printVDBG("CBCentralManagerState.Unauthorized")
             break
         case .Resetting:
-            printLog("CBCentralManagerState.Resetting")
+            printVDBG("CBCentralManagerState.Resetting")
             break
         case .Unknown:
-            printLog("CBCentralManagerState.Unknown")
+            printVDBG("CBCentralManagerState.Unknown")
             break
         case .Unsupported:
-            printLog("CBCentralManagerState.Unsupported")
+            printVDBG("CBCentralManagerState.Unsupported")
             break
         }
     }
@@ -278,71 +294,79 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
         let nameOfDeviceFound = peripheral.name as String!
         if nameOfDeviceFound != nil {
-            printLog("Discovered device : \(nameOfDeviceFound)")
-            printLog("Default module is : \(module)")
+            printVDBG("Discovered device : \(nameOfDeviceFound)")
+            printVDBG("Default module is : \(module)")
             if nameOfDeviceFound == module{
                 isMatchFound = true
                 if centralManager != nil {
                     centralManager.stopScan()
-                    printLog("Stop scan")
+                    printDBG("Found module and stop scan")
                     self.peripheral = peripheral
                     self.peripheral.delegate = self
                     centralManager.connectPeripheral(self.peripheral, options: nil)
-                    printLog("Connecting : \(self.peripheral.name)")
+                    printDBG("Connecting : \(self.peripheral.name)")
                 }
             }
         }
     }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
-        printLog("Did connect peripheral \(peripheral.name)")
+        printVDBG("Did connect peripheral \(peripheral.name)")
         isConnected = true
+        
         self.coverLostConnection.hidden = true
         peripheral.discoverServices([CBUUID(string: "1234")])
-        printLog("Discovering service: 1234")
+        printVDBG("Discovering service: 1234")
     }
     
     func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        printLog("Failed to connect")
+        printVDBG("Failed to connect")
     }
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        printLog("Disconnected")
+        printVDBG("Disconnected")
         isConnected = false
-        coverLostConnection.hidden = false
-        enableControl(false)
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            sleep(3)
+            if !self.isConnected{
+            dispatch_async(dispatch_get_main_queue(),{
+                self.coverLostConnection.hidden = false
+                self.enableControl(false)
+            })
+            }
+        })
         central.scanForPeripheralsWithServices(nil, options: nil)
-        printLog("Scan for peripherals with services, after disconnected")
+        printDBG("Scan for peripherals with services, after disconnected")
         
     }
     
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
-        printLog("Service discoverd")
+        printVDBG("Service discoverd")
         for service in peripheral.services! {
             if(service.UUID.UUIDString == "1234"){
                 self.service = service
             }
-            printLog("Found service: \(service.UUID)")
+            printVDBG("Found service: \(service.UUID)")
             peripheral.discoverCharacteristics([CBUUID(string: "1235"),CBUUID(string: "1236")], forService: service)
-            printLog("Discovering characteristic: 1235, 1236")
+            printVDBG("Discovering characteristic: 1235, 1236")
         }
     }
     
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
         
         for characteristic in service.characteristics! {
-            printLog("Found characteristic: \(characteristic.UUID.UUIDString)")
+            printVDBG("Found characteristic: \(characteristic.UUID.UUIDString)")
             if(characteristic.UUID.UUIDString == "1235"){
                 writeCharacteristic = characteristic
-                printLog("Set write characteristic")
+                printVDBG("Set write characteristic")
             }
             if(characteristic.UUID.UUIDString == "1236"){
                 stateCharacteristic = characteristic
-                printLog("Set state characteristic")
+                printVDBG("Set state characteristic")
                 enableNotification(true)
             }
         }
-        printLog("Ble characteristics are ready")
+        printDBG("Ble characteristics are ready")
         enableControl(true)
     }
     
@@ -380,17 +404,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func enableControl(val: Bool){
         if !val {
-            printLog("Control disabled")
+            printVDBG("Control disabled")
             buttonLock.enabled = false
             buttonUnlock.enabled = false
         }else{
-            printLog("Control enabled")
+            printVDBG("Control enabled")
             buttonLock.enabled = true
             buttonUnlock.enabled = true
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 sleep(1)
                 dispatch_async(dispatch_get_main_queue(),{
-                    self.requestStatus()
+                    self.sendRequestStatus()
                 })
                 sleep(1)
                 dispatch_async(dispatch_get_main_queue(),{
@@ -401,7 +425,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func findVehicleNameFromPeripheral(){
-        printLog("Find vehicle name for connected module")
+        printVDBG("Find vehicle name for connected module")
         let vehicleList = dataController?.getAllVehicles()
         for vehicle in vehicleList! {
             if vehicle.module == self.peripheral.name!{
@@ -411,7 +435,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func enableNotification(enabled: Bool){
-        printLog("Enable notification : \(enabled)")
+        printVDBG("Enable notification : \(enabled)")
         if peripheral != nil && stateCharacteristic != nil {
             peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
         }
@@ -580,14 +604,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             updateUIFuel(0)
         }
         if !isFirstACK {
-            displayMessage("Started failed")
+            displayMessage(msgRemoteFailed)
         }
         if timer != nil {
             stopTimer()
         }
         AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
         ifNeedVibration = false
-        startingEngine = false
     }
     
     func showStarted(){
@@ -613,18 +636,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             updateUIFuel(50)
             onUpdateTemp(self.buttonTemperature)
         }
-        if !stateRemote {
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                for _ in 1...3 {
-                    dispatch_async(dispatch_get_main_queue(),{
-                        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                        self.ifNeedVibration = false
-                    })
-                    usleep(1000 * 500)
-                }
-            })
-        }
-        startingEngine = false
     }
     
     func startTimerFrom(value: Int){
@@ -662,7 +673,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         notification.alertAction = "open"
         notification.fireDate = NSDate(timeIntervalSinceNow: NSTimeInterval(countdown))
         notification.soundName = UILocalNotificationDefaultSoundName
-        printLog("add notification")
+        printDBG("add notification")
         application.scheduleLocalNotification(notification)
     }
     
@@ -713,11 +724,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onUpdateTemp(sender: UIButton) {
-        printLog("On update temperatrure")
+        printVDBG("On update temperatrure")
     }
     
     func showUnlocked(){
-        printLog("Show door unlocked")
+        printVDBG("Show door unlocked")
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -737,16 +748,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
         }
         if ifNeedVibration{
-            if !isFirstACK {
                 displayMessage(msgDoorUnlocked)
-            }
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             ifNeedVibration = false
         }
     }
     
     func showLocked(){
-        printLog("Show door locked")
+        printVDBG("Show door locked")
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -767,16 +776,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
         }
         if ifNeedVibration{
-            if !isFirstACK {
                 displayMessage(msgDoorLocked)
-            }
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             ifNeedVibration = false
         }
     }
     
     func showDoorOpened(){
-        printLog("Show door opened")
+        printVDBG("Show door opened")
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -800,7 +807,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showDoorClosed(){
-        printLog("Show door closed")
+        printVDBG("Show door closed")
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -824,7 +831,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showHoodOpened(){
-        printLog("Show hood opened")
+        printVDBG("Show hood opened")
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -848,7 +855,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func showHoodClosed(){
-        printLog("Show hood closed")
+        printVDBG("Show hood closed")
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
@@ -884,6 +891,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             displayMessage(msgValetOn)
         }
+        checkingValetEvent = false
         if ifNeedVibration{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             ifNeedVibration = false
@@ -907,6 +915,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             displayMessage(msgValetOff)
         }
+        checkingValetEvent = false
         if ifNeedVibration{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             ifNeedVibration = false
@@ -914,7 +923,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func setAnchorPoint(anchorPoint: CGPoint, forView view: UIView) {
-        printLog("Set anchor : \(view.layer.position)")
+        printVDBG("Set anchor : \(view.layer.position)")
         var newPoint = CGPointMake(view.bounds.size.width * anchorPoint.x, view.bounds.size.height * anchorPoint.y)
         var oldPoint = CGPointMake(view.bounds.size.width * view.layer.anchorPoint.x, view.bounds.size.height * view.layer.anchorPoint.y)
         
@@ -936,7 +945,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
         switch sender.state {
         case UIGestureRecognizerState.Began:
-            printLog("UIGestureRecognizerState.Began")
+            printDBG("UIGestureRecognizerState.Began")
             isPressing = true
             longPressCountDown = 0
             var glowtransform = CGAffineTransformIdentity
@@ -946,11 +955,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 self.imageGlowing.transform = glowtransform
             })
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                self.printLog("now \(self.longPressCountDown)")
+                self.printDBG("now \(self.longPressCountDown)")
                 while self.isPressing && self.longPressCountDown <= 5{
                     dispatch_async(dispatch_get_main_queue(),{
                         self.longPressCountDown += 1
-                        self.printLog("set \(self.longPressCountDown)")
+                        self.printDBG("set \(self.longPressCountDown)")
                     })
                     usleep(150000)
                 }
@@ -987,9 +996,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         self.showRemoteStartDisabledFromValet()
                     }else{
                         if self.stateRemote {
-                            self.stopEngine()
+                            self.sendStop()
                         }else {
-                            self.startEngine()
+                            self.sendStart()
                         }
                     }
                 }
@@ -1005,7 +1014,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 
                 isPressing = false
             }
-            printLog("UIGestureRecognizerState.Ended")
+            printDBG("UIGestureRecognizerState.Ended")
             break
         default:
             break
@@ -1013,7 +1022,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func removeTopbarShadow() {
-        printLog("Remove navigation bar shadow")
+        printVDBG("Remove navigation bar shadow")
         for p in navigationController!.navigationBar.subviews {
             for c in p.subviews {
                 if c is UIImageView {
@@ -1024,7 +1033,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func setUpNavigationBar(){
-        printLog("Set up navigation bar : background, font, text color")
+        printVDBG("Set up navigation bar : background, font, text color")
         navigationController?.navigationBar.setBackgroundImage(UIImage(named: "AppBackground"), forBarMetrics: .Default)
         //        navigationController?.navigationBar.topItem?.backBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: fontName, size: 20)!], forState: .Normal)
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
@@ -1035,7 +1044,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func getColorFromHex(value: UInt) -> UIColor{
-        printLog("Get UIColor from hex value")
+        printVDBG("Get UIColor from hex value")
         return UIColor(
             red: CGFloat((value & 0xFF0000) >> 16) / 255.0,
             green: CGFloat((value & 0x00FF00) >> 8) / 255.0,
@@ -1045,22 +1054,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func printFontFamily(){
-        printLog("Print font family")
+        printVDBG("Print font family")
         for name in UIFont.familyNames() {
-            printLog("\(name)\n")
-            printLog("\(UIFont.fontNamesForFamilyName(name))")
+            printVDBG("\(name)\n")
+            printVDBG("\(UIFont.fontNamesForFamilyName(name))")
         }
     }
     
     func getDefaultModule() -> String{
-        printLog("Get default module")
+        printVDBG("Get default module")
         let defaultModule = NSUserDefaults.standardUserDefaults().objectForKey(tag_default_module)
             as? String
         if defaultModule != nil {
-            printLog("Default module is : \(defaultModule!)")
+            printDBG("Default module is : \(defaultModule!)")
             return defaultModule!
         }else{
-            printLog("Default module is nil")
+            printDBG("Default module is nil")
             return checkDatabase()
         }
     }
@@ -1068,26 +1077,26 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     
     func getLastScene() -> String{
-        printLog("Get last scene")
+        printVDBG("Get last scene")
         let lastScene =
             NSUserDefaults.standardUserDefaults().objectForKey(tag_last_scene)
                 as? String
         if lastScene != nil {
-            printLog("Found last scene: \(lastScene!)")
+            printDBG("Found last scene: \(lastScene!)")
             return lastScene!
         }else{
-            printLog("No last scene found")
+            printDBG("No last scene found")
             return ""
         }
     }
     
     func setLastScene(){
-        printLog("Set last scene : Control")
+        printVDBG("Set last scene : Control")
         NSUserDefaults.standardUserDefaults().setObject("Control", forKey: tag_last_scene)
     }
     
     func rotateNeedle(view:UIView, angle: CGFloat){
-        printLog("Rotate UIView angle by :\(angle)")
+        printVDBG("Rotate UIView angle by :\(angle)")
         UIView.animateWithDuration(1.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
             view.transform = CGAffineTransformMakeRotation(CGFloat(M_PI) * angle / 180)
             }, completion: nil)
@@ -1126,9 +1135,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func updateUITemperature(temperature: Int){
-        printLog("Update temperature: \(temperature)º")
+        printVDBG("Update temperature: \(temperature)º")
         let temp = CGFloat(temperature)
-        printLog("currentAngleTemp=\(currentAngleTemp)")
+        printVDBG("currentAngleTemp=\(currentAngleTemp)")
         rotateNeedle(needleTemp, angle: getTempAngle(temp)/2-currentAngleTemp)
         rotateNeedle(needleTemp, angle: getTempAngle(temp))
         currentAngleTemp = getTempAngle(temp)
@@ -1171,7 +1180,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func initializeUIComponents(){
-        printLog("Initialize UI components")
+        printVDBG("Initialize UI components")
         setUpNavigationBar()
         longPressStart.enabled = false
         buttonCover.backgroundColor = UIColor.clearColor()
@@ -1204,14 +1213,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func checkDatabase() -> String {
-        printLog("Check database for registered vehicle")
+        printDBG("Check database for registered vehicle")
         
         let vehicles : [Vehicle] = dataController!.getAllVehicles()
         if vehicles.count > 0 {
-            printLog("Use first vehicle in the database")
+            printDBG("Use first vehicle in the database")
             return vehicles[0].module!
         }else {
-            printLog("no vehicle registerd")
+            printDBG("no vehicle registerd")
             return ""
         }
     }
@@ -1273,17 +1282,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if !isConnected {
             if centralManager != nil {
                 centralManager.scanForPeripheralsWithServices(nil, options: nil)
+                printDBG("Reconnecting...")
             }
         }
     }
     
     @IBAction func onValet(sender: UIButton) {
-        printLog("On valet")
+        printDBG("On valet")
         checkingValetState = true
-        printLog("set checkingValetState = true")
-        requestStatus()
+        printDBG("set checkingValetState = true")
+        sendRequestStatus()
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-            self.printLog("Wait for state update for valet")
+            self.printDBG("Wait for state update for valet")
             sleep(2)
             self.ifNeedVibration = true
             if self.stateValet {
@@ -1293,17 +1303,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }else{
                 dispatch_async(dispatch_get_main_queue(),{
                     self.checkingValetEvent = true
-                    self.printLog("set checkingValetEvent = true")
+                    self.printDBG("set checkingValetEvent = true")
                     let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
                     self.sendCommand(data, actionId: 0x01, retry: 0)
-                    self.printLog("Wait for valet event... from off")
+                    self.printDBG("Wait for valet event... from off")
                 })
             }
         })
     }
     
     @IBAction func onTrunk(sender: UIButton) {
-        printLog("onTrunk 34")
+        printDBG("onTrunk 34")
         if !stateTrunkOpened {
             waitingList.removeAll()
             lastRaw = nil
@@ -1315,7 +1325,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onLock(sender: UIButton) {
-        printLog("onlock 30")
+        printDBG("onlock 30")
         waitingList.removeAll()
         lastRaw = nil
         let data = NSData(bytes: [0x30] as [UInt8], length: 1)
@@ -1324,7 +1334,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onUnlock(sender: UIButton) {
-        printLog("onUnlock 31")
+        printDBG("onUnlock 31")
         waitingList.removeAll()
         lastRaw = nil
         let data = NSData(bytes: [0x31] as [UInt8], length: 1)
@@ -1333,7 +1343,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onDown(sender: UISwipeGestureRecognizer) {
-        printLog("On swipe down")
+        printDBG("On swipe down")
         UIView.animateWithDuration(1, animations: {
             var transform = CATransform3DIdentity
             transform.m34 = 1.0 / -1000
@@ -1346,7 +1356,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onUp(sender: UISwipeGestureRecognizer) {
-        printLog("On swipe up")
+        printDBG("On swipe up")
         UIView.animateWithDuration(1, animations: {
             var transform = CATransform3DIdentity
             transform.m34 = 1.0 / -1000
@@ -1363,8 +1373,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     
     
-    func requestStatus(){
-        printLog("Request status")
+    func sendRequestStatus(){
+        printDBG("Request status")
         let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
         if peripheral != nil && writeCharacteristic != nil {
             sendCommand(data, actionId: 0xAA, retry: 0)
@@ -1372,21 +1382,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func startEngine() {
-        printLog("Start engine")
+    func sendStart() {
+        printDBG("Start engine")
         let data = NSData(bytes: [0x32] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x02, retry: 2)
         startingEngine = true
     }
     
-    func stopEngine() {
-        printLog("Stop engine")
+    func sendStop() {
+        printDBG("Stop engine")
         let data = NSData(bytes: [0x33] as [UInt8], length: 1)
         sendCommand(data, actionId: 0x02, retry: 2)
+        stoppingEngine = true
     }
     
     func setNotification(enabled: Bool){
-        printLog("Set notification: \(enabled)")
+        printDBG("Set notification: \(enabled)")
         if peripheral != nil && stateCharacteristic != nil {
             peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
         }
@@ -1400,14 +1411,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             lastIntValue = nil
             if retry == 0 {
                 peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
-                printLog("Send command: 0x\(data.hexString)")
+                printDBG("Send command: [0x\(data.hexString)]")
             }else{
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                     var sendCount = 0
                     while sendCount < retry + 1 {
                         self.peripheral.writeValue(data, forCharacteristic: self.writeCharacteristic, type: .WithResponse)
                         if self.DBG {
-                            self.printLog("Send command: \(sendCount): 0x\(data.hexString)")
+                            self.printDBG("Send command: \(sendCount): [0x\(data.hexString)]")
                         }
                         sleep(3)
                         if !self.waitingList.contains(actionId) {
@@ -1419,7 +1430,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         let index = self.waitingList.indexOf(actionId)
                         self.waitingList.removeAtIndex(index!)
                         self.lastRaw = nil
-                        self.printLog("Auto removing \(actionId)")
+                        self.printDBG("Auto removing \(actionId.hexString)")
                         if self.waitingList.contains(actionId){let actionSheet = UIAlertController(title: "Action \(actionId.hexString) timed out", message: nil, preferredStyle: .ActionSheet)
                             actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
                             dispatch_async(dispatch_get_main_queue(),{
@@ -1448,11 +1459,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func printLog(string :String){
-        if DBG {
-            print("\(string)")
-        }
-    }
+    
     
     func checkValet(intValue : UInt8){
         if intValue & mask9valet == 0 {
@@ -1508,7 +1515,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func checkTrunk(intValue : UInt8, event: UInt8){
         if checkingTrunkEvent {
-            printLog("Trunk event: 0x\(intValue.hexString)")
+            printDBG("Trunk event: 0x\(intValue.hexString)")
             if event == 4{
                 showTrunkReleased()
                 if waitingList.contains(0x20){
@@ -1557,13 +1564,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if intValue & mask9lock != 0 {
             if !stateLocked || isFirstACK{
                 showLocked()
-                
             }
             stateLocked = true
         }else{
             if stateLocked || isFirstACK{
                 showUnlocked()
-                
             }
             stateLocked = false
         }
@@ -1582,7 +1587,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let rawHex = data.hexString
         
         if lastRaw == nil || rawHex != lastRaw{
-            printLog("Raw: [\(rawHex)]")
+            printVDBG("Raw: [\(rawHex)]")
             handleData(data)
         }
         
@@ -1594,18 +1599,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         var array = [UInt8](count: count, repeatedValue: 0)
         data.getBytes(&array, length: count * sizeof(UInt8))
         if array.count == 6 {
-            for index in 0...5 {
-                print("\(index+1): \(array[index])")
-            }
             var result = Dictionary<String,Int!>()
             result["runtime"] = Int(array[0]) + 256 * Int(array[1])
             result["event"] = Int(array[3])
             result["status"] = Int(array[2])
             result["temperature"] = Int(array[4])
             for key in result.keys{
-                print("\(key): \(result[key]!.hexString)")
+                printDBG("\(key): \(result[key]!.hexString)")
             }
-            
             
             //handle temperature
             var temperature = Int(array[4])
@@ -1626,7 +1627,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             //handle runtime countdown
             let runtimeCountdown = result["runtime"]!
             
-            printLog("Handle runtime countdown: \(runtimeCountdown) seconds")
+            printDBG("Handle runtime countdown: \(runtimeCountdown) seconds")
             if runtimeCountdown != 0 && runtimeCountdown != 65535{
                 countdown = runtimeCountdown
                 if isTimerRunning {
@@ -1638,9 +1639,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     }
                 }
             }else{
-                let event = Int(array[3])
-                if event == 1 || event == 2 || event == 4 {
-                    showStopped()
+                if runtimeCountdown == 0 {
+                    let event = Int(array[3])
+                    if event == 1 || event == 2 || event == 4 {
+                        showStopped()
+                    }
+                    if timer != nil {
+                        stopTimer()
+                    }
+                    let application = UIApplication.sharedApplication()
+                    let scheduledNotifications = application.scheduledLocalNotifications!
+                    for notification in scheduledNotifications {
+                        application.cancelLocalNotification(notification)
+                    }
                 }
             }
             if waitingList.contains(0xAE){
@@ -1648,21 +1659,18 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 waitingList.removeAtIndex(index!)
             }
         }else{
-            print("Array count : \(array.count)")
+            printVDBG("Array count : \(array.count)")
         }
     }
     
     func handleStatusAndEvent(status : UInt8, event: UInt8){
-        printLog("Handle state ACK")
-        checkHood(status)
+        printDBG("Handle state ACK")
         
-        checkDoor(status)
-        checkLock(status)
         
         if checkingValetState {
-            printLog("Check valet mode before commmand")
+            printDBG("Check valet mode flag : ON")
             if checkingValetEvent {
-                printLog("Check valet mode after command")
+                printDBG("Check valet event flag : ON")
                 checkingValetState = false
                 
                 if waitingList.contains(0x01){
@@ -1684,14 +1692,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     })
                     stateValet = false
                 }
-                printLog("state valet    : \(stateValet)")
-                printLog("state remote   : \(stateRemote)")
-                printLog("state ignition : \(stateIgnition)")
-                printLog("state engine   : \(stateEngineStarted)")
-                printLog("state hood     : \(stateHoodOpened)")
-                printLog("state trunk    : \(stateTrunkOpened)")
-                printLog("state door     : \(stateDoorOpened)")
-                printLog("state lock     : \(stateLocked)")
+                printDBG("state valet    : \(stateValet)")
+                printDBG("state remote   : \(stateRemote)")
+                printDBG("state ignition : \(stateIgnition)")
+                printDBG("state engine   : \(stateEngineStarted)")
+                printDBG("state hood     : \(stateHoodOpened)")
+                printDBG("state trunk    : \(stateTrunkOpened)")
+                printDBG("state door     : \(stateDoorOpened)")
+                printDBG("state lock     : \(stateLocked)")
                 return
             }
             checkValet(status)
@@ -1703,43 +1711,115 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         
         if startingEngine {
+            printDBG("Starting engine flag : ON")
+            if waitingList.contains(0x02){
+                let index = waitingList.indexOf(0x02)
+                waitingList.removeAtIndex(index!)
+            }
             if event == 7 {
-                print("777777777")
                 showStartFailed()
+                startingEngine = false
+                return
             }else if event == 6{
                 showStarted()
+                if stateRemote {
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                        for _ in 1...3 {
+                            dispatch_async(dispatch_get_main_queue(),{
+                                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                                self.ifNeedVibration = false
+                            })
+                            usleep(1000 * 500)
+                        }
+                    })
+                }
+                printDBG("6666666666666")
                 if !isFirstACK {
                     displayMessage(msgRemoteStarted)
                 }
-            }
-        }
-        
-        
-        checkValet(status)
-        checkTrunk(status, event: event)
-        
-        
-        
-        if !stateEngineStarted {
-            checkIgnition(status)
-            checkRemote(status)
-            checkEngine(status)
-            //            if !stateEngineStarted  {
-            //                showStarted()
-            //            }
-        }else{
-            if stateEngineStarted {
-                
+                startingEngine = false
+                return
+            }else{
                 checkIgnition(status)
                 checkRemote(status)
                 checkEngine(status)
-                
-                if event == 7 {
-                    print("----777777777")
-                    showStartFailed()
-                }else if !stateEngineStarted{
-                    showStopped()
-                    displayMessage("Engine Stopped")
+                if stateEngineStarted && stateRemote {
+                    showStarted()
+                    if stateRemote {
+                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                            for _ in 1...3 {
+                                dispatch_async(dispatch_get_main_queue(),{
+                                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                                    self.ifNeedVibration = false
+                                })
+                                usleep(1000 * 500)
+                            }
+                        })
+                    }
+                    printDBG("bitbitbitbit")
+                    startingEngine = false
+                    if !isFirstACK {
+                        displayMessage(msgRemoteStarted)
+                    }
+                }else{
+//                    showStartFailed()
+                    startingEngine = false
+                }
+                return
+            }
+        }
+        
+        if stoppingEngine {
+            if waitingList.contains(0x02){
+                let index = waitingList.indexOf(0x02)
+                waitingList.removeAtIndex(index!)
+            }
+            checkIgnition(status)
+            checkRemote(status)
+            checkEngine(status)
+            showStopped()
+            stoppingEngine = false
+            return
+        }
+    
+        checkTrunk(status, event: event)
+        checkHood(status)
+        checkDoor(status)
+        checkLock(status)
+        checkValet(status)
+        
+       
+        
+        if stateEngineStarted {
+            checkIgnition(status)
+            checkRemote(status)
+            checkEngine(status)
+            if !stateRemote {
+                showStopped()
+                if !isFirstACK{
+                displayMessage("\(msgRemoteStopped)")
+                }
+            }
+        }else{
+            checkIgnition(status)
+            checkRemote(status)
+            checkEngine(status)
+            if stateRemote {
+                showStarted()
+                if event == 6 {
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                        for _ in 1...3 {
+                            dispatch_async(dispatch_get_main_queue(),{
+                                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                                self.ifNeedVibration = false
+                            })
+                            usleep(1000 * 500)
+                        }
+                    })
+                }
+                printDBG("aaaaaaaaaaa")
+                if !isFirstACK{
+                    displayMessage("\(msgRemoteStarted)")
                 }
             }
         }
@@ -1749,14 +1829,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             waitingList.removeAtIndex(index!)
         }
         
-        printLog("state valet    : \(stateValet)")
-        printLog("state remote   : \(stateRemote)")
-        printLog("state ignition : \(stateIgnition)")
-        printLog("state engine   : \(stateEngineStarted)")
-        printLog("state hood     : \(stateHoodOpened)")
-        printLog("state trunk    : \(stateTrunkOpened)")
-        printLog("state door     : \(stateDoorOpened)")
-        printLog("state lock     : \(stateLocked)")
+        printDBG("state valet    : \(stateValet)")
+        printDBG("state remote   : \(stateRemote)")
+        printDBG("state ignition : \(stateIgnition)")
+        printDBG("state engine   : \(stateEngineStarted)")
+        printDBG("state hood     : \(stateHoodOpened)")
+        printDBG("state trunk    : \(stateTrunkOpened)")
+        printDBG("state door     : \(stateDoorOpened)")
+        printDBG("state lock     : \(stateLocked)")
         
         if isFirstACK {
             isFirstACK = false
@@ -1768,10 +1848,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         actionSheet.addAction(UIAlertAction(title: "Confirm", style: .Default,handler: {
             action in
             self.checkingValetEvent = true
-            self.printLog("set event  = true")
             let data = NSData(bytes: [0xA8] as [UInt8], length: 1)
             self.sendCommand(data, actionId: 0x01, retry: 0)
-            self.printLog("Wait for valet event... from on")
         }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .Cancel, handler: nil))
         self.presentViewController(actionSheet, animated: true, completion: nil)
@@ -1782,6 +1860,26 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
         self.presentViewController(actionSheet, animated: true, completion: nil)
+    }
+    
+    func printDBG(string :String){
+        if DBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func printVDBG(string :String){
+        if VDBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func getTimestamp() -> String{
+        let date = NSDate()
+        let calender = NSCalendar.currentCalendar()
+        let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
+        
+        return "[\(components.hour):\(components.minute):\(components.second)] - Control - "
     }
 }
 

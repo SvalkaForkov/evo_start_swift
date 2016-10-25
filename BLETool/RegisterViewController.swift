@@ -9,7 +9,8 @@
 import UIKit
 
 class RegisterViewController: UIViewController , UITextFieldDelegate{
-    
+    let DBG = true
+    let VDBG = false
     var dataController : DataController!
     var appDelegeate : AppDelegate!
     var vehicles : [Vehicle] = []
@@ -40,7 +41,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     }
     
     override func viewWillAppear(animated: Bool) {
-        print("viewWillAppear: selected \(module)")
+        printVDBG("viewWillAppear: selected \(module)")
         buttonRegister.layer.cornerRadius = 25.0
         buttonRegister.clipsToBounds = true
         if !compareDays(){
@@ -49,7 +50,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     }
     
     override func viewDidAppear(animated: Bool) {
-        print(viewDidAppear)
+        printVDBG("viewDidAppear")
         nameField.endEditing(true)
         setLastScene()
     }
@@ -69,7 +70,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     }
     
     func setDefault(value: String){
-        print("set default : \(value)")
+        printVDBG("set default : \(value)")
         NSUserDefaults.standardUserDefaults().setObject(value, forKey: "defaultModule")
     }
     
@@ -79,18 +80,18 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     
     @IBAction func onSave(sender: UIButton) {
         if checkInfo() {
-            print("save vehicle")
+            printVDBG("save vehicle")
             let yearValue = NSDecimalNumber(string: buttonSelectYear.titleLabel!.text!)
             let model = dataController.fetchModelByTitle((buttonSelectModel?.titleLabel!.text)!)!
             dataController.saveVehicle(nameField.text!, model: model, year: yearValue, module: self.module!)
             if dataController.getAllVehicles().count == 1 {
                 setDefault(self.module!)
-                print("set default because it's the only one")
+                printVDBG("set default because it's the only one")
             }
-            print("prepare to go back to control")
+            printVDBG("prepare to go back to control")
             self.navigationController?.popToRootViewControllerAnimated(true)
         }else{
-            print("info is not complete")
+            printVDBG("info is not complete")
         }
     }
     
@@ -101,28 +102,28 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     }
     
     func checkInfo() -> Bool {
-        print("check all infomation is filled")
+        printVDBG("check all infomation is filled")
         if nameField.text!.isEmpty {
-            print("no name")
+            printVDBG("no name")
             return false
         }
         if buttonSelectMake.titleLabel!.text == "Select Make" {
-            print("No make selected")
+            printVDBG("No make selected")
             return false
         }
         if buttonSelectModel.titleLabel!.text == "Select Model" {
-            print("No model selected")
+            printVDBG("No model selected")
             return false
         }
         if buttonSelectYear.titleLabel!.text == "Select Year" {
-            print("No year selected")
+            printVDBG("No year selected")
             return false
         }
         return true
     }
     
     func getLastScene() -> String{
-        print("getLastScene")
+        printVDBG("getLastScene")
         let lastScene =
             NSUserDefaults.standardUserDefaults().objectForKey("lastScene")
                 as? String
@@ -156,7 +157,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     }
     
     func setLastScene(){
-        print("getLsetLastScene : Register")
+        printVDBG("getLsetLastScene : Register")
         NSUserDefaults.standardUserDefaults().setObject("Register", forKey: "lastScene")
     }
     
@@ -192,7 +193,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
             let statusCode = httpResponse.statusCode
             
             if (statusCode == 200) {
-                print("fetch model statusCode 200.")
+                self.printVDBG("fetch model statusCode 200.")
                 do{
                     let json = try NSJSONSerialization.JSONObjectWithData(data!, options:.AllowFragments)
                     if let models : [[String: AnyObject]] = json["models"] as? [[String: AnyObject]] {    //[[String: AnyObject]]
@@ -203,7 +204,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
                         }
                     }
                 }catch {
-                    print("Error with Json: \(error)")
+                    self.printDBG("Error with Json: \(error)")
                 }
             }
             for array in makeAndModels {
@@ -216,7 +217,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
     }
     
     func requestMake(){
-        print("request make")
+        printVDBG("request make")
         var makeswithid = Dictionary<String, Int>()
         let requestURL: NSURL = NSURL(string: "http://fortin.ca/js/makes.json")!
         let urlRequest: NSMutableURLRequest = NSMutableURLRequest(URL: requestURL)
@@ -229,9 +230,9 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
                 
                 if (statusCode == 200) {
                     NSUserDefaults.standardUserDefaults().setObject(NSDate(), forKey: self.tag_last_update)
-                    print("Set last updated date")
+                    self.printVDBG("Set last updated date")
                     self.networkFailedTime = 0
-                    print("fetch makes statusCode 200.")
+                    self.printVDBG("fetch makes statusCode 200.")
                     do{
                         let json = try NSJSONSerialization.JSONObjectWithData(data!, options:.AllowFragments)
                         if let makes : [[String: AnyObject]] = json["makes"] as? [[String: AnyObject]] {    //[[String: AnyObject]]
@@ -239,7 +240,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
                                 if let name = make["name"] as? String {
                                     if let id = make["makeid"] as? Int {
                                         let makename : String = name
-                                        print(name)
+                                        self.printVDBG(name)
                                         let makeid : Int = id
                                         makeswithid[makename] = makeid
                                     }
@@ -251,7 +252,7 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
                             self.requestModel(make,id: id)
                         }
                     }catch {
-                        print("Error with Json: \(error)")
+                        self.printDBG("Error with Json: \(error)")
                         if self.networkFailedTime > 1 {
                             
                         }else {
@@ -316,5 +317,25 @@ class RegisterViewController: UIViewController , UITextFieldDelegate{
                 return true
             }
         }
+    }
+    
+    func printDBG(string :String){
+        if DBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func printVDBG(string :String){
+        if VDBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func getTimestamp() -> String{
+        let date = NSDate()
+        let calender = NSCalendar.currentCalendar()
+        let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
+        
+        return "[\(components.hour):\(components.minute):\(components.second)] - Register - "
     }
 }

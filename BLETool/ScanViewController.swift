@@ -16,7 +16,8 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     @IBOutlet var topBar: UIView!
     @IBOutlet var tableView: UITableView!
-    
+    let DBG = true
+    let VDBG = false
     var devices : [CBPeripheral] = []
     var deviceWithRssi = Dictionary<String,Int>()
     var selectedName : String = ""
@@ -25,13 +26,13 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("viewDidLoad")
+        printVDBG("viewDidLoad")
         centralManager = CBCentralManager(delegate: self, queue:nil)
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
     }
     
     override func viewWillAppear(animated: Bool) {
-        print("viewWillAppear")
+        printVDBG("viewWillAppear")
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         let dataController = appDelegate.dataController
         vehicles = dataController.getAllVehicles()
@@ -39,7 +40,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     override func viewDidAppear(animated: Bool) {
-        print("viewDidAppear")
+        printVDBG("viewDidAppear")
         lastScene = getLastScene()
         tableView.dataSource = self
         tableView.delegate = self
@@ -49,7 +50,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     @IBAction func onBack(sender: UIButton) {
-        print("return to garage scene")
+        printVDBG("return to garage scene")
         performSegueWithIdentifier("segueBackToGarage", sender: sender)
     }
     
@@ -64,7 +65,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         let rssi = deviceWithRssi[deviceName]
         
         if rssi != nil {
-            print("rssi : \(rssi)")
+            printVDBG("rssi : \(rssi)")
             cell.labelValue.text = "\(rssi!)"
             if rssi < 0 && rssi > -50 {
                 cell.imageSignal.setImage(UIImage(named: "High Connection"), forState: .Normal)
@@ -74,7 +75,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
                 cell.imageSignal.setImage(UIImage(named: "Low Connection"), forState: .Normal)
             }
         }else{
-            print("rssi is nil")
+            printVDBG("rssi is nil")
         }
         let tableWidth : CGFloat = tableView.bounds.size.width
         cell.mainView.layer.cornerRadius = 2.0
@@ -91,13 +92,13 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         selectedName = devices[indexPath.row].name! as String
-        print("didSelectRowAtIndexPath : \(selectedName)")
+        printVDBG("didSelectRowAtIndexPath : \(selectedName)")
         var existing = false
         if vehicles.count > 0 {
             for vehicle in vehicles {
                 if vehicle.module?.rangeOfString(selectedName) != nil {
                     existing = true
-                    print("vehicle exists")
+                    printVDBG("vehicle exists")
                     break
                 }
             }
@@ -106,7 +107,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
         if !existing {
             performSegueWithIdentifier("scan2register", sender: nil)
         }else{
-            print("return to garage scene")
+            printVDBG("return to garage scene")
             showAlert()
             //            self.navigationController?.popViewControllerAnimated(true)
         }
@@ -129,34 +130,34 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     func centralManagerDidUpdateState(central: CBCentralManager) {
         switch(central.state){
         case .PoweredOn:
-            print("CBCentralManagerState.PoweredOn")
+            printVDBG("CBCentralManagerState.PoweredOn")
             centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            print("scanForPeripheralsWithServices")
+            printVDBG("scanForPeripheralsWithServices")
             break
         case .PoweredOff:
-            print("CBCentralManagerState.PoweredOff")
+            printVDBG("CBCentralManagerState.PoweredOff")
             centralManager.stopScan()
             break
         case .Unauthorized:
-            print("CBCentralManagerState.Unauthorized")
+            printVDBG("CBCentralManagerState.Unauthorized")
             break
         case .Resetting:
-            print("CBCentralManagerState.Resetting")
+            printVDBG("CBCentralManagerState.Resetting")
             break
         case .Unknown:
-            print("CBCentralManagerState.Unknown")
+            printVDBG("CBCentralManagerState.Unknown")
             break
         case .Unsupported:
-            print("CBCentralManagerState.Unsupported")
+            printVDBG("CBCentralManagerState.Unsupported")
             break
         }
     }
     
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        print("didDiscoverPeripheral")
+        printVDBG("didDiscoverPeripheral")
         let nameOfDeviceFound = peripheral.name
         if nameOfDeviceFound != nil {
-            print("\(nameOfDeviceFound!) Found")
+            printVDBG("\(nameOfDeviceFound!) Found")
             devices.append(peripheral)
             deviceWithRssi[peripheral.name!] = RSSI.integerValue
             tableView.reloadData()
@@ -164,20 +165,20 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
-        print("didConnectPeripheral : \(peripheral.name)")
+        printVDBG("didConnectPeripheral : \(peripheral.name)")
     }
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        print("didDisconnectPeripheral")
+        printVDBG("didDisconnectPeripheral")
         central.scanForPeripheralsWithServices(nil, options: nil)
     }
     
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
-        print("Characteristic value updated")
+        printVDBG("Characteristic value updated")
     }
     
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
-        print("Discovering services & characteristics")
+        printVDBG("Discovering services & characteristics")
         
     }
     
@@ -187,8 +188,8 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "scan2register" {
-            print("prepareForSegue -> register scene")
-            print("now select name is \(selectedName)")
+            printVDBG("prepareForSegue -> register scene")
+            printVDBG("now select name is \(selectedName)")
             let dest = segue.destinationViewController as! RegisterViewController
             dest.module = selectedName
         }
@@ -234,7 +235,7 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     func getLastScene() -> String{
-        print("getLastScene")
+        printVDBG("getLastScene")
         let lastScene =
             NSUserDefaults.standardUserDefaults().objectForKey("lastScene")
                 as? String
@@ -246,8 +247,28 @@ class ScanViewController: UIViewController ,UITableViewDataSource, UITableViewDe
     }
     
     func setLastScene(){
-        print("getLsetLastScene : Scan")
+        printVDBG("getLsetLastScene : Scan")
         NSUserDefaults.standardUserDefaults().setObject("Scan", forKey: "lastScene")
+    }
+    
+    func printDBG(string :String){
+        if DBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func printVDBG(string :String){
+        if VDBG {
+            print("\(getTimestamp()) \(string)")
+        }
+    }
+    
+    func getTimestamp() -> String{
+        let date = NSDate()
+        let calender = NSCalendar.currentCalendar()
+        let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
+        
+        return "[\(components.hour):\(components.minute):\(components.second)] - Scan - "
     }
 }
 
