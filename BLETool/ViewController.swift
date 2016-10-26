@@ -663,17 +663,25 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func resetNotification(countdown: Int){
+        printDBG("Reset notification")
         let application = UIApplication.sharedApplication()
         let scheduledNotifications = application.scheduledLocalNotifications!
         for notification in scheduledNotifications {
             application.cancelLocalNotification(notification)
         }
         let notification = UILocalNotification()
-        notification.alertBody = "Engine shutdown : Timeout"
-        notification.alertAction = "open"
+        notification.alertBody = "Engine shutdown"
+        notification.alertAction = "Shutdown"
         notification.fireDate = NSDate(timeIntervalSinceNow: NSTimeInterval(countdown))
         notification.soundName = UILocalNotificationDefaultSoundName
-        printDBG("add notification")
+        if countdown > 180 {
+            let notification3min = UILocalNotification()
+            notification3min.alertBody = "Engine will shutdown in 3 minutes"
+            notification3min.alertAction = "3min"
+            notification3min.fireDate = NSDate(timeIntervalSinceNow: NSTimeInterval(countdown-180))
+            notification3min.soundName = UILocalNotificationDefaultSoundName
+            application.scheduleLocalNotification(notification3min)
+        }
         application.scheduleLocalNotification(notification)
     }
     
@@ -778,6 +786,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if ifNeedVibration{
                 displayMessage(msgDoorLocked)
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            self.printDBG("vib - msgDoorLocked")
             ifNeedVibration = false
         }
     }
@@ -803,6 +812,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if ifNeedVibration{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             ifNeedVibration = false
+            self.printDBG("vib - showDoorOpened")
         }
     }
     
@@ -827,6 +837,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if ifNeedVibration{
             AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
             ifNeedVibration = false
+            self.printDBG("vib - showDoorclosed")
         }
     }
     
@@ -892,10 +903,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             displayMessage(msgValetOn)
         }
         checkingValetEvent = false
-        if ifNeedVibration{
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            ifNeedVibration = false
-        }
     }
     
     func showValetOff(){
@@ -916,10 +923,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             displayMessage(msgValetOff)
         }
         checkingValetEvent = false
-        if ifNeedVibration{
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            ifNeedVibration = false
-        }
     }
     
     func setAnchorPoint(anchorPoint: CGPoint, forView view: UIView) {
@@ -1194,13 +1197,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         imageStartFrame.layoutIfNeeded()
         imageStartFrame.clipsToBounds = true
         
-        buttonUnlock.layer.cornerRadius = 25.0
         buttonUnlock.clipsToBounds = true
-        
-        buttonLock.layer.cornerRadius = 25.0
         buttonLock.clipsToBounds = true
-        
         buttonMore.clipsToBounds = true
+        
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStartFrame)
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageButtonStart)
@@ -1295,7 +1295,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
             self.printDBG("Wait for state update for valet")
             sleep(2)
-            self.ifNeedVibration = true
             if self.stateValet {
                 dispatch_async(dispatch_get_main_queue(),{
                     self.showActionSheetValet()
@@ -1587,7 +1586,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         let rawHex = data.hexString
         
         if lastRaw == nil || rawHex != lastRaw{
-            printVDBG("Raw: [\(rawHex)]")
+            printDBG("Raw: [\(rawHex)]")
             handleData(data)
         }
         
@@ -1622,10 +1621,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             
             //handle status and event
             handleStatusAndEvent(array[2], event:array[3])
-            
+            printDBG("state valet    : \(stateValet)")
+            printDBG("state remote   : \(stateRemote)")
+            printDBG("state ignition : \(stateIgnition)")
+            printDBG("state engine   : \(stateEngineStarted)")
+            printDBG("state hood     : \(stateHoodOpened)")
+            printDBG("state trunk    : \(stateTrunkOpened)")
+            printDBG("state door     : \(stateDoorOpened)")
+            printDBG("state lock     : \(stateLocked)")
+
             
             //handle runtime countdown
             let runtimeCountdown = result["runtime"]!
+            
             
             printDBG("Handle runtime countdown: \(runtimeCountdown) seconds")
             if runtimeCountdown != 0 && runtimeCountdown != 65535{
@@ -1634,7 +1642,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     resetNotification(countdown)
                     reSyncTimer(countdown)
                 }else{
-                    if stateEngineStarted && stateRemote{
+                    if !startingEngine && stateRemote{
                         startTimerFrom(countdown)
                     }
                 }
@@ -1692,14 +1700,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     })
                     stateValet = false
                 }
-                printDBG("state valet    : \(stateValet)")
-                printDBG("state remote   : \(stateRemote)")
-                printDBG("state ignition : \(stateIgnition)")
-                printDBG("state engine   : \(stateEngineStarted)")
-                printDBG("state hood     : \(stateHoodOpened)")
-                printDBG("state trunk    : \(stateTrunkOpened)")
-                printDBG("state door     : \(stateDoorOpened)")
-                printDBG("state lock     : \(stateLocked)")
+                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                printDBG("111 vibrateion")
                 return
             }
             checkValet(status)
@@ -1718,11 +1720,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             if event == 7 {
                 showStartFailed()
-                startingEngine = false
                 return
             }else if event == 6{
                 showStarted()
                 if stateRemote {
+                    printDBG("viiiiiiiiiiiiiiiiib")
                     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                         for _ in 1...3 {
                             dispatch_async(dispatch_get_main_queue(),{
@@ -1743,27 +1745,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 checkIgnition(status)
                 checkRemote(status)
                 checkEngine(status)
-                if stateEngineStarted && stateRemote {
-                    showStarted()
-                    if stateRemote {
-                        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                            for _ in 1...3 {
-                                dispatch_async(dispatch_get_main_queue(),{
-                                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                                    self.ifNeedVibration = false
-                                })
-                                usleep(1000 * 500)
-                            }
-                        })
-                    }
+                if stateRemote {
                     printDBG("bitbitbitbit")
-                    startingEngine = false
                     if !isFirstACK {
-                        displayMessage(msgRemoteStarted)
+                        displayMessage("Starting engine...")
                     }
                 }else{
 //                    showStartFailed()
-                    startingEngine = false
+//                    startingEngine = false
                 }
                 return
             }
@@ -1778,6 +1767,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             checkRemote(status)
             checkEngine(status)
             showStopped()
+            displayMessage(msgRemoteStopped)
             stoppingEngine = false
             return
         }
@@ -1788,12 +1778,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         checkLock(status)
         checkValet(status)
         
-       
-        
-        if stateEngineStarted {
+        if stateRemote {
             checkIgnition(status)
             checkRemote(status)
             checkEngine(status)
+            printDBG("not checking start or stop or valet")
             if !stateRemote {
                 showStopped()
                 if !isFirstACK{
@@ -1811,6 +1800,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         for _ in 1...3 {
                             dispatch_async(dispatch_get_main_queue(),{
                                 AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                                self.printDBG("vib - 3 time from event 6")
                                 self.ifNeedVibration = false
                             })
                             usleep(1000 * 500)
@@ -1818,9 +1808,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     })
                 }
                 printDBG("aaaaaaaaaaa")
-                if !isFirstACK{
-                    displayMessage("\(msgRemoteStarted)")
-                }
+                displayMessage("\(msgRemoteStarted)")
             }
         }
         
@@ -1829,14 +1817,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             waitingList.removeAtIndex(index!)
         }
         
-        printDBG("state valet    : \(stateValet)")
-        printDBG("state remote   : \(stateRemote)")
-        printDBG("state ignition : \(stateIgnition)")
-        printDBG("state engine   : \(stateEngineStarted)")
-        printDBG("state hood     : \(stateHoodOpened)")
-        printDBG("state trunk    : \(stateTrunkOpened)")
-        printDBG("state door     : \(stateDoorOpened)")
-        printDBG("state lock     : \(stateLocked)")
         
         if isFirstACK {
             isFirstACK = false
@@ -1881,5 +1861,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         return "[\(components.hour):\(components.minute):\(components.second)] - Control - "
     }
+    
+    @IBAction func onTryDemo(sender: UIButton) {
+        
+    }
+    
 }
 
