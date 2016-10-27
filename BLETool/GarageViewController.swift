@@ -22,32 +22,38 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     var dataController : DataController?
     var isFound = false
     var appDelegate: AppDelegate?
+    var flagDemo = false
     override func viewDidLoad() {
         super.viewDidLoad()
-//        self.navigationController?.navigationBar.backgroundColor = UIColor.darkGrayColor()
+        //        self.navigationController?.navigationBar.backgroundColor = UIColor.darkGrayColor()
         printVDBG("GarageViewController : garage viewDidLoad")
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
     }
     
     override func viewWillAppear(animated: Bool) {
+        flagDemo = getFlagDemo()
         buttonAdd.clipsToBounds = true
-        
-        appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
-        dataController = appDelegate!.dataController
-        
-        vehicleList = dataController!.getAllVehicles()
-        printVDBG("GarageViewController : fetching vehicle list")
         
         tableView.dataSource = self
         tableView.delegate = self
-        
-        if vehicleList.count == 0 {
-            printVDBG("no vehicle")
+        if !flagDemo {
+            appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
+            dataController = appDelegate!.dataController
+            vehicleList = dataController!.getAllVehicles()
+            printVDBG("GarageViewController : fetching vehicle list")
+            
+            
+            
+            if vehicleList.count == 0 {
+                printVDBG("no vehicle")
+            }else{
+                printVDBG("found vehicle : \(vehicleList.count)")
+            }
+            animateTableView(false)
+            centralManager = CBCentralManager(delegate: self, queue:nil)
         }else{
-            printVDBG("found vehicle : \(vehicleList.count)")
+            
         }
-        animateTableView(false)
-        centralManager = CBCentralManager(delegate: self, queue:nil)
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -56,43 +62,56 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if !flagDemo {
         return vehicleList.count
+        }else{
+            return 1
+        }
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("GarageCell", forIndexPath: indexPath) as! CustomGarageCell
-        
         cell.contentView.layer.cornerRadius = 0.0
-        cell.labelName!.text = vehicleList[indexPath.row].name!.capitalizedString
-        let model = vehicleList[indexPath.row].v2model!
-        let make : Make! =  model.model2make
-        cell.logo.image = UIImage(named: make.title!)
-        cell.labelMake!.text = make!.title!.capitalizedString
-        cell.labelModel!.text = vehicleList[indexPath.row].v2model!.title!.capitalizedString
-        
+        if !flagDemo {
+            cell.labelName!.text = vehicleList[indexPath.row].name!.capitalizedString
+            let model = vehicleList[indexPath.row].v2model!
+            let make : Make! =  model.model2make
+            cell.logo.image = UIImage(named: make.title!)
+            cell.labelMake!.text = make!.title!.capitalizedString
+            cell.labelModel!.text = vehicleList[indexPath.row].v2model!.title!.capitalizedString
+        }else{
+            cell.labelName!.text = "Demo"
+            cell.logo.image = UIImage(named: "AppIcon")
+            cell.labelMake!.text = "Demo"
+            cell.labelModel!.text = "Demo"
+        }
         return cell
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         selectedModule = vehicleList[indexPath.row].module!
         printVDBG("click \(selectedModule)")
-        isFound = false
-        if centralManager != nil {
-            centralManager.scanForPeripheralsWithServices(nil, options: nil)
-            printVDBG("scan for selected module")
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                self.printVDBG("starting to find selected module")
-                sleep(2)
-                dispatch_async(dispatch_get_main_queue(),{
-                    if !self.isFound {
-                        self.printDBG("No match module found")
-                        if self.centralManager.isScanning {
-                            self.centralManager.stopScan()
+        if !flagDemo {
+            isFound = false
+            if centralManager != nil {
+                centralManager.scanForPeripheralsWithServices(nil, options: nil)
+                printVDBG("scan for selected module")
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                    self.printVDBG("starting to find selected module")
+                    sleep(2)
+                    dispatch_async(dispatch_get_main_queue(),{
+                        if !self.isFound {
+                            self.printDBG("No match module found")
+                            if self.centralManager.isScanning {
+                                self.centralManager.stopScan()
+                            }
+                            self.showAlert()
                         }
-                        self.showAlert()
-                    }
+                    })
                 })
-            })
+            }
+        }else{
+            self.navigationController?.popToRootViewControllerAnimated(true)
         }
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
     }
@@ -119,31 +138,40 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
         let favorite = UITableViewRowAction(style: .Default, title: "Set\nDefault") { action, index in
             self.printVDBG("favorite button tapped")
-            let vehicleToFavorate : String! = self.vehicleList[indexPath.row].module
-            self.setDefaultModule(vehicleToFavorate)
+            if !self.flagDemo {
+                let vehicleToFavorate : String! = self.vehicleList[indexPath.row].module
+                self.setDefaultModule(vehicleToFavorate)
+            }else{
+                
+            }
             self.tableView.setEditing(false, animated: true)
         }
         favorite.backgroundColor = UIColor.orangeColor()
         
         let share = UITableViewRowAction(style: .Normal, title: "Delete ") { action, index in
-            let vehicleToDelete : String! = self.vehicleList[indexPath.row].module
-            self.printDBG("Vehicle to Delete : \(vehicleToDelete)")
-            let currentDefault = self.getDefaultModuleName()
-            self.printDBG("Current default : \(currentDefault)")
-            if vehicleToDelete == currentDefault {
-                self.vehicleList.removeAtIndex(indexPath.row)
-                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-                self.dataController!.deleteVehicleByName(vehicleToDelete)
-                if self.vehicleList.count == 0 {
-                    self.setDefault("")
-                    self.printDBG("clear default")
+            if !self.flagDemo {
+                let vehicleToDelete : String! = self.vehicleList[indexPath.row].module
+                self.printDBG("Vehicle to Delete : \(vehicleToDelete)")
+                let currentDefault = self.getDefaultModuleName()
+                self.printDBG("Current default : \(currentDefault)")
+                if vehicleToDelete == currentDefault {
+                    self.vehicleList.removeAtIndex(indexPath.row)
+                    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+                    self.dataController!.deleteVehicleByName(vehicleToDelete)
+                    if self.vehicleList.count == 0 {
+                        self.setDefault("")
+                        self.printDBG("clear default")
+                    }else{
+                        self.setDefault(self.vehicleList[0].module!)
+                    }
                 }else{
-                    self.setDefault(self.vehicleList[0].module!)
+                    self.vehicleList.removeAtIndex(indexPath.row)
+                    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+                    self.dataController!.deleteVehicleByName(vehicleToDelete)
                 }
             }else{
-                self.vehicleList.removeAtIndex(indexPath.row)
-                tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-                self.dataController!.deleteVehicleByName(vehicleToDelete)
+                self.vehicleList.removeAll()
+                tableView.reloadData()
             }
         }
         share.backgroundColor = UIColor.redColor()
@@ -305,5 +333,13 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
         
         return "[\(components.hour):\(components.minute):\(components.second)] - Garage - "
+    }
+    
+    func getFlagDemo() -> Bool{
+        let flag =
+            NSUserDefaults.standardUserDefaults().objectForKey("flagDemo")
+                as? Bool
+        printDBG("get demo flag : \(flag!)")
+        return flag!
     }
 }
