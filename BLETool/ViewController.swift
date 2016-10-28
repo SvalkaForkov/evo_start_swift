@@ -92,7 +92,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     let msgValetOff =       "Valet mode: Off"
     
     
-    @IBOutlet var labelCountDown: UILabel!
     @IBOutlet var labelMessage: UILabel!
     
     @IBOutlet var buttonAddFromEmpty: UIButton!
@@ -116,7 +115,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var slideUpView: UIView!
     @IBOutlet var buttonTemperature: UIButton!
     
+    @IBOutlet var labelColon: UILabel!
     
+    @IBOutlet var labelSeconds: UILabel!
+    @IBOutlet var labelMinutes: UILabel!
     @IBOutlet var imageViewTempretureBackground: UIImageView!
     @IBOutlet var imageViewFuelBackground: UIImageView!
     @IBOutlet var imageButtonStart: UIImageView!
@@ -148,6 +150,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var temperatureCharacteristic : CBCharacteristic!
     var runtimeCharacteristic : CBCharacteristic!
     
+    var checkingLock = false
     var checkingValetState = false
     var checkingValetEvent = false
     var checkingTrunkEvent = false
@@ -194,7 +197,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var isFirstACK = true
     var isMatchFound = false
     var isConnected = false
-    let defaultCountdown = 90
+    var originalCountdown = 90
     var countdown = 90
     var timer : NSTimer?
     var currentAngleTemp : CGFloat = 0
@@ -205,10 +208,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printVDBG("ViewController : viewDidLoad")
         super.viewDidLoad()
         
-            appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
-            dataController = appDelegate!.dataController
-        flagDemo = false
-        setTheFlagDemo(false)
+        appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
+        dataController = appDelegate!.dataController
+        
+        setDemoFlag(false)
+        
         initializeUIComponents()
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ViewController.willEnterForeground(_:)), name: UIApplicationWillEnterForegroundNotification, object: nil)
     }
@@ -327,7 +331,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
         printVDBG("Did connect peripheral \(peripheral.name)")
         isConnected = true
-        
+        setDemoFlag(false)
         self.coverLostConnection.hidden = true
         peripheral.discoverServices([CBUUID(string: "1234")])
         printVDBG("Discovering service: 1234")
@@ -485,13 +489,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.buttonTrunk.setImage(UIImage(named: "ButtonTrunkReleased"), forState: .Normal)
                     self.displayMessage(self.msgTrunkReleased)
@@ -500,37 +498,26 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonTrunk.setImage(UIImage(named: "ButtonTrunkReleased"), forState: .Normal)
             displayMessage(msgTrunkReleased)
         }
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        ifNeedVibration = false
+        performBuzz(true, repeats: 1)
     }
     
     func showTrunkOpened(){
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
-                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunkOn"), forState: .Normal)
-                    AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    self.ifNeedVibration = false
+                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
+                    self.performBuzz(true, repeats: 1)
                     if !self.isFirstACK {
                         self.displayMessage(self.msgTrunkOpened)
                     }
             })
         }else{
             imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
-            buttonTrunk.setImage(UIImage(named: "ButtonTrunkOn"), forState: .Normal)
-            if ifNeedVibration{
-                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                ifNeedVibration = false
-            }
+            buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
+            performBuzz(true, repeats: 1)
             if !isFirstACK {
                 displayMessage(msgTrunkOpened)
             }
@@ -541,13 +528,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.imageViewTrunk.image = nil
                     self.buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
@@ -569,13 +550,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.updateUIRPM(0)
                     self.updateUIBattery(0)
@@ -586,27 +561,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             updateUIBattery(0)
             updateUIFuel(0)
         }
-        if ifNeedVibration {
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            ifNeedVibration = false
+        performBuzz(true, repeats: 1)
+        if !isFirstACK{
+            printDBG("display msg")
+            displayMessage("\(msgRemoteStopped)")
         }
-        if timer != nil {
-            stopTimer()
-        }
-        
+        stopTimer()
     }
     
     func showStartFailed(){
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.updateUIRPM(0)
                     self.updateUIBattery(0)
@@ -620,24 +587,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if !isFirstACK {
             displayMessage(msgRemoteFailed)
         }
-        if timer != nil {
-            stopTimer()
-        }
-        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-        ifNeedVibration = false
+        stopTimer()
+        performBuzz(true, repeats: 1)
     }
     
     func showStarted(){
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.updateUIRPM(1100)
                     self.updateUIBattery(95)
@@ -654,22 +612,26 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func startTimerFrom(value: Int){
         countdown = value
-        if timer != nil {
-            stopTimer()
-        }
+        originalCountdown = value
+        stopTimer()
         timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: #selector(ViewController.updateCountDown), userInfo: nil, repeats: true)
-        labelCountDown.textColor = UIColor.whiteColor()
-        labelCountDown.text = stringValueOfHoursMinutesSeconds(countdown)
+        labelMinutes.textColor = UIColor.whiteColor()
+        labelSeconds.textColor = UIColor.whiteColor()
+        labelColon.textColor = UIColor.whiteColor()
+        let (m,s) = secondsToMinutesSeconds(countdown)
+        displayCountDown(m,second: s)
         imageHourGlass.hidden = false
         imageHourGlass.image = UIImage(named: "Hourglass-100")
         isTimerRunning = true
     }
     
     func stopTimer(){
-        timer?.invalidate()
-        labelCountDown.text = ""
-        imageHourGlass.hidden = true
-        isTimerRunning = false
+        if timer != nil {
+            timer?.invalidate()
+            displayCountDown("",second: "")
+            imageHourGlass.hidden = true
+            isTimerRunning = false
+        }
     }
     
     func reSyncTimer(seconds: Int){
@@ -699,49 +661,66 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         application.scheduleLocalNotification(notification)
     }
     
-    func secondsToHoursMinutesSeconds (seconds : Int) -> (Int, Int, Int) {
-        return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
+    func secondsToMinutesSeconds (seconds : Int) -> (String, String) {
+        let minute = seconds % 3600 / 60
+        let second = seconds % 3600 % 60
+        var m = "\(minute)"
+        if minute < 10 {
+            m = "0\(minute)"
+        }
+        var s = "\(second)"
+        if second < 10 {
+            s = "0\(second)"
+        }
+        return (m, s)
     }
     
-    func stringValueOfHoursMinutesSeconds (seconds:Int) -> String {
-        let (h, m, s) = secondsToHoursMinutesSeconds (seconds)
-        var hours = "\(h) : "
-        if h == 0 {
-            hours = ""
+    func displayCountDown(minute: String , second :String){
+        if minute != "" && second != ""{
+            labelMinutes.text = minute
+            labelSeconds.text = second
+            labelColon.text = ":"
+            if minute == "00" && second == "00"{
+                labelMinutes.textColor = UIColor.redColor()
+                labelSeconds.textColor = UIColor.redColor()
+                labelColon.textColor = UIColor.redColor()
+            }
+        }else{
+            labelMinutes.text = ""
+            labelSeconds.text = ""
+            labelColon.text = ""
+            labelMinutes.textColor = UIColor.whiteColor()
+            labelSeconds.textColor = UIColor.whiteColor()
+            labelColon.textColor = UIColor.whiteColor()
         }
-        var minutes = "\(m) : "
-        if m < 10 {
-            minutes = "0\(m) : "
-        }
-        var seconds = "\(s)"
-        if s < 10 {
-            seconds = "0\(s)"
-        }
-        return (hours+minutes+seconds)
     }
     
     func updateCountDown() {
         if countdown > 0 {
             countdown = countdown - 1
             if !isPanelDispalyed {
-                labelCountDown.text =
-                    stringValueOfHoursMinutesSeconds(self.countdown)
+                let (m,s) = secondsToMinutesSeconds(countdown)
+                displayCountDown(m,second: s)
             }
-            if countdown < defaultCountdown * 3 / 10 {
+            if countdown < originalCountdown * 3 / 10 {
                 imageHourGlass.image = UIImage(named: "Hourglass-20")
-            }else if countdown < defaultCountdown * 5 / 10{
+            }else if countdown < originalCountdown * 5 / 10{
                 imageHourGlass.image = UIImage(named: "Hourglass-40")
-            }else if countdown < defaultCountdown * 7 / 10{
+            }else if countdown < originalCountdown * 7 / 10{
                 imageHourGlass.image = UIImage(named: "Hourglass-60")
-            }else if countdown < defaultCountdown * 9 / 10{
+            }else if countdown < originalCountdown * 9 / 10{
                 imageHourGlass.image = UIImage(named: "Hourglass-80")
             }
         }else if countdown == 0 {
-            labelCountDown.textColor = UIColor.redColor()
+            let (m,s) = secondsToMinutesSeconds(countdown)
+            displayCountDown(m,second: s)
             imageHourGlass.image = UIImage(named: "Hourglass-0")
             updateUIRPM(0)
             updateUIBattery(0)
             updateUIFuel(0)
+            if flagDemo {
+                displayMessage("Engine shutdown")
+            }
         }
     }
     
@@ -754,13 +733,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
                     self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
@@ -769,11 +742,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
             buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
         }
-        if ifNeedVibration{
+        
             displayMessage(msgDoorUnlocked)
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            ifNeedVibration = false
-        }
+            performBuzz(true, repeats: 1)
+        
     }
     
     func showLocked(){
@@ -781,14 +753,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
-                self.imageViewDoors.image = nil
+                self.slideDown()
                 }, completion: { finished in
                     self.buttonLock.setImage(UIImage(named: "ButtonLockOn"), forState: .Normal)
                     self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
@@ -797,12 +762,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             buttonLock.setImage(UIImage(named: "ButtonLockOn"), forState: .Normal)
             buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
         }
-        if ifNeedVibration{
+        
             displayMessage(msgDoorLocked)
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            self.printDBG("vib - msgDoorLocked")
-            ifNeedVibration = false
-        }
+        
+            performBuzz(true, repeats: 1)
+        
     }
     
     func showDoorOpened(){
@@ -810,24 +774,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.imageViewDoors.image = UIImage(named: "StateDoorOpened")
             })
         }else{
             imageViewDoors.image = UIImage(named: "StateDoorOpened")
         }
-        if ifNeedVibration{
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            ifNeedVibration = false
-            self.printDBG("vib - showDoorOpened")
-        }
+        
+            performBuzz(true, repeats: 1)
+        
     }
     
     func showDoorClosed(){
@@ -835,24 +791,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.imageViewDoors.image = nil
             })
         }else{
             self.imageViewDoors.image = nil
         }
-        if ifNeedVibration{
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            ifNeedVibration = false
+        performBuzz(true, repeats: 1)
             self.printDBG("vib - showDoorclosed")
-        }
+        
     }
     
     func showHoodOpened(){
@@ -860,23 +808,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.imageViewHood.image = UIImage(named: "StateHoodOn")
             })
         }else{
             imageViewHood.image = UIImage(named: "StateHoodOn")
         }
-        if ifNeedVibration{
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-            ifNeedVibration = false
-        }
+        performBuzz(true, repeats: 1)
     }
     
     func showHoodClosed(){
@@ -884,13 +823,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.imageViewHood.image = nil
             })
@@ -903,13 +836,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.displayMessage(self.msgValetOn)
             })
@@ -923,13 +850,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.3, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.displayMessage(self.msgValetOff)
             })
@@ -984,7 +905,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 if self.longPressCountDown>5{
                     self.isPressing = false
                     dispatch_async(dispatch_get_main_queue(),{
-                        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                        
                         UIView.animateWithDuration(0.1, animations: {
                             self.imageGlowing.alpha = 0.0
                             },completion: {
@@ -1020,19 +941,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                             }
                         }else{
                             dispatch_async(dispatch_get_main_queue(),{
-                            if self.stateRemote {
-                                self.printDBG("demo stop")
-                                self.showStopped()
-                                self.stateRemote = false
-                                if self.timer != nil {
+                                if self.stateRemote {
+                                    self.printDBG("demo stop")
+                                    self.showStopped()
+                                    self.stateRemote = false
                                     self.stopTimer()
+                                    self.displayMessage(self.msgRemoteStopped)
+                                }else {
+                                    self.printDBG("demo start")
+                                    self.showStarted()
+                                    self.stateRemote = true
+                                    self.startTimerFrom(30)
+                                    self.displayMessage(self.msgRemoteStarted)
                                 }
-                            }else {
-                                self.printDBG("demo start")
-                                self.showStarted()
-                                self.stateRemote = true
-                                self.startTimerFrom(90)
-                            }
                             })
                         }
                     }
@@ -1056,7 +977,12 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func removeTopbarShadow() {
+    func initializeNavigationBarUI(){
+        printVDBG("Set up navigation bar : background, font, text color")
+        navigationController?.navigationBar.setBackgroundImage(UIImage(named: "AppBackground"), forBarMetrics: .Default)
+        navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
+        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.greenColor()]    //set Title color
+        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: fontName, size: 20)!]
         printVDBG("Remove navigation bar shadow")
         for p in navigationController!.navigationBar.subviews {
             for c in p.subviews {
@@ -1065,17 +991,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
             }
         }
-    }
-    
-    func setUpNavigationBar(){
-        printVDBG("Set up navigation bar : background, font, text color")
-        navigationController?.navigationBar.setBackgroundImage(UIImage(named: "AppBackground"), forBarMetrics: .Default)
-        //        navigationController?.navigationBar.topItem?.backBarButtonItem?.setTitleTextAttributes([NSFontAttributeName: UIFont(name: fontName, size: 20)!], forState: .Normal)
-        self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
-        
-        navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.greenColor()]    //set Title color
-        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: fontName, size: 20)!]
-        removeTopbarShadow()
     }
     
     func getColorFromHex(value: UInt) -> UIColor{
@@ -1109,16 +1024,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func getFlagDemo() -> Bool{
-        let flag =
-            NSUserDefaults.standardUserDefaults().objectForKey("flagDemo")
-                as! Bool
-        printDBG("get demo flag : \(flag)")
-        return flag
-    }
-    
-    func setTheFlagDemo(flag : Bool){
-        printDBG("set demo flag to : \(flag)")
+    func setDemoFlag(flag : Bool){
+        printDBG("Set demo flag : \(flag)")
+        flagDemo = flag
         NSUserDefaults.standardUserDefaults().setObject(flag, forKey: "flagDemo")
     }
     
@@ -1189,17 +1097,21 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         currentAngleTemp = getTempAngle(temp)
     }
     
+    func slideDown(){
+        capContainerView.alpha = 1
+        buttonLock.alpha = 1
+        buttonUnlock.alpha = 1
+        slideUpView.alpha = 0
+        slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
+        let transform = CGAffineTransformIdentity
+        buttonMore.transform = transform
+    }
+    
     func displayPanel(){
         if isPanelDispalyed {
             isPanelDispalyed = false
             UIView.animateWithDuration(0.5, animations: {
-                self.capContainerView.alpha = 1
-                self.buttonLock.alpha = 1
-                self.buttonUnlock.alpha = 1
-                self.slideUpView.alpha = 0
-                self.slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
-                let transform = CGAffineTransformIdentity
-                self.buttonMore.transform = transform
+                self.slideDown()
                 }, completion: { finished in
                     self.slideUpView.hidden = false
             })
@@ -1227,7 +1139,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func initializeUIComponents(){
         printVDBG("Initialize UI components")
-        setUpNavigationBar()
+        initializeNavigationBarUI()
+        labelMinutes.text = ""
+        labelSeconds.text = ""
+        labelColon.text = ""
+        
         longPressStart.enabled = false
         buttonCover.backgroundColor = UIColor.clearColor()
         buttonCover.clipsToBounds = true
@@ -1354,53 +1270,87 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
             })
         }else{
-            showValetOn()
+            printDBG("On valet in demo mode")
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                sleep(1)
+                if self.stateValet {
+                    dispatch_async(dispatch_get_main_queue(),{
+                        let actionSheet = UIAlertController(title: "Info", message: "Disabling valet mode?", preferredStyle: .ActionSheet)
+                        actionSheet.addAction(UIAlertAction(title: "Confirm", style: .Default,handler: {
+                            action in
+                            self.showValetOff()
+                            self.stateValet = false
+                        }))
+                        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .Cancel, handler: nil))
+                        self.presentViewController(actionSheet, animated: true, completion: nil)
+                    })
+                }else{
+                    dispatch_async(dispatch_get_main_queue(),{
+                        self.showValetOn()
+                        self.stateValet = true
+                    })
+                }
+            })
         }
     }
     
     @IBAction func onTrunk(sender: UIButton) {
-        printDBG("onTrunk 34")
         if !flagDemo {
+            printDBG("onTrunk")
             if !stateTrunkOpened {
                 waitingList.removeAll()
                 lastRaw = nil
                 checkingTrunkEvent = true
+                ifNeedVibration = true
                 let data = NSData(bytes: [0x34] as [UInt8], length: 1)
                 sendCommand(data, actionId: 0x20, retry: 2)
-                ifNeedVibration = true
+            }else{
+                if isPanelDispalyed {
+                    isPanelDispalyed = false
+                    UIView.animateWithDuration(0.3, animations: {
+                        self.slideDown()
+                        }, completion: { finished in
+                            self.displayMessage(self.msgTrunkReleased)
+                    })
+                }
+                printDBG("Trunk is already opened")
             }
         }else{
+            printDBG("onTrunk in demo mode")
             showTrunkReleased()
         }
     }
     
     @IBAction func onLock(sender: UIButton) {
-        printDBG("onlock 30")
         if !flagDemo {
+            printDBG("onLock 0x30")
             waitingList.removeAll()
             lastRaw = nil
+            ifNeedVibration = true
             let data = NSData(bytes: [0x30] as [UInt8], length: 1)
             sendCommand(data, actionId: 0x80, retry: 2)
-            ifNeedVibration = true
+            
+            checkingLock = true
         }else{
-            printDBG("demo lock")
+            printDBG("onLock in demo mode")
             showLocked()
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            performBuzz(true, repeats: 1)
         }
     }
     
     @IBAction func onUnlock(sender: UIButton) {
-        printDBG("onUnlock 31")
         if !flagDemo {
+            printDBG("onUnlock 0x31")
             waitingList.removeAll()
             lastRaw = nil
+            ifNeedVibration = true
             let data = NSData(bytes: [0x31] as [UInt8], length: 1)
             sendCommand(data, actionId: 0x80, retry: 2)
-            ifNeedVibration = true
+            checkingLock = true
         }else{
-            printDBG("demo unlock")
+            printDBG("onUnlock in demo mode")
             showUnlocked()
-            AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+            performBuzz(true, repeats: 1)
         }
     }
     
@@ -1439,8 +1389,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printDBG("Request status")
         let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
         if peripheral != nil && writeCharacteristic != nil {
-            sendCommand(data, actionId: 0xAA, retry: 0)
             ifNeedVibration = true
+            sendCommand(data, actionId: 0xAA, retry: 0)
         }
     }
     
@@ -1505,23 +1455,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    var messageStack : [String] = []
-    
     func displayMessage(line: String){
         self.labelMessage.text = line
     }
-    
-    
-    func displayCountDown(show: Bool, string: String){
-        if show {
-            labelCountDown.hidden = false
-            labelCountDown.text = string
-        }else{
-            labelCountDown.hidden = true
-        }
-    }
-    
-    
     
     func checkValet(intValue : UInt8){
         if intValue & mask9valet == 0 {
@@ -1634,11 +1570,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
             stateLocked = false
         }
-        if waitingList.contains(0x80){
-            let index = waitingList.indexOf(0x80)
-            waitingList.removeAtIndex(index!)
-            lastRaw = nil
-        }
     }
     
     func getValueFromInt(src :Int) -> Int{
@@ -1657,9 +1588,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     func handleData(data :NSData){
+        //put NSData in an array of UInt8 value
         let count = data.length / sizeof(UInt8)
         var array = [UInt8](count: count, repeatedValue: 0)
         data.getBytes(&array, length: count * sizeof(UInt8))
+        
         if array.count == 6 {
             var result = Dictionary<String,Int!>()
             result["runtime"] = Int(array[0]) + 256 * Int(array[1])
@@ -1702,8 +1635,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if runtimeCountdown != 0 && runtimeCountdown != 65535{
                 countdown = runtimeCountdown
                 if isTimerRunning {
-                    resetNotification(countdown)
                     reSyncTimer(countdown)
+                    resetNotification(countdown)
                 }else{
                     if !startingEngine && stateRemote{
                         startTimerFrom(countdown)
@@ -1713,11 +1646,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 if runtimeCountdown == 0 {
                     let event = Int(array[3])
                     if event == 1 || event == 2 || event == 4 {
-                        showStopped()
+                        print("1,2,4")
+//                        showStopped()
                     }
-                    if timer != nil {
-                        stopTimer()
-                    }
+                    stopTimer()
                     let application = UIApplication.sharedApplication()
                     let scheduledNotifications = application.scheduledLocalNotifications!
                     for notification in scheduledNotifications {
@@ -1729,14 +1661,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 let index = waitingList.indexOf(0xAE)
                 waitingList.removeAtIndex(index!)
             }
+            if isFirstACK {
+                isFirstACK = false
+            }
         }else{
-            printVDBG("Array count : \(array.count)")
+            printVDBG("Error when processing NSData, array count : \(array.count)")
         }
     }
     
     func handleStatusAndEvent(status : UInt8, event: UInt8){
-        printDBG("Handle state ACK")
-        
+        printDBG("Handle status and status")
         
         if checkingValetState {
             printDBG("Check valet mode flag : ON")
@@ -1763,7 +1697,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     })
                     stateValet = false
                 }
-                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                performBuzz(true, repeats: 1)
                 printDBG("111 vibrateion")
                 return
             }
@@ -1787,18 +1721,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }else if event == 6{
                 showStarted()
                 if stateRemote {
-                    printDBG("viiiiiiiiiiiiiiiiib")
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                        for _ in 1...3 {
-                            dispatch_async(dispatch_get_main_queue(),{
-                                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                                self.ifNeedVibration = false
-                            })
-                            usleep(1000 * 500)
-                        }
-                    })
+                    printDBG("Engine started : perform 3 buzzs")
+                    performBuzz(true, repeats: 3)
                 }
-                printDBG("6666666666666")
+                printDBG("Engine started : Event 6 received")
                 if !isFirstACK {
                     displayMessage(msgRemoteStarted)
                 }
@@ -1809,13 +1735,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 checkRemote(status)
                 checkEngine(status)
                 if stateRemote {
-                    printDBG("bitbitbitbit")
+                    printDBG("Starting engine remotely")
                     if !isFirstACK {
                         displayMessage("Starting engine...")
                     }
-                }else{
-                    //                    showStartFailed()
-                    //                    startingEngine = false
                 }
                 return
             }
@@ -1830,8 +1753,23 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             checkRemote(status)
             checkEngine(status)
             showStopped()
-            displayMessage(msgRemoteStopped)
             stoppingEngine = false
+            return
+        }
+        
+        if checkingLock {
+            if status & mask9lock != 0 {
+                showLocked()
+                stateLocked = true
+            }else{
+                showUnlocked()
+                stateLocked = false
+            }
+            if waitingList.contains(0x80){
+                let index = waitingList.indexOf(0x80)
+                waitingList.removeAtIndex(index!)
+                lastRaw = nil
+            }
             return
         }
         
@@ -1846,11 +1784,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             checkRemote(status)
             checkEngine(status)
             printDBG("not checking start or stop or valet")
-            if !stateRemote {
+            if !stateRemote && !isFirstACK{
                 showStopped()
-                if !isFirstACK{
-                    displayMessage("\(msgRemoteStopped)")
-                }
             }
         }else{
             checkIgnition(status)
@@ -1859,16 +1794,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if stateRemote {
                 showStarted()
                 if event == 6 {
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                        for _ in 1...3 {
-                            dispatch_async(dispatch_get_main_queue(),{
-                                AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                                self.printDBG("vib - 3 time from event 6")
-                                self.ifNeedVibration = false
-                            })
-                            usleep(1000 * 500)
-                        }
-                    })
+                    performBuzz(true, repeats: 3)
                 }
                 printDBG("aaaaaaaaaaa")
                 displayMessage("\(msgRemoteStarted)")
@@ -1881,9 +1807,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
         
         
-        if isFirstACK {
-            isFirstACK = false
-        }
     }
     
     func showActionSheetValet(){
@@ -1926,19 +1849,39 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onTryDemo(sender: UIButton) {
-        flagDemo = true
+        printDBG("Entering demo mode when : lost connection")
         coverLostConnection.hidden = true
         coverEmptyGarage.hidden = true
+        buttonLock.enabled = true
+        buttonUnlock.enabled = true
+        buttonCover.enabled = true
         self.title = "Control/Demo"
-        setTheFlagDemo(true)
+        setDemoFlag(true)
     }
     
     @IBAction func onDemo(sender: UIButton) {
-        flagDemo = true
+        printDBG("Entering demo mode when : empty garage")
         coverLostConnection.hidden = true
         coverEmptyGarage.hidden = true
-        setTheFlagDemo(true)
+        buttonLock.enabled = true
+        buttonUnlock.enabled = true
+        buttonCover.enabled = true
+        setDemoFlag(true)
         self.title = "Control/Demo"
+    }
+    
+    func performBuzz(enabled: Bool, repeats: Int){
+        if enabled && ifNeedVibration{
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                for _ in 1...repeats {
+                    dispatch_async(dispatch_get_main_queue(),{
+                        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
+                    })
+                    usleep(1000 * 500)
+                }
+                self.ifNeedVibration = false
+            })
+        }
     }
 }
 

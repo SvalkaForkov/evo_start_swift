@@ -27,7 +27,6 @@
 		CF69D97C1D182D41006FD908 /* CustomGarageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97B1D182D41006FD908 /* CustomGarageCell.swift */; };
 		CF69D97E1D1871F6006FD908 /* RegisterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */; };
 		CF69D9801D187333006FD908 /* CustomScanCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF69D97F1D187333006FD908 /* CustomScanCell.swift */; };
-		CF72509C1DC13CCA0083B5F0 /* ViewControllerDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF72509B1DC13CCA0083B5F0 /* ViewControllerDemo.swift */; };
 		CFC8D37B1D10529500D61D73 /* GarageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37A1D10529500D61D73 /* GarageViewController.swift */; };
 		CFC8D37D1D10A8EE00D61D73 /* ScanViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */; };
 		CFE1928C1D6CF3AF00F20C21 /* CustomMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFE1928B1D6CF3AF00F20C21 /* CustomMessageCell.swift */; };
@@ -87,7 +86,6 @@
 		CF69D97B1D182D41006FD908 /* CustomGarageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomGarageCell.swift; sourceTree = "<group>"; };
 		CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RegisterViewController.swift; sourceTree = "<group>"; };
 		CF69D97F1D187333006FD908 /* CustomScanCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomScanCell.swift; sourceTree = "<group>"; };
-		CF72509B1DC13CCA0083B5F0 /* ViewControllerDemo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewControllerDemo.swift; sourceTree = "<group>"; };
 		CFC8D37A1D10529500D61D73 /* GarageViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GarageViewController.swift; sourceTree = "<group>"; };
 		CFC8D37C1D10A8EE00D61D73 /* ScanViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScanViewController.swift; sourceTree = "<group>"; };
 		CFE1928B1D6CF3AF00F20C21 /* CustomMessageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomMessageCell.swift; sourceTree = "<group>"; };
@@ -185,7 +183,6 @@
 				CF69D9781D133B31006FD908 /* CoreData */,
 				CF1C2AB61C766F6B009F2892 /* AppDelegate.swift */,
 				CF1C2AB81C766F6B009F2892 /* ViewController.swift */,
-				CF72509B1DC13CCA0083B5F0 /* ViewControllerDemo.swift */,
 				CF69D97D1D1871F6006FD908 /* RegisterViewController.swift */,
 				CFC8D37A1D10529500D61D73 /* GarageViewController.swift */,
 				CFFD92621D6F3F940090F633 /* MapViewController.swift */,
@@ -360,7 +357,6 @@
 				CF69D97A1D133B59006FD908 /* DataController.swift in Sources */,
 				CF236BD41D8879A3004C8340 /* MakeViewController.swift in Sources */,
 				CF69D9801D187333006FD908 /* CustomScanCell.swift in Sources */,
-				CF72509C1DC13CCA0083B5F0 /* ViewControllerDemo.swift in Sources */,
 				CF3E512D1D131C3A00301C7C /* Vehicle.xcdatamodeld in Sources */,
 				CFC8D37D1D10A8EE00D61D73 /* ScanViewController.swift in Sources */,
 			);

@@ -13,46 +13,50 @@ import CoreBluetooth
 class GarageViewController: UIViewController ,UITableViewDataSource, UITableViewDelegate,CBCentralManagerDelegate, CBPeripheralDelegate{
     let DBG = true
     let VDBG = false
+    var flagDemo = false
+    
     @IBOutlet var buttonAdd: UIButton!
     @IBOutlet var tableView: UITableView!
+    
     let tag_default_module = "defaultModule"
     var centralManager:CBCentralManager!
+    var dataController : DataController?
+    var appDelegate: AppDelegate?
+    
     var vehicleList : [Vehicle] = []
     var selectedModule = ""
-    var dataController : DataController?
     var isFound = false
-    var appDelegate: AppDelegate?
-    var flagDemo = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        //        self.navigationController?.navigationBar.backgroundColor = UIColor.darkGrayColor()
-        printVDBG("GarageViewController : garage viewDidLoad")
+        printVDBG("View did load")
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title:"", style:.Plain, target:nil, action:nil)
     }
     
     override func viewWillAppear(animated: Bool) {
-        flagDemo = getFlagDemo()
+        flagDemo = getDemoFlag()
         buttonAdd.clipsToBounds = true
         
         tableView.dataSource = self
         tableView.delegate = self
+        
         if !flagDemo {
+            printVDBG("View will appear")
             appDelegate = UIApplication.sharedApplication().delegate as? AppDelegate
             dataController = appDelegate!.dataController
+            
             vehicleList = dataController!.getAllVehicles()
-            printVDBG("GarageViewController : fetching vehicle list")
-            
-            
-            
             if vehicleList.count == 0 {
-                printVDBG("no vehicle")
+                printVDBG("No vehicle")
             }else{
-                printVDBG("found vehicle : \(vehicleList.count)")
+                printVDBG("Found vehicle : \(vehicleList.count)")
             }
+            
             animateTableView(false)
             centralManager = CBCentralManager(delegate: self, queue:nil)
         }else{
-            
+            printDBG("Demo mode : On")
+            buttonAdd.hidden = true
         }
     }
     
@@ -63,7 +67,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if !flagDemo {
-        return vehicleList.count
+            return vehicleList.count
         }else{
             return 1
         }
@@ -89,9 +93,10 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        selectedModule = vehicleList[indexPath.row].module!
-        printVDBG("click \(selectedModule)")
         if !flagDemo {
+            selectedModule = vehicleList[indexPath.row].module!
+            printVDBG("click \(selectedModule)")
+            
             isFound = false
             if centralManager != nil {
                 centralManager.scanForPeripheralsWithServices(nil, options: nil)
@@ -111,6 +116,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                 })
             }
         }else{
+            printVDBG("click in demo mode")
             self.navigationController?.popToRootViewControllerAnimated(true)
         }
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
@@ -142,7 +148,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                 let vehicleToFavorate : String! = self.vehicleList[indexPath.row].module
                 self.setDefaultModule(vehicleToFavorate)
             }else{
-                
+                self.printDBG("This will set vehicle to favorite")
             }
             self.tableView.setEditing(false, animated: true)
         }
@@ -165,9 +171,8 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                         self.setDefault(self.vehicleList[0].module!)
                     }
                 }else{
-                    self.vehicleList.removeAtIndex(indexPath.row)
-                    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-                    self.dataController!.deleteVehicleByName(vehicleToDelete)
+                    self.printDBG("This will delete vehicle")
+                    self.tableView.setEditing(false, animated: true)
                 }
             }else{
                 self.vehicleList.removeAll()
@@ -276,6 +281,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         let cells = tableView.visibleCells
         let tableHeight : CGFloat = tableView.bounds.size.height
         let tableWidth : CGFloat = tableView.bounds.size.width
+        
         if vertical {
             for i in cells {
                 let cell : UITableViewCell = i as UITableViewCell
@@ -290,6 +296,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                 }
             }
         }
+        
         for cell in cells {
             UIView.animateWithDuration(1, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: UIViewAnimationOptions.CurveEaseIn, animations: {
                 cell.transform = CGAffineTransformMakeTranslation(0, 0)
@@ -299,19 +306,20 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func getLastScene() -> String{
-        printVDBG("getLastScene")
         let lastScene =
             NSUserDefaults.standardUserDefaults().objectForKey("lastScene")
                 as? String
         if lastScene != nil {
+            printVDBG("Get last scene : \(lastScene)")
             return lastScene!
         }else{
+            printVDBG("Get last scene : None")
             return ""
         }
     }
     
     func setLastScene(){
-        printVDBG("getLsetLastScene : Garage")
+        printVDBG("Set last scene : Garage")
         NSUserDefaults.standardUserDefaults().setObject("Garage", forKey: "lastScene")
     }
     
@@ -335,11 +343,11 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         return "[\(components.hour):\(components.minute):\(components.second)] - Garage - "
     }
     
-    func getFlagDemo() -> Bool{
+    func getDemoFlag() -> Bool{
         let flag =
             NSUserDefaults.standardUserDefaults().objectForKey("flagDemo")
                 as? Bool
-        printDBG("get demo flag : \(flag!)")
+        printDBG("Get demo flag : \(flag!)")
         return flag!
     }
 }
