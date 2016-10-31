@@ -72,7 +72,7 @@ extension String {
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     let DBG = true
-    let VDBG = false
+    let VDBG = true
     
     var flagDemo = false
     
@@ -138,6 +138,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet var longPressStart: UILongPressGestureRecognizer!
     @IBOutlet var swipeDown: UISwipeGestureRecognizer!
     @IBOutlet var swipeUp: UISwipeGestureRecognizer!
+    @IBOutlet var buttonDemoOnEmpty: UIButton!
+    @IBOutlet var buttonDemoOnLostConnection: UIButton!
+    @IBOutlet var buttonGoToGarage: UIButton!
+    @IBOutlet var buttonReconnect: UIButton!
     
     
     var appDelegate : AppDelegate?
@@ -154,8 +158,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var checkingValetState = false
     var checkingValetEvent = false
     var checkingTrunkEvent = false
-    var startingEngine = false
-    var stoppingEngine = false
+    var checkingStart = false
+    var checkingStop = false
     var ackCount = 0
     var lastIntValue : UInt64?
     var lastRaw : String?
@@ -171,6 +175,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     let mask9valet : UInt8 =       0x01
     
     let tag_default_module = "defaultModule"
+    let tag_selected_module = "selectedModule"
     let tag_last_scene = "lastScene"
     let fontName = "NeuropolXRg-Regular"
     
@@ -233,7 +238,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printVDBG("ViewController : viewWillAppear")
         if !flagDemo {
             isFirstACK = true
-            module = getDefaultModule()
+            let selectedModule = getSelectedModule()
+            if selectedModule != "" {
+                module = selectedModule
+            }else{
+                module = getDefaultModule()
+            }
+            NSUserDefaults.standardUserDefaults().setObject("", forKey: tag_selected_module)
             if module != "" {
                 coverEmptyGarage.hidden = true
                 centralManager = CBCentralManager(delegate: self, queue:nil)
@@ -242,6 +253,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 coverEmptyGarage.hidden = false
                 self.title = "Control"
             }
+            
         }else{
             coverLostConnection.hidden = true
             coverEmptyGarage.hidden = true
@@ -335,6 +347,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         self.coverLostConnection.hidden = true
         peripheral.discoverServices([CBUUID(string: "1234")])
         printVDBG("Discovering service: 1234")
+        
+        enableControl(true)
     }
     
     func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
@@ -353,6 +367,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 })
             }
         })
+        
         central.scanForPeripheralsWithServices(nil, options: nil)
         printDBG("Scan for peripherals with services, after disconnected")
         
@@ -385,7 +400,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             }
         }
         printDBG("Ble characteristics are ready")
-        enableControl(true)
     }
     
     func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
@@ -398,28 +412,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    func getIntFromNSData(data: NSData) -> UInt64 {
-        var result : UInt64 = 0
-        data.getBytes(&result, length: sizeof(UInt64))
-        return result
-    }
-    
-    func getInt16FromHexString(hex: String) -> Int {
-        return Int(strtoul(hex, nil, 16))
-    }
-    
-    func getIntFromHexString(hex: String) -> Int {
-        return Int(strtoul(hex, nil, 16))
-    }
-    
-    func getInt32FromHexString(hex: String) -> UInt32 {
-        return UInt32(strtoul(hex, nil, 16))
-    }
-    
-    func getInt64FromHexString(hex: String) -> Int {
-        return Int(strtoul(hex, nil, 64))
-    }
-    
     func enableControl(val: Bool){
         if !val {
             printVDBG("Control disabled")
@@ -429,6 +421,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             printVDBG("Control enabled")
             buttonLock.enabled = true
             buttonUnlock.enabled = true
+            checkingLock = false
+            checkingStart = false
+            checkingStop = false
+            checkingValetState = false
+            checkingValetEvent = false
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
                 sleep(1)
                 dispatch_async(dispatch_get_main_queue(),{
@@ -446,7 +443,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printVDBG("Find vehicle name for connected module")
         let vehicleList = dataController?.getAllVehicles()
         for vehicle in vehicleList! {
-            if vehicle.module == self.peripheral.name!{
+            if vehicle.module == self.module{
                 self.title = "Control / \(vehicle.name!)"
             }
         }
@@ -456,157 +453,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         printVDBG("Enable notification : \(enabled)")
         if peripheral != nil && stateCharacteristic != nil {
             peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
-        }
-    }
-    
-    func showIgnitionOn(){
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-            dispatch_async(dispatch_get_main_queue(),{
-                self.updateUIRPM(8000)
-                self.updateUIBattery(100)
-                self.updateUIFuel(100)
-            })
-            sleep(1)
-            dispatch_async(dispatch_get_main_queue(),{
-                self.updateUIRPM(0)
-                self.updateUIBattery(0)
-                self.updateUIFuel(0)
-            })
-        })
-    }
-    
-    func showIgnitionOff(){
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-            dispatch_async(dispatch_get_main_queue(),{
-                self.updateUIRPM(0)
-                self.updateUIBattery(0)
-                self.updateUIFuel(0)
-            })
-        })
-    }
-    
-    func showTrunkReleased(){
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunkReleased"), forState: .Normal)
-                    self.displayMessage(self.msgTrunkReleased)
-            })
-        }else{
-            buttonTrunk.setImage(UIImage(named: "ButtonTrunkReleased"), forState: .Normal)
-            displayMessage(msgTrunkReleased)
-        }
-        performBuzz(true, repeats: 1)
-    }
-    
-    func showTrunkOpened(){
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
-                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
-                    self.performBuzz(true, repeats: 1)
-                    if !self.isFirstACK {
-                        self.displayMessage(self.msgTrunkOpened)
-                    }
-            })
-        }else{
-            imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
-            buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
-            performBuzz(true, repeats: 1)
-            if !isFirstACK {
-                displayMessage(msgTrunkOpened)
-            }
-        }
-    }
-    
-    func showTrunkClosed(){
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.imageViewTrunk.image = nil
-                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
-                    if !self.isFirstACK {
-                        self.displayMessage(self.msgTrunkClosed)
-                    }
-                    
-            })
-        }else{
-            imageViewTrunk.image = nil
-            buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
-            if !isFirstACK {
-                displayMessage(msgTrunkClosed)
-            }
-        }
-    }
-    
-    func showStopped(){
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.updateUIRPM(0)
-                    self.updateUIBattery(0)
-                    self.updateUIFuel(0)
-            })
-        }else{
-            updateUIRPM(0)
-            updateUIBattery(0)
-            updateUIFuel(0)
-        }
-        performBuzz(true, repeats: 1)
-        if !isFirstACK{
-            printDBG("display msg")
-            displayMessage("\(msgRemoteStopped)")
-        }
-        stopTimer()
-    }
-    
-    func showStartFailed(){
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.updateUIRPM(0)
-                    self.updateUIBattery(0)
-                    self.updateUIFuel(0)
-            })
-        }else{
-            updateUIRPM(0)
-            updateUIBattery(0)
-            updateUIFuel(0)
-        }
-        if !isFirstACK {
-            displayMessage(msgRemoteFailed)
-        }
-        stopTimer()
-        performBuzz(true, repeats: 1)
-    }
-    
-    func showStarted(){
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.updateUIRPM(1100)
-                    self.updateUIBattery(95)
-                    self.updateUIFuel(50)
-                    self.onUpdateTemp(self.buttonTemperature)
-            })
-        }else{
-            updateUIRPM(1100)
-            updateUIBattery(95)
-            updateUIFuel(50)
-            onUpdateTemp(self.buttonTemperature)
         }
     }
     
@@ -724,142 +570,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    @IBAction func onUpdateTemp(sender: UIButton) {
-        printVDBG("On update temperatrure")
-    }
-    
-    func showUnlocked(){
-        printVDBG("Show door unlocked")
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
-                    self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
-            })
-        }else{
-            buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
-            buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
-        }
-        
-            displayMessage(msgDoorUnlocked)
-            performBuzz(true, repeats: 1)
-        
-    }
-    
-    func showLocked(){
-        printVDBG("Show door locked")
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.buttonLock.setImage(UIImage(named: "ButtonLockOn"), forState: .Normal)
-                    self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
-            })
-        }else{
-            buttonLock.setImage(UIImage(named: "ButtonLockOn"), forState: .Normal)
-            buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
-        }
-        
-            displayMessage(msgDoorLocked)
-        
-            performBuzz(true, repeats: 1)
-        
-    }
-    
-    func showDoorOpened(){
-        printVDBG("Show door opened")
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.imageViewDoors.image = UIImage(named: "StateDoorOpened")
-            })
-        }else{
-            imageViewDoors.image = UIImage(named: "StateDoorOpened")
-        }
-        
-            performBuzz(true, repeats: 1)
-        
-    }
-    
-    func showDoorClosed(){
-        printVDBG("Show door closed")
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.imageViewDoors.image = nil
-            })
-        }else{
-            self.imageViewDoors.image = nil
-        }
-        performBuzz(true, repeats: 1)
-            self.printDBG("vib - showDoorclosed")
-        
-    }
-    
-    func showHoodOpened(){
-        printVDBG("Show hood opened")
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.imageViewHood.image = UIImage(named: "StateHoodOn")
-            })
-        }else{
-            imageViewHood.image = UIImage(named: "StateHoodOn")
-        }
-        performBuzz(true, repeats: 1)
-    }
-    
-    func showHoodClosed(){
-        printVDBG("Show hood closed")
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.imageViewHood.image = nil
-            })
-        }else{
-            imageViewHood.image = nil
-        }
-    }
-    
-    func showValetOn(){
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.displayMessage(self.msgValetOn)
-            })
-        }else{
-            displayMessage(msgValetOn)
-        }
-        checkingValetEvent = false
-    }
-    
-    func showValetOff(){
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.3, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.displayMessage(self.msgValetOff)
-            })
-        }else{
-            displayMessage(msgValetOff)
-        }
-        checkingValetEvent = false
-    }
-    
     func setAnchorPoint(anchorPoint: CGPoint, forView view: UIView) {
         printVDBG("Set anchor : \(view.layer.position)")
         var newPoint = CGPointMake(view.bounds.size.width * anchorPoint.x, view.bounds.size.height * anchorPoint.y)
@@ -878,103 +588,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         view.layer.anchorPoint = anchorPoint
         view.center = oldPoint
         view.layoutIfNeeded()
-    }
-    
-    @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
-        switch sender.state {
-        case UIGestureRecognizerState.Began:
-            printDBG("UIGestureRecognizerState.Began")
-            isPressing = true
-            longPressCountDown = 0
-            var glowtransform = CGAffineTransformIdentity
-            UIView.animateWithDuration(0.3, animations: {
-                glowtransform = CGAffineTransformScale(glowtransform,1.3, 1)
-                self.imageGlowing.alpha = 1.0
-                self.imageGlowing.transform = glowtransform
-            })
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                self.printDBG("now \(self.longPressCountDown)")
-                while self.isPressing && self.longPressCountDown <= 5{
-                    dispatch_async(dispatch_get_main_queue(),{
-                        self.longPressCountDown += 1
-                        self.printDBG("set \(self.longPressCountDown)")
-                    })
-                    usleep(150000)
-                }
-                
-                if self.longPressCountDown>5{
-                    self.isPressing = false
-                    dispatch_async(dispatch_get_main_queue(),{
-                        
-                        UIView.animateWithDuration(0.1, animations: {
-                            self.imageGlowing.alpha = 0.0
-                            },completion: {
-                                finished in
-                                UIView.animateWithDuration(0.1, animations: {
-                                    self.imageGlowing.alpha = 1.0
-                                    },completion: {
-                                        finished in
-                                        UIView.animateWithDuration(0.1, animations: {
-                                            self.imageGlowing.alpha = 0.0
-                                            },completion: {
-                                                finished in
-                                                UIView.animateWithDuration(0.1, animations: {
-                                                    self.imageGlowing.alpha = 1.0
-                                                    },completion: {
-                                                        finished in
-                                                        UIView.animateWithDuration(0.1, animations: {
-                                                            self.imageGlowing.alpha = 0.0
-                                                        })
-                                                })
-                                        })
-                                })
-                        })
-                    })
-                    if self.stateValet {
-                        self.showRemoteStartDisabledFromValet()
-                    }else{
-                        if !self.flagDemo {
-                            if self.stateRemote {
-                                self.sendStop()
-                            }else {
-                                self.sendStart()
-                            }
-                        }else{
-                            dispatch_async(dispatch_get_main_queue(),{
-                                if self.stateRemote {
-                                    self.printDBG("demo stop")
-                                    self.showStopped()
-                                    self.stateRemote = false
-                                    self.stopTimer()
-                                    self.displayMessage(self.msgRemoteStopped)
-                                }else {
-                                    self.printDBG("demo start")
-                                    self.showStarted()
-                                    self.stateRemote = true
-                                    self.startTimerFrom(30)
-                                    self.displayMessage(self.msgRemoteStarted)
-                                }
-                            })
-                        }
-                    }
-                }
-            })
-            break
-        case UIGestureRecognizerState.Ended:
-            if isPressing {
-                UIView.animateWithDuration(0.3, animations: {
-                    let glowtransform = CGAffineTransformIdentity
-                    self.imageGlowing.transform = glowtransform
-                    self.imageGlowing.alpha = 0.0
-                })
-                
-                isPressing = false
-            }
-            printDBG("UIGestureRecognizerState.Ended")
-            break
-        default:
-            break
-        }
     }
     
     func initializeNavigationBarUI(){
@@ -1010,6 +623,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             printVDBG("\(UIFont.fontNamesForFamilyName(name))")
         }
     }
+    
+    func getSelectedModule() -> String{
+        printVDBG("Get selected module")
+        let selectedModule = NSUserDefaults.standardUserDefaults().objectForKey(tag_selected_module)
+            as? String
+        if selectedModule != nil && selectedModule != ""{
+            printDBG("Selected module is : \(selectedModule!)")
+            return selectedModule!
+        }else{
+            printDBG("Default module is nil")
+            return ""
+        }
+    }
+    
     
     func getDefaultModule() -> String{
         printVDBG("Get default module")
@@ -1097,7 +724,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         currentAngleTemp = getTempAngle(temp)
     }
     
-    func slideDown(){
+    func slideDownPanel(){
         capContainerView.alpha = 1
         buttonLock.alpha = 1
         buttonUnlock.alpha = 1
@@ -1105,36 +732,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         slideUpView.center.y = self.slideUpView.center.y + self.slideUpView.bounds.height
         let transform = CGAffineTransformIdentity
         buttonMore.transform = transform
-    }
-    
-    func displayPanel(){
-        if isPanelDispalyed {
-            isPanelDispalyed = false
-            UIView.animateWithDuration(0.5, animations: {
-                self.slideDown()
-                }, completion: { finished in
-                    self.slideUpView.hidden = false
-            })
-        }else{
-            isPanelDispalyed = true
-            self.slideUpView.alpha = 0
-            slideUpView.hidden = false
-            buttonValet.hidden = false
-            buttonGarage.hidden = false
-            buttonTrunk.hidden = false
-            UIView.animateWithDuration(0.5, delay: 0, options: UIViewAnimationOptions.CurveEaseInOut, animations: {
-                self.slideUpView.alpha = 1
-                self.slideUpView.center.y = self.slideUpView.center.y - self.slideUpView.bounds.height
-                self.slideUpView.hidden = false
-                self.capContainerView.alpha = 0
-                self.buttonLock.alpha = 0
-                self.buttonUnlock.alpha = 0
-                var transform = CGAffineTransformIdentity
-                transform = CGAffineTransformRotate(transform, CGFloat(M_PI / 2))
-                self.buttonMore.transform = transform
-                }, completion: { finished in
-            })
-        }
     }
     
     func initializeUIComponents(){
@@ -1160,6 +757,26 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         buttonLock.clipsToBounds = true
         buttonMore.clipsToBounds = true
         
+        buttonDemoOnEmpty.clipsToBounds = true
+        buttonDemoOnEmpty.layer.cornerRadius = 20.0
+        buttonDemoOnEmpty.layer.backgroundColor = UIColor.whiteColor().CGColor
+        
+        buttonDemoOnLostConnection.clipsToBounds = true
+        buttonDemoOnLostConnection.layer.cornerRadius = 20
+        buttonDemoOnLostConnection.layer.backgroundColor = UIColor.whiteColor().CGColor
+        
+        buttonGoToGarage.clipsToBounds = true
+        buttonGoToGarage.layer.cornerRadius = 20.0
+        buttonGoToGarage.layer.backgroundColor = UIColor.whiteColor().CGColor
+        
+        buttonReconnect.clipsToBounds = true
+        buttonReconnect.layer.cornerRadius = 20.0
+        buttonReconnect.layer.backgroundColor = UIColor.whiteColor().CGColor
+        
+        buttonAddFromEmpty.clipsToBounds = true
+        buttonAddFromEmpty.layer.cornerRadius = 20.0
+        buttonAddFromEmpty.layer.backgroundColor = UIColor.whiteColor().CGColor
+        
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageStartFrame)
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageCap)
         setAnchorPoint(CGPoint(x: 0.5, y: 0.0), forView: self.imageButtonStart)
@@ -1183,6 +800,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             return ""
         }
     }
+    
     
     @IBAction func onAddFromEmpty(sender: UIButton) {
         performSegueWithIdentifier("control2scan", sender: sender)
@@ -1208,10 +826,34 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     
     @IBAction func onButtonMore(sender: UIButton) {
-        displayPanel()
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.5, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.slideUpView.hidden = false
+            })
+        }else{
+            isPanelDispalyed = true
+            self.slideUpView.alpha = 0
+            slideUpView.hidden = false
+            buttonValet.hidden = false
+            buttonGarage.hidden = false
+            buttonTrunk.hidden = false
+            UIView.animateWithDuration(0.5, delay: 0, options: UIViewAnimationOptions.CurveEaseInOut, animations: {
+                self.slideUpView.alpha = 1
+                self.slideUpView.center.y = self.slideUpView.center.y - self.slideUpView.bounds.height
+                self.slideUpView.hidden = false
+                self.capContainerView.alpha = 0
+                self.buttonLock.alpha = 0
+                self.buttonUnlock.alpha = 0
+                var transform = CGAffineTransformIdentity
+                transform = CGAffineTransformRotate(transform, CGFloat(M_PI / 2))
+                self.buttonMore.transform = transform
+                }, completion: { finished in
+            })
+        }
     }
-    
-    
     
     @IBAction func onGPSButton(sender: UIButton) {
         if isPanelDispalyed {
@@ -1242,6 +884,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if centralManager != nil {
                 centralManager.scanForPeripheralsWithServices(nil, options: nil)
                 printDBG("Reconnecting...")
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                    sleep(3)
+                    if !self.isConnected{
+                        dispatch_async(dispatch_get_main_queue(),{
+                            let actionSheet = UIAlertController(title: "Info", message: "Unable to re connect", preferredStyle: .ActionSheet)
+                            actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
+                            self.presentViewController(actionSheet, animated: true, completion: nil)
+                        })
+                    }
+                })
             }
         }
     }
@@ -1308,7 +960,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 if isPanelDispalyed {
                     isPanelDispalyed = false
                     UIView.animateWithDuration(0.3, animations: {
-                        self.slideDown()
+                        self.slideDownPanel()
                         }, completion: { finished in
                             self.displayMessage(self.msgTrunkReleased)
                     })
@@ -1334,6 +986,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             printDBG("onLock in demo mode")
             showLocked()
+            displayMessage(msgDoorLocked)
             performBuzz(true, repeats: 1)
         }
     }
@@ -1350,6 +1003,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }else{
             printDBG("onUnlock in demo mode")
             showUnlocked()
+            
+            displayMessage(msgDoorUnlocked)
             performBuzz(true, repeats: 1)
         }
     }
@@ -1383,36 +1038,126 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
-    
-    
-    func sendRequestStatus(){
-        printDBG("Request status")
-        let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
-        if peripheral != nil && writeCharacteristic != nil {
-            ifNeedVibration = true
-            sendCommand(data, actionId: 0xAA, retry: 0)
+    @IBAction func onLongPressStart(sender: UILongPressGestureRecognizer) {
+        switch sender.state {
+        case UIGestureRecognizerState.Began:
+            printDBG("UIGestureRecognizerState.Began")
+            isPressing = true
+            longPressCountDown = 0
+            var glowtransform = CGAffineTransformIdentity
+            UIView.animateWithDuration(0.3, animations: {
+                glowtransform = CGAffineTransformScale(glowtransform,1.3, 1)
+                self.imageGlowing.alpha = 1.0
+                self.imageGlowing.transform = glowtransform
+            })
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                self.printDBG("now \(self.longPressCountDown)")
+                while self.isPressing && self.longPressCountDown <= 5{
+                    self.longPressCountDown += 1
+                    self.printDBG("set \(self.longPressCountDown)")
+                    usleep(150000)
+                }
+                
+                if self.longPressCountDown>5{
+                    self.isPressing = false
+                    dispatch_async(dispatch_get_main_queue(),{
+                        UIView.animateWithDuration(0.1, animations: {
+                            self.imageGlowing.alpha = 0.0
+                            },completion: {
+                                finished in
+                                UIView.animateWithDuration(0.1, animations: {
+                                    self.imageGlowing.alpha = 1.0
+                                    },completion: {
+                                        finished in
+                                        UIView.animateWithDuration(0.1, animations: {
+                                            self.imageGlowing.alpha = 0.0
+                                            },completion: {
+                                                finished in
+                                                UIView.animateWithDuration(0.1, animations: {
+                                                    self.imageGlowing.alpha = 1.0
+                                                    },completion: {
+                                                        finished in
+                                                        UIView.animateWithDuration(0.1, animations: {
+                                                            self.imageGlowing.alpha = 0.0
+                                                        })
+                                                })
+                                        })
+                                })
+                        })
+                    })
+                    if self.stateValet {
+                        self.showRemoteStartDisabledFromValet()
+                    }else{
+                        if !self.flagDemo {
+                            if self.stateRemote {
+                                self.sendStop()
+                            }else {
+                                self.sendStart()
+                            }
+                        }else{
+                            dispatch_async(dispatch_get_main_queue(),{
+                                if self.stateRemote {
+                                    self.printDBG("demo stop")
+                                    self.showStopped()
+                                    self.stateRemote = false
+                                    self.stopTimer()
+                                    self.performBuzz(true, repeats: 1)
+                                    self.displayMessage(self.msgRemoteStopped)
+                                }else {
+                                    self.printDBG("demo start")
+                                    self.showStarted()
+                                    self.performBuzz(true, repeats: 3)
+                                    self.stateRemote = true
+                                    self.startTimerFrom(30)
+                                    self.displayMessage(self.msgRemoteStarted)
+                                }
+                            })
+                        }
+                    }
+                }
+            })
+            break
+        case UIGestureRecognizerState.Ended:
+            if isPressing {
+                UIView.animateWithDuration(0.3, animations: {
+                    let glowtransform = CGAffineTransformIdentity
+                    self.imageGlowing.transform = glowtransform
+                    self.imageGlowing.alpha = 0.0
+                })
+                
+                isPressing = false
+            }
+            printDBG("UIGestureRecognizerState.Ended")
+            break
+        default:
+            break
         }
     }
     
-    func sendStart() {
-        printDBG("Start engine")
-        let data = NSData(bytes: [0x32] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x02, retry: 2)
-        startingEngine = true
+    @IBAction func onUpdateTemp(sender: UIButton) {
+        printVDBG("On update temperatrure")
     }
     
-    func sendStop() {
-        printDBG("Stop engine")
-        let data = NSData(bytes: [0x33] as [UInt8], length: 1)
-        sendCommand(data, actionId: 0x02, retry: 2)
-        stoppingEngine = true
+    @IBAction func onTryDemo(sender: UIButton) {
+        printDBG("Entering demo mode when : lost connection")
+        coverLostConnection.hidden = true
+        coverEmptyGarage.hidden = true
+        buttonLock.enabled = true
+        buttonUnlock.enabled = true
+        buttonCover.enabled = true
+        self.title = "Control/Demo"
+        setDemoFlag(true)
     }
     
-    func setNotification(enabled: Bool){
-        printDBG("Set notification: \(enabled)")
-        if peripheral != nil && stateCharacteristic != nil {
-            peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
-        }
+    @IBAction func onDemo(sender: UIButton) {
+        printDBG("Entering demo mode when : empty garage")
+        coverLostConnection.hidden = true
+        coverEmptyGarage.hidden = true
+        buttonLock.enabled = true
+        buttonUnlock.enabled = true
+        buttonCover.enabled = true
+        setDemoFlag(true)
+        self.title = "Control/Demo"
     }
     
     func sendCommand(data : NSData, actionId: UInt8, retry: Int){
@@ -1442,6 +1187,11 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         let index = self.waitingList.indexOf(actionId)
                         self.waitingList.removeAtIndex(index!)
                         self.lastRaw = nil
+                        self.checkingLock = false
+                        self.checkingStart = false
+                        self.checkingStop = false
+                        self.checkingValetState = false
+                        self.checkingValetEvent = false
                         self.printDBG("Auto removing \(actionId.hexString)")
                         if self.waitingList.contains(actionId){let actionSheet = UIAlertController(title: "Action \(actionId.hexString) timed out", message: nil, preferredStyle: .ActionSheet)
                             actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
@@ -1455,8 +1205,295 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         }
     }
     
+    func sendRequestStatus(){
+        printDBG("Request status")
+        let data = NSData(bytes: [0xAA] as [UInt8], length: 1)
+        if peripheral != nil && writeCharacteristic != nil {
+            ifNeedVibration = true
+            sendCommand(data, actionId: 0xAA, retry: 0)
+        }
+    }
+    
+    func sendStart() {
+        printDBG("Start engine")
+        let data = NSData(bytes: [0x32] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0x02, retry: 2)
+        checkingStart = true
+    }
+    
+    func sendStop() {
+        printDBG("Stop engine")
+        let data = NSData(bytes: [0x33] as [UInt8], length: 1)
+        sendCommand(data, actionId: 0x02, retry: 2)
+        checkingStop = true
+    }
+    
+    func setNotification(enabled: Bool){
+        printDBG("Set notification: \(enabled)")
+        if peripheral != nil && stateCharacteristic != nil {
+            peripheral.setNotifyValue(enabled, forCharacteristic: stateCharacteristic)
+        }
+    }
+    
+    
     func displayMessage(line: String){
         self.labelMessage.text = line
+    }
+    
+    
+    
+    func handleRawData(data: NSData){
+        let rawHex = data.hexString
+        
+        if lastRaw == nil || rawHex != lastRaw{
+            printDBG("- - - - - - - - - - - - - - - - - - - - - - - - - - -")
+            printDBG("Raw: [\(rawHex)]")
+            handleData(data)
+        }
+        
+        lastRaw = rawHex
+    }
+    
+    func handleData(data :NSData){
+        //put NSData in an array of UInt8 value
+        let count = data.length / sizeof(UInt8)
+        var array = [UInt8](count: count, repeatedValue: 0)
+        data.getBytes(&array, length: count * sizeof(UInt8))
+        
+        if array.count == 6 {
+            var result = Dictionary<String,Int!>()
+            result["Runtime    "] = Int(array[0]) + 256 * Int(array[1])
+            result["Event      "] = Int(array[3])
+            result["Status     "] = Int(array[2])
+            result["Temperature"] = Int(array[4])
+            for key in result.keys{
+                printDBG("\(key): \(result[key]!.hexString)")
+            }
+            
+            //handle temperature
+            var temperature = Int(array[4])
+            if temperature != 0 {
+                if temperature > 120 {
+                    temperature = 120
+                }else if temperature < 4 {
+                    temperature = 4
+                }
+                updateUITemperature(temperature-44)
+            }
+            
+            
+            //handle status and event
+            handleStatusAndEvent(array[2], event:array[3])
+            printDBG("State valet    : \(stateValet)")
+            printDBG("State remote   : \(stateRemote)")
+            printDBG("State ignition : \(stateIgnition)")
+            printDBG("State engine   : \(stateEngineStarted)")
+            printDBG("State hood     : \(stateHoodOpened)")
+            printDBG("State trunk    : \(stateTrunkOpened)")
+            printDBG("State door     : \(stateDoorOpened)")
+            printDBG("State lock     : \(stateLocked)")
+            
+            
+            //handle runtime countdown
+            let runtimeCountdown = result["Runtime    "]!
+            
+            
+            
+            if runtimeCountdown != 0 && runtimeCountdown != 65535{
+                countdown = runtimeCountdown
+                if isTimerRunning {
+                    reSyncTimer(countdown)
+                    resetNotification(countdown)
+                }else{
+                    if !checkingStart && stateRemote{
+                        startTimerFrom(countdown)
+                    }
+                }
+            }else{
+                if runtimeCountdown == 0 {
+                    stopTimer()
+                    let application = UIApplication.sharedApplication()
+                    let scheduledNotifications = application.scheduledLocalNotifications!
+                    for notification in scheduledNotifications {
+                        application.cancelLocalNotification(notification)
+                    }
+                }
+            }
+            printDBG("Handle runtime countdown: \(runtimeCountdown) seconds")
+            printDBG("- - - - - - - - - - - - - - - - - - - - - - - - - - -")
+            if waitingList.contains(0xAE){
+                let index = waitingList.indexOf(0xAE)
+                waitingList.removeAtIndex(index!)
+            }
+            if isFirstACK {
+                isFirstACK = false
+            }
+        }else{
+            printVDBG("Error when processing NSData, array count : \(array.count)")
+        }
+    }
+    
+    func handleStatusAndEvent(status : UInt8, event: UInt8){
+        printDBG("Handle status and event")
+        
+        if checkingValetState {
+            printDBG("Checking valet")
+            printDBG("Check valet mode flag : ON")
+            
+            if waitingList.contains(0xAA){
+                let index = waitingList.indexOf(0xAA)
+                waitingList.removeAtIndex(index!)
+            }
+            
+            if checkingValetEvent {
+                printDBG("Check valet event flag : ON")
+                checkingValetState = false
+                
+                if waitingList.contains(0x01){
+                    let index = waitingList.indexOf(0x01)
+                    waitingList.removeAtIndex(index!)
+                }
+                
+                if status & mask9valet != 0{
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                        dispatch_async(dispatch_get_main_queue(),{
+                            self.showValetOn()
+                        })
+                    })
+                    stateValet = true
+                }else{
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                        dispatch_async(dispatch_get_main_queue(),{
+                            self.showValetOff()
+                        })
+                    })
+                    stateValet = false
+                }
+                performBuzz(true, repeats: 1)
+                return
+            }
+            
+            checkValet(status)
+            return
+        }
+        
+        if checkingStart {
+            printDBG("Checking start")
+            printDBG("Starting engine flag : ON")
+            if waitingList.contains(0x02){
+                let index = waitingList.indexOf(0x02)
+                waitingList.removeAtIndex(index!)
+            }
+            
+            if event == 7 {
+                checkingStart = false
+                showStartFailed()
+                return
+            }else if event == 6{
+                checkingStart = false
+                if stateRemote {
+                    showStarted()
+                    printDBG("Engine started : perform 3 buzzs")
+                    performBuzz(true, repeats: 3)
+                }
+                
+                printDBG("Engine started : Event 6 received")
+                
+                if !isFirstACK {
+                    displayMessage(msgRemoteStarted)
+                }
+                return
+            }else{
+                checkIgnition(status)
+                checkRemote(status)
+                checkEngine(status)
+                if stateRemote {
+                    printDBG("Starting engine remotely")
+                    if !isFirstACK {
+                        displayMessage("Starting engine...")
+                    }
+                }
+                return
+            }
+        }
+        
+        if checkingStop {
+            printDBG("Checking stop")
+            if waitingList.contains(0x02){
+                let index = waitingList.indexOf(0x02)
+                waitingList.removeAtIndex(index!)
+            }
+            checkingStop = false
+            
+            checkIgnition(status)
+            checkRemote(status)
+            checkEngine(status)
+            showStopped()
+            performBuzz(true, repeats: 1)
+            if !isFirstACK{
+                displayMessage("\(msgRemoteStopped)")
+            }
+            return
+        }
+        
+        if checkingLock {
+            printDBG("Checking lock")
+            if waitingList.contains(0x80){
+                let index = waitingList.indexOf(0x80)
+                waitingList.removeAtIndex(index!)
+                lastRaw = nil
+            }
+            checkingLock = false
+            
+            if status & mask9lock != 0 {
+                showLocked()
+                displayMessage(msgDoorLocked)
+                stateLocked = true
+            }else{
+                showUnlocked()
+                displayMessage(msgDoorUnlocked)
+                stateLocked = false
+            }
+            performBuzz(true, repeats: 1)
+            return
+        }
+        
+        printDBG("Checking notification")
+        
+        checkTrunk(status, event: event)
+        checkHood(status)
+        checkDoor(status)
+        checkLock(status)
+        checkValet(status)
+        
+        if stateRemote {
+            checkIgnition(status)
+            checkRemote(status)
+            checkEngine(status)
+            printDBG("not checking start or stop or valet")
+            if !stateRemote && !isFirstACK{
+                showStopped()
+            }
+        }else{
+            checkIgnition(status)
+            checkRemote(status)
+            checkEngine(status)
+            if stateRemote {
+                showStarted()
+                if event == 6 {
+                    printDBG("aaaaaaaaaaa")
+                    performBuzz(true, repeats: 3)
+                }
+                displayMessage("\(msgRemoteStarted)")
+            }
+        }
+        
+        if waitingList.contains(0xAA){
+            let index = waitingList.indexOf(0xAA)
+            waitingList.removeAtIndex(index!)
+        }
+        
+        
     }
     
     func checkValet(intValue : UInt8){
@@ -1560,253 +1597,321 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func checkLock(intValue : UInt8){
         if intValue & mask9lock != 0 {
-            if !stateLocked || isFirstACK{
-                showLocked()
-            }
+            showLocked()
             stateLocked = true
         }else{
-            if stateLocked || isFirstACK{
-                showUnlocked()
-            }
+            showUnlocked()
             stateLocked = false
         }
     }
     
-    func getValueFromInt(src :Int) -> Int{
-        return src >> 16
-    }
-    
-    func handleRawData(data: NSData){
-        let rawHex = data.hexString
-        
-        if lastRaw == nil || rawHex != lastRaw{
-            printDBG("Raw: [\(rawHex)]")
-            handleData(data)
-        }
-        
-        lastRaw = rawHex
-    }
-    
-    func handleData(data :NSData){
-        //put NSData in an array of UInt8 value
-        let count = data.length / sizeof(UInt8)
-        var array = [UInt8](count: count, repeatedValue: 0)
-        data.getBytes(&array, length: count * sizeof(UInt8))
-        
-        if array.count == 6 {
-            var result = Dictionary<String,Int!>()
-            result["runtime"] = Int(array[0]) + 256 * Int(array[1])
-            result["event"] = Int(array[3])
-            result["status"] = Int(array[2])
-            result["temperature"] = Int(array[4])
-            for key in result.keys{
-                printDBG("\(key): \(result[key]!.hexString)")
-            }
-            
-            //handle temperature
-            var temperature = Int(array[4])
-            if temperature != 0 {
-                if temperature > 120 {
-                    temperature = 120
-                }else if temperature < 4 {
-                    temperature = 4
-                }
-                updateUITemperature(temperature-44)
-            }
-            
-            
-            //handle status and event
-            handleStatusAndEvent(array[2], event:array[3])
-            printDBG("state valet    : \(stateValet)")
-            printDBG("state remote   : \(stateRemote)")
-            printDBG("state ignition : \(stateIgnition)")
-            printDBG("state engine   : \(stateEngineStarted)")
-            printDBG("state hood     : \(stateHoodOpened)")
-            printDBG("state trunk    : \(stateTrunkOpened)")
-            printDBG("state door     : \(stateDoorOpened)")
-            printDBG("state lock     : \(stateLocked)")
-            
-            
-            //handle runtime countdown
-            let runtimeCountdown = result["runtime"]!
-            
-            
-            printDBG("Handle runtime countdown: \(runtimeCountdown) seconds")
-            if runtimeCountdown != 0 && runtimeCountdown != 65535{
-                countdown = runtimeCountdown
-                if isTimerRunning {
-                    reSyncTimer(countdown)
-                    resetNotification(countdown)
-                }else{
-                    if !startingEngine && stateRemote{
-                        startTimerFrom(countdown)
-                    }
-                }
-            }else{
-                if runtimeCountdown == 0 {
-                    let event = Int(array[3])
-                    if event == 1 || event == 2 || event == 4 {
-                        print("1,2,4")
-//                        showStopped()
-                    }
-                    stopTimer()
-                    let application = UIApplication.sharedApplication()
-                    let scheduledNotifications = application.scheduledLocalNotifications!
-                    for notification in scheduledNotifications {
-                        application.cancelLocalNotification(notification)
-                    }
-                }
-            }
-            if waitingList.contains(0xAE){
-                let index = waitingList.indexOf(0xAE)
-                waitingList.removeAtIndex(index!)
-            }
-            if isFirstACK {
-                isFirstACK = false
-            }
-        }else{
-            printVDBG("Error when processing NSData, array count : \(array.count)")
+    func printDBG(string :String){
+        if DBG {
+            print("\(getTimestamp()) \(string)")
         }
     }
     
-    func handleStatusAndEvent(status : UInt8, event: UInt8){
-        printDBG("Handle status and status")
-        
-        if checkingValetState {
-            printDBG("Check valet mode flag : ON")
-            if checkingValetEvent {
-                printDBG("Check valet event flag : ON")
-                checkingValetState = false
-                
-                if waitingList.contains(0x01){
-                    let index = waitingList.indexOf(0x01)
-                    waitingList.removeAtIndex(index!)
-                }
-                if status & mask9valet != 0{
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                        dispatch_async(dispatch_get_main_queue(),{
-                            self.showValetOn()
-                        })
+    func printVDBG(string :String){
+        if VDBG {
+            print("\(getTimestamp()) VDBG - \(string)")
+        }
+    }
+    
+    func getTimestamp() -> String{
+        let date = NSDate()
+        let calender = NSCalendar.currentCalendar()
+        let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
+        var h = "\(components.hour)"
+        if components.hour < 10 {
+            h = "0\(components.hour)"
+        }
+        var m = "\(components.minute)"
+        if components.minute < 10 {
+            m = "0\(components.minute)"
+        }
+        var s = "\(components.second)"
+        if components.second < 10 {
+            s = "0\(components.second)"
+        }
+        return "[\(h):\(m):\(s)] - Control - "
+    }
+    
+    func performBuzz(enabled: Bool, repeats: Int){
+        if enabled {
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+                for _ in 1...repeats {
+                    dispatch_async(dispatch_get_main_queue(),{
+                        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
                     })
-                    stateValet = true
-                }else{
-                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                        dispatch_async(dispatch_get_main_queue(),{
-                            self.showValetOff()
-                        })
-                    })
-                    stateValet = false
+                    usleep(1000 * 500)
                 }
-                performBuzz(true, repeats: 1)
-                printDBG("111 vibrateion")
-                return
-            }
-            checkValet(status)
-            if waitingList.contains(0xAA){
-                let index = waitingList.indexOf(0xAA)
-                waitingList.removeAtIndex(index!)
-            }
-            return
+                self.ifNeedVibration = false
+            })
         }
-        
-        if startingEngine {
-            printDBG("Starting engine flag : ON")
-            if waitingList.contains(0x02){
-                let index = waitingList.indexOf(0x02)
-                waitingList.removeAtIndex(index!)
-            }
-            if event == 7 {
-                showStartFailed()
-                return
-            }else if event == 6{
-                showStarted()
-                if stateRemote {
-                    printDBG("Engine started : perform 3 buzzs")
-                    performBuzz(true, repeats: 3)
-                }
-                printDBG("Engine started : Event 6 received")
-                if !isFirstACK {
-                    displayMessage(msgRemoteStarted)
-                }
-                startingEngine = false
-                return
-            }else{
-                checkIgnition(status)
-                checkRemote(status)
-                checkEngine(status)
-                if stateRemote {
-                    printDBG("Starting engine remotely")
-                    if !isFirstACK {
-                        displayMessage("Starting engine...")
-                    }
-                }
-                return
-            }
-        }
-        
-        if stoppingEngine {
-            if waitingList.contains(0x02){
-                let index = waitingList.indexOf(0x02)
-                waitingList.removeAtIndex(index!)
-            }
-            checkIgnition(status)
-            checkRemote(status)
-            checkEngine(status)
-            showStopped()
-            stoppingEngine = false
-            return
-        }
-        
-        if checkingLock {
-            if status & mask9lock != 0 {
-                showLocked()
-                stateLocked = true
-            }else{
-                showUnlocked()
-                stateLocked = false
-            }
-            if waitingList.contains(0x80){
-                let index = waitingList.indexOf(0x80)
-                waitingList.removeAtIndex(index!)
-                lastRaw = nil
-            }
-            return
-        }
-        
-        checkTrunk(status, event: event)
-        checkHood(status)
-        checkDoor(status)
-        checkLock(status)
-        checkValet(status)
-        
-        if stateRemote {
-            checkIgnition(status)
-            checkRemote(status)
-            checkEngine(status)
-            printDBG("not checking start or stop or valet")
-            if !stateRemote && !isFirstACK{
-                showStopped()
-            }
+    }
+    
+    func showUnlocked(){
+        printVDBG("Show door unlocked")
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
+                    self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
+            })
         }else{
-            checkIgnition(status)
-            checkRemote(status)
-            checkEngine(status)
-            if stateRemote {
-                showStarted()
-                if event == 6 {
-                    performBuzz(true, repeats: 3)
-                }
-                printDBG("aaaaaaaaaaa")
-                displayMessage("\(msgRemoteStarted)")
+            buttonLock.setImage(UIImage(named: "ButtonLockOff"), forState: .Normal)
+            buttonUnlock.setImage(UIImage(named: "ButtonUnlockOn"), forState: .Normal)
+        }
+    }
+    
+    func showLocked(){
+        printVDBG("Show door locked")
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.buttonLock.setImage(UIImage(named: "ButtonLockOn"), forState: .Normal)
+                    self.buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
+            })
+        }else{
+            buttonLock.setImage(UIImage(named: "ButtonLockOn"), forState: .Normal)
+            buttonUnlock.setImage(UIImage(named: "ButtonUnlockOff"), forState: .Normal)
+        }
+    }
+    
+    func showDoorOpened(){
+        printVDBG("Show door opened")
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.imageViewDoors.image = UIImage(named: "StateDoorOpened")
+            })
+        }else{
+            imageViewDoors.image = UIImage(named: "StateDoorOpened")
+        }
+    }
+    
+    func showDoorClosed(){
+        printVDBG("Show door closed")
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.imageViewDoors.image = nil
+            })
+        }else{
+            self.imageViewDoors.image = nil
+        }
+    }
+    
+    func showTrunkReleased(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunkReleased"), forState: .Normal)
+                    self.displayMessage(self.msgTrunkReleased)
+            })
+        }else{
+            buttonTrunk.setImage(UIImage(named: "ButtonTrunkReleased"), forState: .Normal)
+            displayMessage(msgTrunkReleased)
+        }
+        performBuzz(true, repeats: 1)
+    }
+    
+    func showTrunkOpened(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
+                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
+                    self.performBuzz(true, repeats: 1)
+                    if !self.isFirstACK {
+                        self.displayMessage(self.msgTrunkOpened)
+                    }
+            })
+        }else{
+            imageViewTrunk.image = UIImage(named: "StateTrunkOpened")
+            buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
+            performBuzz(true, repeats: 1)
+            if !isFirstACK {
+                displayMessage(msgTrunkOpened)
             }
         }
-        
-        if waitingList.contains(0xAA){
-            let index = waitingList.indexOf(0xAA)
-            waitingList.removeAtIndex(index!)
+    }
+    
+    func showTrunkClosed(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.imageViewTrunk.image = nil
+                    self.buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
+                    if !self.isFirstACK {
+                        self.displayMessage(self.msgTrunkClosed)
+                    }
+                    
+            })
+        }else{
+            imageViewTrunk.image = nil
+            buttonTrunk.setImage(UIImage(named: "ButtonTrunk"), forState: .Normal)
+            if !isFirstACK {
+                displayMessage(msgTrunkClosed)
+            }
+        }
+    }
+    
+    func showHoodOpened(){
+        printVDBG("Show hood opened")
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.imageViewHood.image = UIImage(named: "StateHoodOn")
+            })
+        }else{
+            imageViewHood.image = UIImage(named: "StateHoodOn")
+        }
+        performBuzz(true, repeats: 1)
+    }
+    
+    func showHoodClosed(){
+        printVDBG("Show hood closed")
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.imageViewHood.image = nil
+            })
+        }else{
+            imageViewHood.image = nil
+        }
+    }
+    
+    func showIgnitionOn(){
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            dispatch_async(dispatch_get_main_queue(),{
+                self.updateUIRPM(8000)
+                self.updateUIBattery(100)
+                self.updateUIFuel(100)
+            })
+            sleep(1)
+            dispatch_async(dispatch_get_main_queue(),{
+                self.updateUIRPM(0)
+                self.updateUIBattery(0)
+                self.updateUIFuel(0)
+            })
+        })
+    }
+    
+    func showIgnitionOff(){
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
+            dispatch_async(dispatch_get_main_queue(),{
+                self.updateUIRPM(0)
+                self.updateUIBattery(0)
+                self.updateUIFuel(0)
+            })
+        })
+    }
+    
+    func showStarted(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.updateUIRPM(1100)
+                    self.updateUIBattery(95)
+                    self.updateUIFuel(50)
+                    self.onUpdateTemp(self.buttonTemperature)
+            })
+        }else{
+            updateUIRPM(1100)
+            updateUIBattery(95)
+            updateUIFuel(50)
+            onUpdateTemp(self.buttonTemperature)
+        }
+    }
+    
+    func showStopped(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.updateUIRPM(0)
+                    self.updateUIBattery(0)
+                    self.updateUIFuel(0)
+            })
+        }else{
+            updateUIRPM(0)
+            updateUIBattery(0)
+            updateUIFuel(0)
         }
         
-        
+        stopTimer()
+    }
+    
+    func showStartFailed(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.updateUIRPM(0)
+                    self.updateUIBattery(0)
+                    self.updateUIFuel(0)
+            })
+        }else{
+            updateUIRPM(0)
+            updateUIBattery(0)
+            updateUIFuel(0)
+        }
+        if !isFirstACK {
+            displayMessage(msgRemoteFailed)
+        }
+        stopTimer()
+        performBuzz(true, repeats: 1)
+    }
+    
+    func showValetOn(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.displayMessage(self.msgValetOn)
+            })
+        }else{
+            displayMessage(msgValetOn)
+        }
+        checkingValetEvent = false
+    }
+    
+    func showValetOff(){
+        if isPanelDispalyed {
+            isPanelDispalyed = false
+            UIView.animateWithDuration(0.3, animations: {
+                self.slideDownPanel()
+                }, completion: { finished in
+                    self.displayMessage(self.msgValetOff)
+            })
+        }else{
+            displayMessage(msgValetOff)
+        }
+        checkingValetEvent = false
     }
     
     func showActionSheetValet(){
@@ -1823,65 +1928,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     
     func showRemoteStartDisabledFromValet(){
         let actionSheet = UIAlertController(title: "Remote start is disabled", message: "Turn off valet mode to enable remote start", preferredStyle: .ActionSheet)
-        
         actionSheet.addAction(UIAlertAction(title: "OK", style: .Cancel, handler: nil))
         self.presentViewController(actionSheet, animated: true, completion: nil)
     }
     
-    func printDBG(string :String){
-        if DBG {
-            print("\(getTimestamp()) \(string)")
-        }
-    }
     
-    func printVDBG(string :String){
-        if VDBG {
-            print("\(getTimestamp()) \(string)")
-        }
-    }
-    
-    func getTimestamp() -> String{
-        let date = NSDate()
-        let calender = NSCalendar.currentCalendar()
-        let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
-        
-        return "[\(components.hour):\(components.minute):\(components.second)] - Control - "
-    }
-    
-    @IBAction func onTryDemo(sender: UIButton) {
-        printDBG("Entering demo mode when : lost connection")
-        coverLostConnection.hidden = true
-        coverEmptyGarage.hidden = true
-        buttonLock.enabled = true
-        buttonUnlock.enabled = true
-        buttonCover.enabled = true
-        self.title = "Control/Demo"
-        setDemoFlag(true)
-    }
-    
-    @IBAction func onDemo(sender: UIButton) {
-        printDBG("Entering demo mode when : empty garage")
-        coverLostConnection.hidden = true
-        coverEmptyGarage.hidden = true
-        buttonLock.enabled = true
-        buttonUnlock.enabled = true
-        buttonCover.enabled = true
-        setDemoFlag(true)
-        self.title = "Control/Demo"
-    }
-    
-    func performBuzz(enabled: Bool, repeats: Int){
-        if enabled && ifNeedVibration{
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), {
-                for _ in 1...repeats {
-                    dispatch_async(dispatch_get_main_queue(),{
-                        AudioServicesPlayAlertSound(UInt32(kSystemSoundID_Vibrate))
-                    })
-                    usleep(1000 * 500)
-                }
-                self.ifNeedVibration = false
-            })
-        }
-    }
 }
 

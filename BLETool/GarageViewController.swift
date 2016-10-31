@@ -117,6 +117,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
             }
         }else{
             printVDBG("click in demo mode")
+            setSelectedModuleInTable("")
             self.navigationController?.popToRootViewControllerAnimated(true)
         }
         tableView.deselectRowAtIndexPath(indexPath, animated: false)
@@ -166,18 +167,21 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                     self.dataController!.deleteVehicleByName(vehicleToDelete)
                     if self.vehicleList.count == 0 {
                         self.setDefault("")
-                        self.printDBG("clear default")
+                        self.printDBG("Clear default")
                     }else{
                         self.setDefault(self.vehicleList[0].module!)
                     }
                 }else{
-                    self.printDBG("This will delete vehicle")
-                    self.tableView.setEditing(false, animated: true)
+                    self.vehicleList.removeAtIndex(indexPath.row)
+                    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+                    self.dataController!.deleteVehicleByName(vehicleToDelete)
+                    self.printDBG("Deleting non-favorite car")
                 }
             }else{
-                self.vehicleList.removeAll()
-                tableView.reloadData()
+                self.printDBG("In demo mode : This will delete vehicle")
+                self.tableView.setEditing(false, animated: true)
             }
+            tableView.reloadData()
         }
         share.backgroundColor = UIColor.redColor()
         
@@ -224,8 +228,8 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                     centralManager.stopScan()
                 }
                 printVDBG("Stop scanning after \(nameOfDeviceFound) device found")
-                setDefault(selectedModule)
                 centralManager = nil
+                setSelectedModuleInTable(selectedModule)
                 self.navigationController?.popToRootViewControllerAnimated(true)
             }
         }
@@ -323,6 +327,11 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         NSUserDefaults.standardUserDefaults().setObject("Garage", forKey: "lastScene")
     }
     
+    func setSelectedModuleInTable(value : String){
+        printVDBG("Set selected car")
+        NSUserDefaults.standardUserDefaults().setObject(value, forKey: "selectedModule")
+    }
+    
     func printDBG(string :String){
         if DBG {
             print("\(getTimestamp()) \(string)")
@@ -339,8 +348,19 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         let date = NSDate()
         let calender = NSCalendar.currentCalendar()
         let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
-        
-        return "[\(components.hour):\(components.minute):\(components.second)] - Garage - "
+        var h = "\(components.hour)"
+        if components.hour < 10 {
+            h = "0\(components.hour)"
+        }
+        var m = "\(components.minute)"
+        if components.minute < 10 {
+            m = "0\(components.minute)"
+        }
+        var s = "\(components.second)"
+        if components.second < 10 {
+            s = "0\(components.second)"
+        }
+        return "[\(h):\(m):\(s)] - Garage - "
     }
     
     func getDemoFlag() -> Bool{
