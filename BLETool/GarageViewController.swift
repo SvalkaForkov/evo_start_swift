@@ -63,7 +63,8 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     override func viewDidAppear(animated: Bool) {
         printVDBG("GarageViewController: viewDidAppear")
         setLastScene()
-    }
+        let currentDefault = self.getDefaultModuleName()
+        self.printDBG("Current default : \(currentDefault)")    }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if !flagDemo {
@@ -138,10 +139,13 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
     }
     
     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {    }
+    
+    
     func setDefaultModule(value: String){
         printVDBG("Set default module : \(value)")
         NSUserDefaults.standardUserDefaults().setObject(value, forKey: tag_default_module)
     }
+    
     func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
         let favorite = UITableViewRowAction(style: .Default, title: "Set\nDefault") { action, index in
             self.printVDBG("favorite button tapped")
@@ -155,7 +159,7 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
         }
         favorite.backgroundColor = UIColor.orangeColor()
         
-        let share = UITableViewRowAction(style: .Normal, title: "Delete ") { action, index in
+        let delete = UITableViewRowAction(style: .Normal, title: "Delete ") { action, index in
             if !self.flagDemo {
                 let vehicleToDelete : String! = self.vehicleList[indexPath.row].module
                 self.printDBG("Vehicle to Delete : \(vehicleToDelete)")
@@ -172,20 +176,21 @@ class GarageViewController: UIViewController ,UITableViewDataSource, UITableView
                         self.setDefault(self.vehicleList[0].module!)
                     }
                 }else{
+                    print("\(indexPath.row)")
                     self.vehicleList.removeAtIndex(indexPath.row)
                     tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
                     self.dataController!.deleteVehicleByName(vehicleToDelete)
-                    self.printDBG("Deleting non-favorite car")
+                    self.printDBG("Deleting non-favorite car\(vehicleToDelete)")
                 }
+                print("\(indexPath.row)")
             }else{
                 self.printDBG("In demo mode : This will delete vehicle")
                 self.tableView.setEditing(false, animated: true)
             }
-            tableView.reloadData()
         }
-        share.backgroundColor = UIColor.redColor()
+        delete.backgroundColor = UIColor.redColor()
         
-        return [share, favorite]
+        return [delete, favorite]
     }
     
     func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {

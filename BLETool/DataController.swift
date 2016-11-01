@@ -13,7 +13,7 @@ import UIKit
 class DataController {
     let managedObjectContext: NSManagedObjectContext
     let DBG = true
-    let VDBG = false
+    let VDBG = true
     
     init(moc: NSManagedObjectContext) {
         self.managedObjectContext = moc
@@ -38,7 +38,7 @@ class DataController {
         let components = calender.components([.Hour,.Minute,.Second], fromDate: date)
         return "[\(components.hour):\(components.minute):\(components.second)] - DataController - "
     }
-
+    
     
     func insertMake(title : String){
         let makeFetch = NSFetchRequest(entityName: "Make")
@@ -162,18 +162,6 @@ class DataController {
         return fetchedVehicles
     }
     
-    func saveVehicle(name: String, module: String){
-        printVDBG("saveVehicle(\(name))")
-        let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
-        newVehicle.name = name
-        newVehicle.module = module
-        do {
-            try self.managedObjectContext.save()
-        } catch {
-            fatalError("couldn't save context")
-        }
-    }
-    
     func saveVehicle(name: String, model: Model, year: NSDecimalNumber, module: String){
         printVDBG("DataController : Save vehicle \(name)")
         let newVehicle = NSEntityDescription.insertNewObjectForEntityForName("Vehicle", inManagedObjectContext: self.managedObjectContext) as! Vehicle
@@ -253,7 +241,7 @@ class DataController {
         return fetchedModels[0]
     }
     
-    func fetchVehicleByName(name: String)-> [Vehicle]{
+    func fetchVehicleByName(name: String)-> Vehicle?{
         printVDBG("fetchVehicleByName: \(name)")
         
         let fetchRequest = NSFetchRequest()
@@ -265,40 +253,52 @@ class DataController {
         } catch {
             fatalError("fetch failed")
         }
-        
+        var vehicle : Vehicle? = nil
         if fetchedVehicle.count == 0 {
             printVDBG("none fetched")
+            return nil
         }else{
             printVDBG("\(fetchedVehicle.count) fetched")
+            for v in fetchedVehicle {
+                print("name:\(name)")
+                print("v.name:\(v.module)")
+                if v.module == name {
+                    vehicle = v
+                }
+            }
+            return vehicle
         }
-        return fetchedVehicle
+        
     }
     
     func updateVehicle(vehicle: Vehicle){
         printVDBG("updateVehicle: \(vehicle.name))")
-        let result = fetchVehicleByName(vehicle.name!)
-        let newVehicle = result[0] as Vehicle
-        newVehicle.name = vehicle.name
-        newVehicle.module = vehicle.module
-        newVehicle.v2model = vehicle.v2model
-        newVehicle.year = vehicle.year
-        do {
-            try newVehicle.managedObjectContext!.save()
-        } catch {
-            fatalError("couldn't save context")
+        let newVehicle = fetchVehicleByName(vehicle.name!)
+        if newVehicle != nil{
+            newVehicle!.name = vehicle.name
+            newVehicle!.module = vehicle.module
+            newVehicle!.v2model = vehicle.v2model
+            newVehicle!.year = vehicle.year
+            do {
+                try newVehicle!.managedObjectContext!.save()
+            } catch {
+                fatalError("couldn't save context")
+            }
         }
     }
     
     func deleteVehicleByName(name : String){
         printVDBG("deleteVehicle")
         let result = fetchVehicleByName(name)
-        let vehicle = result[0]
-        self.managedObjectContext.deleteObject(vehicle)
+        if result != nil {
+        printDBG("result: \(result!.name)")
+        self.managedObjectContext.deleteObject(result!)
         do {
             try self.managedObjectContext.save()
         } catch {
             let saveError = error as NSError
             printVDBG("\(saveError)")
+        }
         }
     }
 }
